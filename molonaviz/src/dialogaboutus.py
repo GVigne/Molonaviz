@@ -1,8 +1,8 @@
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtGui import QPixmap
+import os.path
 
-
-From_DialogAboutUs = uic.loadUiType("ui/dialogaboutus.ui")[0]
+From_DialogAboutUs = uic.loadUiType(os.path.join("ui","dialogaboutus.ui"))[0]
 
 class DialogAboutUs(QtWidgets.QDialog,From_DialogAboutUs):
     def __init__(self):
@@ -11,8 +11,8 @@ class DialogAboutUs(QtWidgets.QDialog,From_DialogAboutUs):
         
         self.setupUi(self)
 
-        logoMines = "../imgs/LogoMines.jpeg"
-        logoMolonaviz = "../imgs/MolonavizIcon.png"
+        logoMines = os.path.join("imgs","LogoMines.jpeg")
+        logoMolonaviz = os.path.join("imgs","MolonavizIcon.png")
         self.labelMolonaviz.setPixmap(QPixmap(logoMolonaviz))
         self.labelMines.setPixmap(QPixmap(logoMines))
 

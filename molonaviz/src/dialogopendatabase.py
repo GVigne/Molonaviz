@@ -1,8 +1,7 @@
 import os, errno
 from PyQt5 import QtWidgets, uic
 
-From_DialogOpenDatabase = uic.loadUiType("ui/dialogopendatabase.ui")[0]
-
+From_DialogOpenDatabase = uic.loadUiType(os.path.join("ui","dialogopendatabase.ui"))[0]
 class DialogOpenDatabase(QtWidgets.QDialog,From_DialogOpenDatabase):
     
     def __init__(self):

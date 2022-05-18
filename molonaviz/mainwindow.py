@@ -3,12 +3,10 @@ from PyQt5.QtSql import QSqlDatabase
 from src.dialogaboutus import DialogAboutUs
 from src.dialogopendatabase import DialogOpenDatabase
 from src.utils import displayCriticalMessage
-import sys, os
+import sys, os.path
 
 
-From_MainWindow = uic.loadUiType("ui/mainwindow.ui")[0]
-
-
+From_MainWindow = uic.loadUiType(os.path.join("ui","mainwindow.ui"))[0]
 class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
     def __init__(self):
         # Call constructor of parent classes
@@ -77,9 +75,8 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
 
 
 if __name__ == '__main__':
-
     app = QtWidgets.QApplication(sys.argv)
-    app.setWindowIcon(QtGui.QIcon("../imgs/MolonavizIcon.png"))
+    app.setWindowIcon(QtGui.QIcon(os.path.join("imgs","MolonavizIcon.png")))
     mainWin = MainWindow()
     mainWin.showMaximized()
     sys.exit(app.exec_())
