@@ -14,7 +14,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Choose the path to the laboratory file</string>
+   <string>Choose the path to the laboratory directory</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -22,12 +22,12 @@
      <item>
       <widget class="QLabel" name="label">
        <property name="text">
-        <string>Configuration file</string>
+        <string>Configuration directory</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEditLabFile">
+      <widget class="QLineEdit" name="lineEditLabDir">
        <property name="readOnly">
         <bool>true</bool>
        </property>

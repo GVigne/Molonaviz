@@ -1,5 +1,6 @@
-import os, errno
+import os, sys
 from PyQt5 import QtWidgets, uic
+from src.utils import displayCriticalMessage
 
 From_DialogOpenDatabase = uic.loadUiType(os.path.join(os.path.dirname(__file__), "..", "ui","dialogOpenDatabase.ui"))[0]
 class DialogOpenDatabase(QtWidgets.QDialog,From_DialogOpenDatabase):
@@ -19,5 +20,6 @@ class DialogOpenDatabase(QtWidgets.QDialog,From_DialogOpenDatabase):
     def getDir(self):
         fileDir = self.lineEditDatabaseDir.text()
         if not os.path.isdir(fileDir):
-            raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), fileDir)
+            displayCriticalMessage("This directory was not found")
+            sys.exit()
         return fileDir

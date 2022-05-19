@@ -2,6 +2,7 @@ from PyQt5 import QtWidgets, QtGui, QtCore, uic
 from PyQt5.QtSql import QSqlDatabase
 from src.dialogAboutUs import DialogAboutUs
 from src.dialogOpenDatabase import DialogOpenDatabase
+from src.dialogImportLab import DialogImportLab
 from src.utils import displayCriticalMessage
 import sys, os.path
 
@@ -64,7 +65,11 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
             self.openDatabase()
         
     def importLabo(self):
-        pass
+        dlg = DialogImportLab()
+        dlg.setWindowModality(QtCore.Qt.ApplicationModal)
+        res = dlg.exec_()
+        if res == QtWidgets.QDialog.Accepted:
+            print(dlg.getDir())
 
     def aboutUs(self):
         """
