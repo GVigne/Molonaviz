@@ -1,7 +1,7 @@
 from PyQt5 import QtWidgets, QtGui, QtCore, uic
 from PyQt5.QtSql import QSqlDatabase
-from src.dialogaboutus import DialogAboutUs
-from src.dialogopendatabase import DialogOpenDatabase
+from src.dialogAboutUs import DialogAboutUs
+from src.dialogOpenDatabase import DialogOpenDatabase
 from src.utils import displayCriticalMessage
 import sys, os.path
 
@@ -14,6 +14,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         QtWidgets.QMainWindow.__init__(self)
         self.setupUi(self)
 
+        self.actionImportLabo.triggered.connect(self.importLabo)
         self.actionAboutMolonaViz.triggered.connect(self.aboutUs)
         self.actionOpenUserguideFR.triggered.connect(self.openUserGuideFR)
         self.actionQuitMolonaViz.triggered.connect(self.quitMolonaviz)
@@ -61,6 +62,9 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
             #Problemn when finding the database.
             displayCriticalMessage("The database wasn't found. Please try again.")
             self.openDatabase()
+        
+    def importLabo(self):
+        pass
 
     def aboutUs(self):
         """

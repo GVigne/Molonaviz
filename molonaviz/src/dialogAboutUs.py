@@ -2,7 +2,7 @@ from PyQt5 import QtWidgets, uic
 from PyQt5.QtGui import QPixmap
 import os.path
 
-From_DialogAboutUs = uic.loadUiType(os.path.join(os.path.dirname(__file__),"..","ui","dialogaboutus.ui"))[0]
+From_DialogAboutUs = uic.loadUiType(os.path.join(os.path.dirname(__file__),"..","ui","dialogAboutUs.ui"))[0]
 
 class DialogAboutUs(QtWidgets.QDialog,From_DialogAboutUs):
     def __init__(self):

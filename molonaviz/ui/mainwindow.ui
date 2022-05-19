@@ -93,7 +93,7 @@
     <property name="title">
      <string>Labo</string>
     </property>
-    <addaction name="actionImport_Labo"/>
+    <addaction name="actionImportLabo"/>
    </widget>
    <addaction name="menuMolonaViz"/>
    <addaction name="menuStudy"/>
@@ -388,7 +388,7 @@
     <string>Open Userguide (FR)</string>
    </property>
   </action>
-  <action name="actionImport_Labo">
+  <action name="actionImportLabo">
    <property name="text">
     <string>Import Labo</string>
    </property>
