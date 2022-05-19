@@ -87,7 +87,7 @@
     <property name="title">
      <string>Help</string>
     </property>
-    <addaction name="actionOpen_Userguide_FR"/>
+    <addaction name="actionOpenUserguideFR"/>
    </widget>
    <widget class="QMenu" name="menuLabo">
     <property name="title">
@@ -383,7 +383,7 @@
     <string>Switch To Cascade View</string>
    </property>
   </action>
-  <action name="actionOpen_Userguide_FR">
+  <action name="actionOpenUserguideFR">
    <property name="text">
     <string>Open Userguide (FR)</string>
    </property>

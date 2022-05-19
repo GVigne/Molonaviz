@@ -6,7 +6,7 @@ from src.utils import displayCriticalMessage
 import sys, os.path
 
 
-From_MainWindow = uic.loadUiType(os.path.join("ui","mainwindow.ui"))[0]
+From_MainWindow = uic.loadUiType(os.path.join(os.path.dirname(__file__),"ui","mainwindow.ui"))[0]
 class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
     def __init__(self):
         # Call constructor of parent classes
@@ -15,6 +15,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.setupUi(self)
 
         self.actionAboutMolonaViz.triggered.connect(self.aboutUs)
+        self.actionOpenUserguideFR.triggered.connect(self.openUserGuideFR)
         self.actionQuitMolonaViz.triggered.connect(self.quitMolonaviz)
 
         self.con = None #Connection to the database
@@ -29,7 +30,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         databaseDir = None
         remember = False
         try:
-            with open('config.txt') as f:
+            with open(os.path.join(os.path.dirname(__file__),'config.txt')) as f:
                 databaseDir = f.readline()
         except OSError:
             #The config file does not exist. 
@@ -53,7 +54,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
             self.con.open()
 
             if remember:
-                with open('config.txt', 'w') as f:
+                with open(os.path.join(os.path.dirname(__file__),'config.txt'), 'w') as f:
                     #Write (or overwrite) the path to the database file
                     f.write(databaseDir)
         else:
@@ -84,11 +85,16 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         except Exception as e:
             pass
         super().close()
+    
+    def openUserGuideFR(self):
+        userguidepath=os.path.dirname(__file__)
+        userguidepath=os.path.join(userguidepath,"docs","UserguideFR.pdf")
+        QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(userguidepath))
 
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
-    app.setWindowIcon(QtGui.QIcon(os.path.join("imgs","MolonavizIcon.png")))
+    app.setWindowIcon(QtGui.QIcon(os.path.join(os.path.dirname(__file__),"imgs","MolonavizIcon.png")))
     mainWin = MainWindow()
     mainWin.showMaximized()
     sys.exit(app.exec_())
