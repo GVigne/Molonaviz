@@ -81,7 +81,7 @@
     <addaction name="actionAboutMolonaViz"/>
     <addaction name="menuPreferences"/>
     <addaction name="separator"/>
-    <addaction name="actionQuit_MolonaViz"/>
+    <addaction name="actionQuitMolonaViz"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -327,7 +327,7 @@
     <string>About MolonaViz</string>
    </property>
   </action>
-  <action name="actionQuit_MolonaViz">
+  <action name="actionQuitMolonaViz">
    <property name="text">
     <string>Quit MolonaViz</string>
    </property>

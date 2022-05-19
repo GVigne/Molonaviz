@@ -15,6 +15,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.setupUi(self)
 
         self.actionAboutMolonaViz.triggered.connect(self.aboutUs)
+        self.actionQuitMolonaViz.triggered.connect(self.quitMolonaviz)
 
         self.con = None #Connection to the database
         self.openDatabase()
@@ -40,6 +41,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
                 remember = dlg.checkBoxRemember.isChecked()
             else:
                 #If the user cancels or quits the dialog, quit Molonaviz.
+                #This is a bit brutal. Maybe there can be some other way to quit via Qt: the problem is that, at this point in the script, the app (QtWidgets.QApplication) has not been executed yet.
                 sys.exit()
 
         databaseFile = os.path.join(databaseDir,"Molonari.sqlite")
@@ -60,8 +62,18 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
             self.openDatabase()
 
     def aboutUs(self):
+        """
+        Display a small dialog about the app.
+        """
         dlg = DialogAboutUs()
         dlg.exec_()
+    
+    def quitMolonaviz(self):
+        """
+        Close the application.
+        """
+        QtWidgets.QApplication.quit()
+
     
     def closeEvent(self, event):
         """
