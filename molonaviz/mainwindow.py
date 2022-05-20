@@ -1,10 +1,15 @@
 from PyQt5 import QtWidgets, QtGui, QtCore, uic
 from PyQt5.QtSql import QSqlDatabase
+
+from queue import Queue
+import sys, os.path
+
 from src.dialogAboutUs import DialogAboutUs
 from src.dialogOpenDatabase import DialogOpenDatabase
 from src.dialogImportLab import DialogImportLab
+from src.Laboratory import Lab
 from src.utils import displayCriticalMessage
-import sys, os.path
+from src.printThread import InterceptOutput, Receiver
 
 
 From_MainWindow = uic.loadUiType(os.path.join(os.path.dirname(__file__),"ui","mainwindow.ui"))[0]
@@ -19,6 +24,11 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.actionAboutMolonaViz.triggered.connect(self.aboutUs)
         self.actionOpenUserguideFR.triggered.connect(self.openUserGuideFR)
         self.actionQuitMolonaViz.triggered.connect(self.quitMolonaviz)
+
+        #Setup the queue used to display application messages.
+        self.messageQueue = Queue()
+        sys.stdout = InterceptOutput(self.messageQueue)
+        print("MolonaViz - 2022-05-20")
 
         self.con = None #Connection to the database
         self.openDatabase()
@@ -69,7 +79,15 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         dlg.setWindowModality(QtCore.Qt.ApplicationModal)
         res = dlg.exec_()
         if res == QtWidgets.QDialog.Accepted:
-            print(dlg.getDir())
+            lab = Lab(self.con,dlg.getDir())
+            lab.addToDatabase()
+    
+    def printApplicationMessage(self,text):
+        """
+        Method called when a message needs to be displayed (ie a new element was put in self.messageQueue)
+        """
+        self.textEditApplicationMessages.moveCursor(QtGui.QTextCursor.End)
+        self.textEditApplicationMessages.insertPlainText(text)
 
     def aboutUs(self):
         """
@@ -106,4 +124,13 @@ if __name__ == '__main__':
     app.setWindowIcon(QtGui.QIcon(os.path.join(os.path.dirname(__file__),"imgs","MolonavizIcon.png")))
     mainWin = MainWindow()
     mainWin.showMaximized()
+
+    # Create thread that will be used to display application messages.
+    messageThread = QtCore.QThread()
+    my_receiver = Receiver(mainWin.messageQueue)
+    my_receiver.printMessage.connect(mainWin.printApplicationMessage)
+    my_receiver.moveToThread(messageThread)
+    messageThread.started.connect(my_receiver.run)
+    messageThread.start()
+
     sys.exit(app.exec_())
