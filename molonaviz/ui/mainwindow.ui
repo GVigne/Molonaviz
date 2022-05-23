@@ -34,7 +34,7 @@
      <string>Study</string>
     </property>
     <addaction name="actionCreate_Study"/>
-    <addaction name="actionOpen_Study"/>
+    <addaction name="actionOpenStudy"/>
     <addaction name="separator"/>
     <addaction name="actionClose_Study"/>
    </widget>
@@ -273,7 +273,7 @@
     <string>Create Study</string>
    </property>
   </action>
-  <action name="actionOpen_Study">
+  <action name="actionOpenStudy">
    <property name="text">
     <string>Open Study</string>
    </property>

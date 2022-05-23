@@ -17,8 +17,11 @@ class DialogImportLab(QtWidgets.QDialog,From_DialogImportLab):
         if fileDir:
             self.lineEditLabDir.setText(fileDir)
     
-    def getDir(self):
+    def getLaboInfo(self):
         fileDir = self.lineEditLabDir.text()
+        labName = self.lineEditLabName.text()
         if not os.path.isdir(fileDir):
             displayCriticalMessage("This directory was not found")
-        return fileDir
+        elif labName =="":
+            displayCriticalMessage("The laboratory's name cannot be empty. \nPlease also make sure a laboratory with the same name does not already exist.")
+        return fileDir,labName

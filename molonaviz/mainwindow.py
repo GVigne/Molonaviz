@@ -7,6 +7,8 @@ import sys, os.path
 from src.dialogAboutUs import DialogAboutUs
 from src.dialogOpenDatabase import DialogOpenDatabase
 from src.dialogImportLab import DialogImportLab
+from src.dialogOpenStudy import tryOpenStudy
+
 from src.Laboratory import Lab
 from src.utils import displayCriticalMessage
 from src.printThread import InterceptOutput, Receiver
@@ -24,6 +26,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.actionAboutMolonaViz.triggered.connect(self.aboutUs)
         self.actionOpenUserguideFR.triggered.connect(self.openUserGuideFR)
         self.actionQuitMolonaViz.triggered.connect(self.quitMolonaviz)
+        self.actionOpenStudy.triggered.connect(self.openStudy)
 
         #Setup the queue used to display application messages.
         self.messageQueue = Queue()
@@ -79,8 +82,21 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         dlg.setWindowModality(QtCore.Qt.ApplicationModal)
         res = dlg.exec_()
         if res == QtWidgets.QDialog.Accepted:
-            lab = Lab(self.con,dlg.getDir())
-            lab.addToDatabase()
+            labdir,labname = dlg.getLaboInfo()
+            lab = Lab(self.con,labdir,labname)
+            if lab.checkIntegrity():
+                lab.addToDatabase()
+            else:
+                displayCriticalMessage("The laboratory couldn't be added as a laboratory with the same name is already in the database.")
+    
+    def openStudy(self):
+        """
+        Display a dialog so the user may choose a study to open, or display an error message. Then, open a study.
+        """
+        study_name = tryOpenStudy(self.con)
+        if study_name !="":
+            pass
+
     
     def printApplicationMessage(self,text):
         """
