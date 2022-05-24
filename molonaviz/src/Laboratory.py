@@ -1,6 +1,3 @@
-"""
-A concrete class to do some manipulations on a Lab. For now, this is used when importing a lab from a directory.
-"""
 import os.path
 import glob
 import pandas as pd
@@ -8,6 +5,9 @@ from ast import literal_eval
 from PyQt5.QtSql import QSqlQuery
 
 class Lab:
+    """
+    A concrete class to do some manipulations on a Lab. For now, this is used when importing a lab from a directory.
+    """
     def __init__(self, con, pathToDir,labName):
         self.con = con
         self.pathToDir = pathToDir
@@ -38,7 +38,7 @@ class Lab:
     def addLab(self):
         insert_lab = self.build_insert_lab()
         insert_lab.exec()
-        print(f"The lab {self.labName} has successfully been added to the database.")
+        print(f"The lab {self.labName} has been added to the database.")
 
         get_id = self.build_lab_id()
         get_id.exec()
@@ -97,8 +97,8 @@ class Lab:
                 insertPsensor.bindValue(":Datalogger",datalogger)
                 insertPsensor.bindValue(":Calibration",calibrationDate)
                 insertPsensor.bindValue(":Intercept",intercept)
-                insertPsensor.bindValue(":[Du/Dh]",dudh)
-                insertPsensor.bindValue(":[Du/Dt]",dudt)
+                insertPsensor.bindValue(":DuDh",dudh)
+                insertPsensor.bindValue(":DuDt",dudt)
                 insertPsensor.bindValue(":Precision",sigma)
                 insertPsensor.bindValue(":Thermo_model",thermo_model)
                 insertPsensor.bindValue(":Labo",self.labId)
@@ -155,7 +155,7 @@ class Lab:
         Build and return a query which inserts into the database the current lab.
         """
         query = QSqlQuery(self.con)
-        query.prepare (f"INSERT INTO Labo (Name) VALUES ({self.labName});")
+        query.prepare(f"INSERT INTO Labo (Name) VALUES ('{self.labName}');")
         return query
     
     def build_lab_id(self):
@@ -163,7 +163,7 @@ class Lab:
         Build and return a query giving the ID of the current lab.
         """
         query = QSqlQuery(self.con)
-        query.prepare (f"SELECT Labo.ID FROM Labo WHERE Labo.Name ='{self.labName}'")
+        query.prepare(f"SELECT Labo.ID FROM Labo WHERE Labo.Name ='{self.labName}'")
         return query
 
     def build_insert_thermometer(self):
@@ -189,7 +189,7 @@ class Lab:
         Build and return a query giving a the ID of a given thermometer.
         """
         selectQuery = QSqlQuery(self.con)
-        selectQuery.prepare(f"SELECT Thermometer.ID WHERE Thermometer.Name = '{thermoname}' AND Thermometer.Labo = '{self.labId}'")
+        selectQuery.prepare(f"SELECT Thermometer.ID FROM Thermometer WHERE Thermometer.Name = '{thermoname}' AND Thermometer.Labo = '{self.labId}'")
         return selectQuery
     
     def build_insert_psensor(self):
@@ -210,7 +210,7 @@ class Lab:
             Thermo_model,
             Labo
         )
-        VALUES (:Name, :Datalogger, :Calibration, :Intercept, :[Du/Dh], :[Du/Dt], :Precision, :Thermo_model, :Labo)
+        VALUES (:Name, :Datalogger, :Calibration, :Intercept, :DuDh, :DuDt, :Precision, :Thermo_model, :Labo)
         """)
         return insertQuery
     
@@ -223,7 +223,7 @@ class Lab:
             INSERT INTO Shaft (
                 Name,
                 Depth1,
-                Datalogger
+                Datalogger,
                 Depth2,
                 Depth3,
                 Depth4,

@@ -83,11 +83,12 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         res = dlg.exec_()
         if res == QtWidgets.QDialog.Accepted:
             labdir,labname = dlg.getLaboInfo()
-            lab = Lab(self.con,labdir,labname)
-            if lab.checkIntegrity():
-                lab.addToDatabase()
-            else:
-                displayCriticalMessage("The laboratory couldn't be added as a laboratory with the same name is already in the database.")
+            if labdir and labname: #Both strings are not empty
+                lab = Lab(self.con,labdir,labname)
+                if lab.checkIntegrity():
+                    lab.addToDatabase()
+                else:
+                    displayCriticalMessage("Something went wrong when creating the laboratory, and it wasn't added to the database.\nPlease make sure a laboratory with the same name is not already in the database.")
     
     def openStudy(self):
         """
