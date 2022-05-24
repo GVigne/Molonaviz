@@ -3,3 +3,7 @@ When creating a QSQlQuery object, we always give a connection. For now, the app 
 When creating a QSQlQuery object with a string (ie doing q =QSQlQuery("Select...")),  then the query is instantly executed. We wish to make a difference between the query in itself (the string) and the query object. Therefore, all the functions beginning with build_ return a QSQlQuery which has not been yet executed. It is up to the user to execute them at the appropriate moment. In other words, the build_ functions focus only on creating SQL-correct messages (especially important for difficult query such as in widgetpoint.py) and returning them as a QSQlQuery object, but they are not in charge of executing them, binding values...
 
 When using placeholders (and using bindValue), the convention is that placeholders have the same name as the field in the database.
+
+The config.txt file is created when the user wishes the patht to the database be remembered. It consists in just a line with the absolute path to the database, and is placed next to main.py
+
+DER_IHM.sql contains all the queries (in SQL language) required to recreate the database. It has been generated with the export function of Sqlite Studio.
