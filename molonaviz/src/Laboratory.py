@@ -3,6 +3,7 @@ import glob
 import pandas as pd
 from ast import literal_eval
 from PyQt5.QtSql import QSqlQuery
+from src.utilsQueries import build_lab_id
 
 class Lab:
     """
@@ -40,7 +41,7 @@ class Lab:
         insert_lab.exec()
         print(f"The lab {self.labName} has been added to the database.")
 
-        get_id = self.build_lab_id()
+        get_id = build_lab_id(self.con,self.labName)
         get_id.exec()
         get_id.next()
         self.labId = get_id.value(0)
@@ -156,14 +157,6 @@ class Lab:
         """
         query = QSqlQuery(self.con)
         query.prepare(f"INSERT INTO Labo (Name) VALUES ('{self.labName}');")
-        return query
-    
-    def build_lab_id(self):
-        """
-        Build and return a query giving the ID of the current lab.
-        """
-        query = QSqlQuery(self.con)
-        query.prepare(f"SELECT Labo.ID FROM Labo WHERE Labo.Name ='{self.labName}'")
         return query
 
     def build_insert_thermometer(self):

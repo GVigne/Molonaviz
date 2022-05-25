@@ -7,7 +7,10 @@ import sys, os.path
 from src.dialogAboutUs import DialogAboutUs
 from src.dialogOpenDatabase import DialogOpenDatabase
 from src.dialogImportLab import DialogImportLab
+from src.dialogCreateStudy import DialogCreateStudy
 from src.dialogOpenStudy import tryOpenStudy
+from src.dialogCreateStudy import tryCreateStudy
+from src.Study import createStudyDatabase
 
 from src.Laboratory import Lab
 from src.utils import displayCriticalMessage
@@ -26,7 +29,8 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.actionAboutMolonaViz.triggered.connect(self.aboutUs)
         self.actionOpenUserguideFR.triggered.connect(self.openUserGuideFR)
         self.actionQuitMolonaViz.triggered.connect(self.quitMolonaviz)
-        self.actionOpenStudy.triggered.connect(self.openStudy)
+        self.actionCreateStudy.triggered.connect(self.createStudy)
+        self.actionOpenStudy.triggered.connect(self.chooseStudyName)
 
         #Setup the queue used to display application messages.
         self.messageQueue = Queue()
@@ -90,13 +94,28 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
                 else:
                     displayCriticalMessage("Something went wrong when creating the laboratory, and it wasn't added to the database.\nPlease make sure a laboratory with the same name is not already in the database.")
     
-    def openStudy(self):
+    def createStudy(self):
+        """
+        Display a dialog so the user may create a study. Then, open this study.
+        """
+        study_name, study_lab = tryCreateStudy(self.con)
+        if study_name and study_lab:#Theses strings are not empty: create the corresponding study
+            createStudyDatabase(self.con,study_name,study_lab)
+            self.openStudy(study_name)
+    
+    def chooseStudyName(self):
         """
         Display a dialog so the user may choose a study to open, or display an error message. Then, open a study.
         """
         study_name = tryOpenStudy(self.con)
-        if study_name !="":
+        if study_name: #study_name is not an empty string: we should open the corresponding Study.
             pass
+    
+    def openStudy(self, studyName):
+        """
+        Given a VALID name of a study, open it.
+        """
+        pass
 
     
     def printApplicationMessage(self,text):

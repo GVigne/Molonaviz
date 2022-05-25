@@ -1,21 +1,22 @@
 import os
 from PyQt5 import QtCore, QtWidgets, uic
-from src.utils import displayCriticalMessage
 from PyQt5.QtSql import QSqlQuery
+from src.utils import displayCriticalMessage
+
 
 def tryOpenStudy(con):
     """
     This function either displays an error message (no study in database) or a dialog to choose one study.
     This function returns a string:
         -either the name of a study
-        -an empty string if there are no studies in the databse or if the user clicked close.
+        -or an empty string if there are no studies in the database or if the user clicked close.
     """
     studies_query = build_select_studies(con)
     studies = []
-
     studies_query.exec()
     while studies_query.next():
-        studies.append(studies_query[0])
+        studies.append(studies_query.value(0))
+
     if len(studies) ==0:
         displayCriticalMessage("No study was found in the database. Please create one first.")
     else:
@@ -23,7 +24,7 @@ def tryOpenStudy(con):
         dlg.setWindowModality(QtCore.Qt.ApplicationModal)
         res = dlg.exec_()
         if res == QtWidgets.QDialog.Accepted:
-            return dlg.comboBoxShowStudies.currentText()
+            return dlg.selectedStudy()
     return ""
 
 From_DialogOpenStudy = uic.loadUiType(os.path.join(os.path.dirname(__file__), "..", "ui","dialogOpenStudy.ui"))[0]
@@ -39,6 +40,12 @@ class DialogOpenStudy(QtWidgets.QDialog,From_DialogOpenStudy):
         
         for study in studies:
             self.comboBoxShowStudies.addItem(study)
+    
+    def selectedStudy(self):
+        """
+        Return the currently selected study
+        """
+        return self.comboBoxShowStudies.currentText()
 
 def build_select_studies(con):
     """

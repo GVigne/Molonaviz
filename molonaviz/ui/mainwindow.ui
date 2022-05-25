@@ -33,7 +33,7 @@
     <property name="title">
      <string>Study</string>
     </property>
-    <addaction name="actionCreate_Study"/>
+    <addaction name="actionCreateStudy"/>
     <addaction name="actionOpenStudy"/>
     <addaction name="separator"/>
     <addaction name="actionClose_Study"/>
@@ -91,7 +91,7 @@
    </widget>
    <widget class="QMenu" name="menuLabo">
     <property name="title">
-     <string>Labo</string>
+     <string>Laboratory</string>
     </property>
     <addaction name="actionImportLabo"/>
    </widget>
@@ -268,7 +268,7 @@
     </layout>
    </widget>
   </widget>
-  <action name="actionCreate_Study">
+  <action name="actionCreateStudy">
    <property name="text">
     <string>Create Study</string>
    </property>
@@ -390,7 +390,7 @@
   </action>
   <action name="actionImportLabo">
    <property name="text">
-    <string>Import Labo</string>
+    <string>Import Laboratory</string>
    </property>
   </action>
  </widget>
