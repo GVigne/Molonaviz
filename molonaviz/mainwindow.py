@@ -13,7 +13,7 @@ from src.dialogCreateStudy import tryCreateStudy
 from src.Study import createStudyDatabase
 
 from src.Laboratory import Lab
-from src.utils import displayCriticalMessage
+from utils.utils import displayCriticalMessage
 from src.printThread import InterceptOutput, Receiver
 
 

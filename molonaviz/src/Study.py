@@ -1,5 +1,5 @@
 from PyQt5.QtSql import QSqlQuery
-from src.utilsQueries import build_lab_id
+from utils.utilsQueries import build_lab_id
 
 def createStudyDatabase(con,studyname,labName):
     """

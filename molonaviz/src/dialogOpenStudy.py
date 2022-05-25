@@ -1,7 +1,7 @@
 import os
 from PyQt5 import QtCore, QtWidgets, uic
 from PyQt5.QtSql import QSqlQuery
-from src.utils import displayCriticalMessage
+from utils.utils import displayCriticalMessage
 
 
 def tryOpenStudy(con):
