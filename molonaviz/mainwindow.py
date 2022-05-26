@@ -15,7 +15,7 @@ from src.Study import createStudyDatabase
 from src.Laboratory import Lab
 from utils.utils import displayCriticalMessage
 from src.printThread import InterceptOutput, Receiver
-
+from src.MoloTreeViewModels import ThermometerTreeViewModel, PSensorTreeViewModel, ShaftTreeViewModel, PointTreeViewModel
 
 From_MainWindow = uic.loadUiType(os.path.join(os.path.dirname(__file__),"ui","mainwindow.ui"))[0]
 class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
@@ -25,6 +25,24 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         QtWidgets.QMainWindow.__init__(self)
         self.setupUi(self)
 
+        #Setup the tree views
+        self.psensorModel = PSensorTreeViewModel()
+        self.treeViewPressureSensors.setModel(self.psensorModel)
+        self.treeViewPressureSensors.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+
+        self.shaftModel = ShaftTreeViewModel()
+        self.treeViewShafts.setModel(self.shaftModel)
+        self.treeViewShafts.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+
+        self.thermometersModel = ThermometerTreeViewModel()
+        self.treeViewThermometers.setModel(self.thermometersModel)
+        self.treeViewThermometers.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)    
+
+        self.pointModel = PointTreeViewModel()
+        self.treeViewDataPoints.setModel(self.pointModel)
+        self.treeViewDataPoints.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+
+        #Connect the actions to the appropriate slots
         self.actionImportLabo.triggered.connect(self.importLabo)
         self.actionAboutMolonaViz.triggered.connect(self.aboutUs)
         self.actionOpenUserguideFR.triggered.connect(self.openUserGuideFR)
@@ -39,7 +57,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
 
         self.con = None #Connection to the database
         self.openDatabase()
-    
+
     def openDatabase(self):
         """
         If the user has never opened the database of if the config file is not valid (as a reminder, config is a text document containing the path to the database), display a dialog so the user may choose th e database directory.
@@ -88,7 +106,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         if res == QtWidgets.QDialog.Accepted:
             labdir,labname = dlg.getLaboInfo()
             if labdir and labname: #Both strings are not empty
-                lab = Lab(self.con,labdir,labname)
+                lab = Lab(self.con,labname, False, pathToDir = labdir)
                 if lab.checkIntegrity():
                     lab.addToDatabase()
                 else:

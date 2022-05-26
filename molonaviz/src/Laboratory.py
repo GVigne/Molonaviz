@@ -4,17 +4,29 @@ import pandas as pd
 from ast import literal_eval
 from PyQt5.QtSql import QSqlQuery
 from utils.utilsQueries import build_lab_id
+from src.Containers import Thermometer, PSensor, Shaft
 
 class Lab:
     """
-    A concrete class to do some manipulations on a Lab. For now, this is used when importing a lab from a directory.
+    A concrete class to do some manipulations on a laboratory.
+    When creating an instance of this class, one MUST give a boolean (isInDatabase):
+    -if isInDatabase, then the instance of this class
+    -else this means we are trying to create a new laboratory from a directory. In this case, pathToDir MUST NOT be an empty string and MUST be a valid directory path.
     """
-    def __init__(self, con, pathToDir,labName):
+    def __init__(self, con, labName, isInDatabase, pathToDir = ""):
         self.con = con
-        self.pathToDir = pathToDir
         self.labName = labName
         self.labId = None #Should be updated when the lab is created.
-    
+        self.thermometers = []
+        self.psensors = []
+        self.shafts = []
+        if isInDatabase:
+            self.refreshLabId()
+            self.extractSensors()
+        else:
+            self.pathToDir = pathToDir
+
+
     def checkIntegrity(self):
         """
         Check that this Lab is not in conflict with the database.
@@ -25,7 +37,7 @@ class Lab:
         if similar_lab.next():
             return False
         return True
-
+    
     def addToDatabase(self):
         """
         Add the laboratory to the database.
@@ -35,16 +47,41 @@ class Lab:
         self.addThermometers()
         self.addPressureSensors()
         self.addShafts()
+
+    def extractSensors(self):
+        """
+        This function should only be called if the lab is ALREADY in the database. 
+        Update self.thermometers, self.psensors and self.shafts according to the database.
+        """
+        select_thermo = self.build_select_thermometers()
+        select_thermo.exec()
+        while select_thermo.next():
+            self.thermometers.append(Thermometer(select_thermo.value(0),select_thermo.value(1),select_thermo.value(2),select_thermo.value(3)))
+        
+        select_psensor = self.build_select_psensors()
+        select_psensor.exec()
+        while select_psensor.next():
+            self.psensors.append(PSensor(select_psensor.value(0),select_psensor.value(1),select_psensor.value(2),select_psensor.value(3),select_psensor.value(4),select_psensor.value(5),select_psensor.value(6)))
+
+        select_shafts = self.build_select_shafts()
+        select_shafts.exec()
+        while select_shafts.next():
+            self.shafts.append(Shaft(select_shafts.value(0),select_shafts.value(1), [select_shafts.value(i) for i in [2,3,4,5]], select_shafts.value(6)))
+
+    def refreshLabId(self):
+        """
+        Update self.labID to reflect the ID in the database of the current Lab. This may only be called if the current lab is already in the database.
+        """
+        get_id = build_lab_id(self.con,self.labName)
+        get_id.exec()
+        get_id.next()
+        self.labId = get_id.value(0)
     
     def addLab(self):
         insert_lab = self.build_insert_lab()
         insert_lab.exec()
         print(f"The lab {self.labName} has been added to the database.")
-
-        get_id = build_lab_id(self.con,self.labName)
-        get_id.exec()
-        get_id.next()
-        self.labId = get_id.value(0)
+        self.refreshLabId()
 
     def addThermometers(self):
         tempdir = os.path.join(self.pathToDir, "temperature_sensors", "*.csv")
@@ -226,3 +263,27 @@ class Lab:
             VALUES (:Name, :Datalogger, :Depth1, :Depth2, :Depth3, :Depth4, :Thermo_model, :Labo)
             """)
         return insertQuery
+    
+    def build_select_thermometers(self):
+        selectQuery = QSqlQuery(self.con)
+        selectQuery.prepare(f"""SELECT Thermometer.Name, Thermometer.Manu_name, Thermometer.Manu_ref, Thermometer.Error  
+        FROM Thermometer
+        WHERE Thermometer.Labo = {self.labId}""")
+        return selectQuery
+    
+    def build_select_psensors(self):
+        selectQuery = QSqlQuery(self.con)
+        selectQuery.prepare(f"""SELECT PressureSensor.Name, PressureSensor.Datalogger, PressureSensor.Calibration, PressureSensor.Intercept, PressureSensor."Du/Dh", PressureSensor."Du/Dt", PressureSensor.Precision
+        FROM PressureSensor
+        WHERE PressureSensor.Labo = {self.labId}""")
+        return selectQuery
+
+    
+    def build_select_shafts(self):
+        selectQuery = QSqlQuery(self.con)
+        selectQuery.prepare(f""" SELECT Shaft.Name, Shaft.Datalogger, Shaft.Depth1, Shaft.Depth2, Shaft.Depth3, Shaft.Depth4, Thermometer.Name
+        FROM Shaft
+        JOIN Thermometer
+        ON Shaft.Thermo_model = Thermometer.ID
+        WHERE Shaft.Labo = {self.labId}""")
+        return selectQuery

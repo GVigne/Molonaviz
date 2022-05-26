@@ -26,7 +26,7 @@ def tryCreateStudy(con):
             userLab = dlg.selectedLab()
             userStudyName = dlg.studyName()
             if not checkUniqueStudyName(con,userStudyName) or not userStudyName: #The study is already in the database, or the study name is empty
-                displayCriticalMessage("The name of the study may not be empty and must be different from the studies in the database")
+                displayCriticalMessage("The name of the study may not be empty and must be different from the studies in the database.")
             else:
                 return userStudyName,userLab
     return "",""

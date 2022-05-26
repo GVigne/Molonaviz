@@ -20,7 +20,7 @@ class PSensor:
         self.error = error
 
 class Shaft:
-    def __init__(self, name, datalogger, thermoType, depths):
+    def __init__(self, name, datalogger, depths, thermoType):
         self.name = name
         self.datalogger = datalogger
         self.thermoType = thermoType

@@ -21,6 +21,20 @@ class MoloTreeViewModel(QtGui.QStandardItemModel):
         """
         pass
 
+class ThermometerTreeViewModel(MoloTreeViewModel):
+    """
+    Concrete class for the model used for to display the thermometers in a tree view in the main window.
+    """
+    def __init__(self):
+        super().__init__()
+    
+    def display_element(self, thermometer):
+        item = QtGui.QStandardItem(thermometer.name)
+        self.appendRow(item)
+        item.appendRow(QtGui.QStandardItem(f"Manufacturer name : {thermometer.manuName}"))
+        item.appendRow(QtGui.QStandardItem(f"Manufacturer reference : {thermometer.manuRef}"))
+        item.appendRow(QtGui.QStandardItem(f"Error (°C) : {thermometer.error}"))
+
 class PSensorTreeViewModel(MoloTreeViewModel):
     """
     Concrete class for the model used for to display the pressure sensors in a tree view in the main window.
@@ -37,20 +51,6 @@ class PSensorTreeViewModel(MoloTreeViewModel):
         item.appendRow(QtGui.QStandardItem(f"Du/Dh : {psensor.dudh:.2f}"))
         item.appendRow(QtGui.QStandardItem(f"Du/Dt : {psensor.dudt:.2f}"))
         item.appendRow(QtGui.QStandardItem(f"Error : {psensor.error:.2f}"))
-
-class ThermometerTreeViewModel(MoloTreeViewModel):
-    """
-    Concrete class for the model used for to display the thermometers in a tree view in the main window.
-    """
-    def __init__(self):
-        super().__init__()
-    
-    def display_element(self, thermometer):
-        item = QtGui.QStandardItem(thermometer.name)
-        self.appendRow(item)
-        item.appendRow(QtGui.QStandardItem(f"Manufacturer name : {thermometer.manuName}"))
-        item.appendRow(QtGui.QStandardItem(f"Manufacturer reference : {thermometer.manuRef}"))
-        item.appendRow(QtGui.QStandardItem(f"Error (°C) : {thermometer.error}"))
 
 class ShaftTreeViewModel(MoloTreeViewModel):
     """
