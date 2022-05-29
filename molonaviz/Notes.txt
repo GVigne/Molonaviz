@@ -14,4 +14,4 @@ Known bugs:
 TODO:
 -In the pressure sensors/shafts.csv files: less precision for floats? Right now, we have floats with a precision of more thant 10 digits...
 -More robust imports of Lab when informations are missing.
--Log of all errors/exceptions? Could be good for debugging?
+-Creating and opening a study: do not close window if something went wrong (ie wrong study name, empty lab name...) -> Create a FilterComboBox widget?

@@ -3,6 +3,7 @@ from PyQt5.QtSql import QSqlDatabase
 
 from queue import Queue
 import sys, os.path
+from src.Study import Study
 
 from src.dialogAboutUs import DialogAboutUs
 from src.dialogOpenDatabase import DialogOpenDatabase
@@ -10,10 +11,10 @@ from src.dialogImportLab import DialogImportLab
 from src.dialogCreateStudy import DialogCreateStudy
 from src.dialogOpenStudy import tryOpenStudy
 from src.dialogCreateStudy import tryCreateStudy
-from src.Study import createStudyDatabase
 
 from src.Laboratory import Lab
 from utils.utils import displayCriticalMessage
+from utils.utilsQueries import createStudyDatabase
 from src.printThread import InterceptOutput, Receiver
 from src.MoloTreeViewModels import ThermometerTreeViewModel, PSensorTreeViewModel, ShaftTreeViewModel, PointTreeViewModel
 
@@ -123,17 +124,26 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
     
     def chooseStudyName(self):
         """
-        Display a dialog so the user may choose a study to open, or display an error message. Then, open a study.
+        Display a dialog so the user may choose a study to open, or display an error message. Then, open a study (by calling self.openStudy).
         """
         study_name = tryOpenStudy(self.con)
         if study_name: #study_name is not an empty string: we should open the corresponding Study.
-            pass
+            self.openStudy(study_name)
     
     def openStudy(self, studyName):
         """
         Given a VALID name of a study, open it.
         """
-        pass
+        study = Study(self.con,studyName)
+        #Set the tree models
+        for thermo in study.lab.thermometers:
+            self.thermometersModel.add_data(thermo)
+        for psensor in study.lab.psensors:
+            self.psensorModel.add_data(psensor)
+        for shaft in study.lab.shafts:
+            self.shaftModel.add_data(shaft)
+        for point in study.points:
+            self.pointModel.add_data(point)
 
     
     def printApplicationMessage(self,text):

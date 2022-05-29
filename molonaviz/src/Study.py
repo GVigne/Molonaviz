@@ -1,30 +1,36 @@
 from PyQt5.QtSql import QSqlQuery
-from utils.utilsQueries import build_lab_id
+from src.Laboratory import Lab
 
-def createStudyDatabase(con,studyname,labName):
+class Study:
     """
-    Given a study name and a VALID laboratory name, create the corresponding study in the dabatase.
+    A concrete class to handle the study being currently opened by the user.
     """
-    selectLabID = build_lab_id(con,labName)
-    selectLabID.exec()
-    selectLabID.next()
-    labID = selectLabID.value(0)
+    def __init__(self,con, studyName):
+        self.con = con
+        self.name = studyName
 
-    insertStudy = build_insert_study(con)
-    insertStudy.bindValue(":Name",studyname)
-    insertStudy.bindValue(":Labo",labID)
-    insertStudy.exec()
-    print(f"The study {studyname} has been added to the database.")
+        self.lab = None
+        self.createSelfLab()
+        self.points = []
+    
+    def createSelfLab(self):
+        """
+        Build a Lab object which corresponds to the laboratory in the database.
+        """
+        labId= self.build_lab_name()
+        labId.exec()
+        labId.next()
 
-def build_insert_study(con):
-    """
-    Build and return a query creating a study in the database
-    """
-    query = QSqlQuery(con)
-    query.prepare("""
-        INSERT INTO Study(
-            Name,
-            Labo)
-        VALUES (:Name, :Labo)
+        self.lab = Lab(self.con,labId.value(0),True)
+    
+    def build_lab_name(self):
+        """
+        Give the name of the laboratory corresponding to this study.
+        """
+        query = QSqlQuery(self.con)
+        query.prepare(f"""SELECT Labo.Name FROM Labo
+                        JOIN Study
+                        ON Labo.ID = Study.Labo
+                        WHERE Study.Name = '{self.name}'
         """)
-    return query
+        return query
