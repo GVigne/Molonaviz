@@ -193,7 +193,7 @@ class Lab:
         Build and return a query which inserts into the database the current lab.
         """
         query = QSqlQuery(self.con)
-        query.prepare(f"INSERT INTO Labo (Name) VALUES ('{self.labName}');")
+        query.prepare(f"INSERT INTO Labo (Name) VALUES ('{self.labName}')")
         return query
 
     def build_insert_thermometer(self):
@@ -265,6 +265,9 @@ class Lab:
         return insertQuery
     
     def build_select_thermometers(self):
+        """
+        Build and return a query which selects all thermometers corresponding to this lab.
+        """
         selectQuery = QSqlQuery(self.con)
         selectQuery.prepare(f"""SELECT Thermometer.Name, Thermometer.Manu_name, Thermometer.Manu_ref, Thermometer.Error  
         FROM Thermometer
@@ -272,6 +275,9 @@ class Lab:
         return selectQuery
     
     def build_select_psensors(self):
+        """
+        Build and return a query which selects all pressure sensors corresponding to this lab.
+        """
         selectQuery = QSqlQuery(self.con)
         selectQuery.prepare(f"""SELECT PressureSensor.Name, PressureSensor.Datalogger, PressureSensor.Calibration, PressureSensor.Intercept, PressureSensor."Du/Dh", PressureSensor."Du/Dt", PressureSensor.Precision
         FROM PressureSensor
@@ -280,6 +286,9 @@ class Lab:
 
     
     def build_select_shafts(self):
+        """
+        Build and return a query which selects all shafts corresponding to this lab.
+        """
         selectQuery = QSqlQuery(self.con)
         selectQuery.prepare(f""" SELECT Shaft.Name, Shaft.Datalogger, Shaft.Depth1, Shaft.Depth2, Shaft.Depth3, Shaft.Depth4, Thermometer.Name
         FROM Shaft
