@@ -152,7 +152,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
     
     def closeStudy(self):
         self.currentStudy.close() #Close the study and related windows
-        self.currentStudy = None #Forget the study
+        self.currentStudy = None #Forget the study        
 
         #Enable and disable actions so as to go back to go back to the initial state (no study opened)
         self.actionCreateStudy.setEnabled(True)
@@ -162,6 +162,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.actionImportPoint.setEnabled(False)
         self.actionOpenPoint.setEnabled(False)
         self.actionRemovePoint.setEnabled(False)
+
 
     
     def printApplicationMessage(self,text):

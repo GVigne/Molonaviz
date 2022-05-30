@@ -15,7 +15,13 @@ class MoloTreeViewModel(QtGui.QStandardItemModel):
         """
         self.elements.append(input_data)
         self.display_element(input_data)
-
+    
+    def display_element(self,input_data):
+        """
+        Display the new element input_data in a pretty way.
+        """
+        pass
+    
     def remove_data(self,input_data):
         """
         Remove the given item.
@@ -34,12 +40,14 @@ class MoloTreeViewModel(QtGui.QStandardItemModel):
                 index = i
                 break
         self.removeRow(i)
-    
-    def display_element(self,input_data):
+
+    def clear(self):
         """
-        Display the new element input_data in a pretty way.
+        Clear everything in the view. This is an overloaded method.
         """
-        pass
+        self.elements = []
+        super().clear()
+        
 
 class ThermometerTreeViewModel(MoloTreeViewModel):
     """

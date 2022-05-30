@@ -38,7 +38,13 @@ class Study:
         while selectPoints.next():
             self.points.append(Point(selectPoints.value(0),selectPoints.value(1),selectPoints.value(2),selectPoints.value(3),selectPoints.value(4)))
         
-    
+    def close(self):
+        """
+        Close the study and all related windows.
+        """
+        # self.points #Clear 
+        self.lab.close()
+
     def build_lab_name(self):
         """
         Build and return a query giving the name of the laboratory corresponding to this study.

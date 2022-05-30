@@ -26,10 +26,13 @@ class Lab:
             #Connect the signals to the given models.
             self.thermometers.appendSignal.connect(thermoModel.add_data)
             self.thermometers.removeSignal.connect(thermoModel.remove_data)
+            self.thermometers.clearSignal.connect(thermoModel.clear)
             self.psensors.appendSignal.connect(psensorModel.add_data)
             self.psensors.removeSignal.connect(psensorModel.remove_data)
+            self.psensors.clearSignal.connect(psensorModel.clear)
             self.shafts.appendSignal.connect(shaftModel.add_data)
             self.shafts.removeSignal.connect(shaftModel.remove_data)
+            self.shafts.clearSignal.connect(shaftModel.clear)
             #Now, get the appropriate information from the database.
             self.extractSensors()
         else:
@@ -188,6 +191,15 @@ class Lab:
                 print("Couldn't load shaft ", file)
         if nb_errors ==0:
             print("The shafts have been added to the database.")
+    
+    def close(self):
+        """
+        Close the lab and its dependencies.
+        """
+        #Clear the models and the views showing this lab's sensors.
+        self.thermometers.clear()
+        self.psensors.clear()
+        self.shafts.clear()
     
     def build_similar_lab(self):
         """

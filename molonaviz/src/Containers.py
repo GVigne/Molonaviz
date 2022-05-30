@@ -11,6 +11,7 @@ class MoloQtList(QObject):
     """
     appendSignal = pyqtSignal(object)
     removeSignal = pyqtSignal(object)
+    clearSignal = pyqtSignal()
 
     def __init__(self):
         super(MoloQtList, self).__init__()
@@ -36,6 +37,13 @@ class MoloQtList(QObject):
                 break
         item = self.elements.pop(index) #Remove the item with the given name itemName
         self.removeSignal.emit(item)  #Emit the signal saying that item was removed from the list
+    
+    def clear(self):
+        """
+        Clear the list and everything in it. Used only when the MoloQtList should be destroyed (ie when closing the lab or the study)
+        """
+        self.elements = []
+        self.clearSignal.emit()
 
 class Thermometer:
     def __init__(self, name, manuName, manuRef, error):
