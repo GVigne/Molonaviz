@@ -36,7 +36,7 @@
     <addaction name="actionCreateStudy"/>
     <addaction name="actionOpenStudy"/>
     <addaction name="separator"/>
-    <addaction name="actionClose_Study"/>
+    <addaction name="actionCloseStudy"/>
    </widget>
    <widget class="QMenu" name="menuPoint">
     <property name="enabled">
@@ -45,9 +45,9 @@
     <property name="title">
      <string>Point</string>
     </property>
-    <addaction name="actionImport_Point"/>
-    <addaction name="actionOpen_Point"/>
-    <addaction name="actionRemove_Point"/>
+    <addaction name="actionImportPoint"/>
+    <addaction name="actionOpenPoint"/>
+    <addaction name="actionRemovePoint"/>
    </widget>
    <widget class="QMenu" name="menuWindows">
     <property name="title">
@@ -278,7 +278,7 @@
     <string>Open Study</string>
    </property>
   </action>
-  <action name="actionClose_Study">
+  <action name="actionCloseStudy">
    <property name="enabled">
     <bool>false</bool>
    </property>
@@ -291,17 +291,17 @@
     <string>CreateStudy2</string>
    </property>
   </action>
-  <action name="actionImport_Point">
+  <action name="actionImportPoint">
    <property name="text">
     <string>Import Point</string>
    </property>
   </action>
-  <action name="actionOpen_Point">
+  <action name="actionOpenPoint">
    <property name="text">
     <string>Open Point</string>
    </property>
   </action>
-  <action name="actionRemove_Point">
+  <action name="actionRemovePoint">
    <property name="text">
     <string>Remove Point</string>
    </property>

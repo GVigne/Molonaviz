@@ -30,15 +30,12 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.psensorModel = PSensorTreeViewModel()
         self.treeViewPressureSensors.setModel(self.psensorModel)
         self.treeViewPressureSensors.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-
         self.shaftModel = ShaftTreeViewModel()
         self.treeViewShafts.setModel(self.shaftModel)
         self.treeViewShafts.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-
         self.thermometersModel = ThermometerTreeViewModel()
         self.treeViewThermometers.setModel(self.thermometersModel)
         self.treeViewThermometers.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)    
-
         self.pointModel = PointTreeViewModel()
         self.treeViewDataPoints.setModel(self.pointModel)
         self.treeViewDataPoints.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
@@ -51,12 +48,17 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.actionCreateStudy.triggered.connect(self.createStudy)
         self.actionOpenStudy.triggered.connect(self.chooseStudyName)
 
+        #Some actions or menus should not be enabled: disable them
+        self.actionCloseStudy.setEnabled(False)
+        self.menuPoint.setEnabled(False)
+
         #Setup the queue used to display application messages.
         self.messageQueue = Queue()
         sys.stdout = InterceptOutput(self.messageQueue)
         print("MolonaViz - 2022-05-20")
 
         self.con = None #Connection to the database
+        self.currentStudy = None
         self.openDatabase()
 
     def openDatabase(self):
@@ -134,16 +136,25 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         """
         Given a VALID name of a study, open it.
         """
-        study = Study(self.con,studyName)
+        self.currentStudy = Study(self.con,studyName)
         #Set the tree models
-        for thermo in study.lab.thermometers:
+        for thermo in self.currentStudy.lab.thermometers:
             self.thermometersModel.add_data(thermo)
-        for psensor in study.lab.psensors:
+        for psensor in self.currentStudy.lab.psensors:
             self.psensorModel.add_data(psensor)
-        for shaft in study.lab.shafts:
+        for shaft in self.currentStudy.lab.shafts:
             self.shaftModel.add_data(shaft)
-        for point in study.points:
+        for point in self.currentStudy.points:
             self.pointModel.add_data(point)
+        
+        #Enable previously disabled actions, such as the menu used to manage points
+        self.actionCreateStudy.setEnabled(False)
+        self.actionOpenStudy.setEnabled(False)
+        self.actionCloseStudy.setEnabled(True)
+        self.menuPoint.setEnabled(True)
+        self.actionImportPoint.setEnabled(True)
+        self.actionOpenPoint.setEnabled(True)
+        self.actionRemovePoint.setEnabled(True)
 
     
     def printApplicationMessage(self,text):
