@@ -6,16 +6,19 @@ class Study:
     """
     A concrete class to handle the study being currently opened by the user.
     """
-    def __init__(self,con, studyName):
+    def __init__(self,con, studyName, thermoModel = None, psensorModel = None, shaftModel = None, pointModel = None):
+        """
+        thermoModel, psensorModel, shaftModel and pointModel are instances of MoloTreeViewModel. These are the models used to display data: the MoloQtList should be linked to these models.
+        """
         self.con = con
         self.name = studyName
 
         self.lab = None
-        self.createSelfLab()
+        self.createSelfLab(thermoModel, psensorModel, shaftModel)
         self.points = []
         self.createSelfPoints()
     
-    def createSelfLab(self):
+    def createSelfLab(self,thermoModel, psensorModel, shaftModel):
         """
         Build a Lab object which corresponds to the laboratory in the database.
         """
@@ -23,7 +26,7 @@ class Study:
         labId.exec()
         labId.next()
 
-        self.lab = Lab(self.con,labId.value(0),True)
+        self.lab = Lab(self.con,labId.value(0),True, thermoModel=thermoModel, psensorModel=psensorModel, shaftModel=shaftModel)
     
     def createSelfPoints(self):
         """

@@ -3,6 +3,7 @@ from PyQt5.QtSql import QSqlDatabase
 
 from queue import Queue
 import sys, os.path
+from src.Containers import Thermometer
 from src.Study import Study
 
 from src.dialogAboutUs import DialogAboutUs
@@ -47,6 +48,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.actionQuitMolonaViz.triggered.connect(self.quitMolonaviz)
         self.actionCreateStudy.triggered.connect(self.createStudy)
         self.actionOpenStudy.triggered.connect(self.chooseStudyName)
+        self.actionCloseStudy.triggered.connect(self.closeStudy)
 
         #Some actions or menus should not be enabled: disable them
         self.actionCloseStudy.setEnabled(False)
@@ -136,16 +138,8 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         """
         Given a VALID name of a study, open it.
         """
-        self.currentStudy = Study(self.con,studyName)
-        #Set the tree models
-        for thermo in self.currentStudy.lab.thermometers:
-            self.thermometersModel.add_data(thermo)
-        for psensor in self.currentStudy.lab.psensors:
-            self.psensorModel.add_data(psensor)
-        for shaft in self.currentStudy.lab.shafts:
-            self.shaftModel.add_data(shaft)
-        for point in self.currentStudy.points:
-            self.pointModel.add_data(point)
+        #Create the study. This will also create the corresponding Lab, and display the sensors by using the given models.
+        self.currentStudy = Study(self.con,studyName, thermoModel=self.thermometersModel, psensorModel=self.psensorModel, shaftModel=self.shaftModel, pointModel=self.pointModel)
         
         #Enable previously disabled actions, such as the menu used to manage points
         self.actionCreateStudy.setEnabled(False)
@@ -155,6 +149,19 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.actionImportPoint.setEnabled(True)
         self.actionOpenPoint.setEnabled(True)
         self.actionRemovePoint.setEnabled(True)
+    
+    def closeStudy(self):
+        self.currentStudy.close() #Close the study and related windows
+        self.currentStudy = None #Forget the study
+
+        #Enable and disable actions so as to go back to go back to the initial state (no study opened)
+        self.actionCreateStudy.setEnabled(True)
+        self.actionOpenStudy.setEnabled(True)
+        self.actionCloseStudy.setEnabled(False)
+        self.menuPoint.setEnabled(False)
+        self.actionImportPoint.setEnabled(False)
+        self.actionOpenPoint.setEnabled(False)
+        self.actionRemovePoint.setEnabled(False)
 
     
     def printApplicationMessage(self,text):

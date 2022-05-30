@@ -4,24 +4,33 @@ import pandas as pd
 from ast import literal_eval
 from PyQt5.QtSql import QSqlQuery
 from utils.utilsQueries import build_lab_id
-from src.Containers import Thermometer, PSensor, Shaft
+from src.Containers import MoloQtList, Thermometer, PSensor, Shaft
 
 class Lab:
     """
     A concrete class to do some manipulations on a laboratory.
     When creating an instance of this class, one MUST give a boolean (isInDatabase):
-    -if isInDatabase, then the instance of this class
+    -if isInDatabase, then the sensors corresponding to this lab will be extracted from the database. These are stored in a MoloQtList: the appropriate signals are connected to the MoloTreeViewModel thermoModel, psensorModel and shaftModel.
     -else this means we are trying to create a new laboratory from a directory. In this case, pathToDir MUST NOT be an empty string and MUST be a valid directory path.
     """
-    def __init__(self, con, labName, isInDatabase, pathToDir = ""):
+    def __init__(self, con, labName, isInDatabase, pathToDir = "", thermoModel = None, psensorModel = None, shaftModel = None):
         self.con = con
         self.labName = labName
         self.labId = None #Should be updated when the lab is created.
-        self.thermometers = []
-        self.psensors = []
-        self.shafts = []
+        self.thermometers = MoloQtList()
+        self.psensors = MoloQtList()
+        self.shafts = MoloQtList()
         if isInDatabase:
             self.refreshLabId()
+
+            #Connect the signals to the given models.
+            self.thermometers.appendSignal.connect(thermoModel.add_data)
+            self.thermometers.removeSignal.connect(thermoModel.remove_data)
+            self.psensors.appendSignal.connect(psensorModel.add_data)
+            self.psensors.removeSignal.connect(psensorModel.remove_data)
+            self.shafts.appendSignal.connect(shaftModel.add_data)
+            self.shafts.removeSignal.connect(shaftModel.remove_data)
+            #Now, get the appropriate information from the database.
             self.extractSensors()
         else:
             self.pathToDir = pathToDir

@@ -3,6 +3,7 @@ from PyQt5 import QtGui
 class MoloTreeViewModel(QtGui.QStandardItemModel):
     """
     Abstract class for the model used for the tree views in the main window.
+    This tree view displays Containers objects. Each item it shows MUST have a field or attribute called "name" which identifies it in a unique way.
     """
     def __init__(self):
         super().__init__()
@@ -14,6 +15,25 @@ class MoloTreeViewModel(QtGui.QStandardItemModel):
         """
         self.elements.append(input_data)
         self.display_element(input_data)
+
+    def remove_data(self,input_data):
+        """
+        Remove the given item.
+        """
+        #Remove the item from self.elements
+        index = None
+        for i,v in enumerate(self.elements):
+            if v.name == input_data.name:
+                index = i
+                break
+        self.elements.pop(index)
+        #Stop displaying it.
+        index = None
+        for i in range(self.rowCount()):
+            if self.item(i).data() ==input_data.name:
+                index = i
+                break
+        self.removeRow(i)
     
     def display_element(self,input_data):
         """

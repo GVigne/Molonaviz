@@ -8,10 +8,13 @@ The config.txt file is created when the user wishes the patht to the database be
 
 DER_IHM.sql contains all the queries (in SQL language) required to recreate the database. It has been generated with the export function of Sqlite Studio.
 
+MoloTreeViewModel and MoloQtList are meant to work with object having at least the unique field or attribute "name". In Molonaviz, the objects used are "Containers" which only purpose is to store different fields, much like a SQL table. 
+
 Known bugs:
 -When importing a lab, some messages may appear such as "The thermometers have been added to the database", despite it not being the case
 
 TODO:
 -In the pressure sensors/shafts.csv files: less precision for floats? Right now, we have floats with a precision of more thant 10 digits...
+-Where to put unique constraints?
 -More robust imports of Lab when informations are missing.
 -Creating and opening a study: do not close window if something went wrong (ie wrong study name, empty lab name...) -> Create a FilterComboBox widget?
