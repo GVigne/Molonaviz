@@ -1,3 +1,4 @@
+from re import S
 from PyQt5 import QtWidgets, QtGui, QtCore, uic
 from PyQt5.QtSql import QSqlDatabase
 
@@ -49,7 +50,10 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.actionCreateStudy.triggered.connect(self.createStudy)
         self.actionOpenStudy.triggered.connect(self.chooseStudyName)
         self.actionCloseStudy.triggered.connect(self.closeStudy)
-
+        self.actionHideShowPoints.triggered.connect(self.changeDockPointsStatus)
+        self.actionHideShowSensors.triggered.connect(self.changeDockSensorsStatus)
+        self.actionHideShowAppMessages.triggered.connect(self.changeDockAppMessagesStatus)
+    
         #Some actions or menus should not be enabled: disable them
         self.actionCloseStudy.setEnabled(False)
         self.menuPoint.setEnabled(False)
@@ -163,8 +167,24 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.actionOpenPoint.setEnabled(False)
         self.actionRemovePoint.setEnabled(False)
 
-
+    def changeDockPointsStatus(self):
+        if self.actionHideShowPoints.isChecked():
+            self.dockDataPoints.show()
+        else :
+            self.dockDataPoints.hide()
     
+    def changeDockSensorsStatus(self):
+        if self.actionHideShowSensors.isChecked():
+            self.dockSensors.show()
+        else :
+            self.dockSensors.hide()
+    
+    def changeDockAppMessagesStatus(self):
+        if self.actionHideShowAppMessages.isChecked():
+            self.dockAppMessages.show()
+        else :
+            self.dockAppMessages.hide()
+
     def printApplicationMessage(self,text):
         """
         Method called when a message needs to be displayed (ie a new element was put in self.messageQueue)
@@ -185,7 +205,6 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         """
         QtWidgets.QApplication.quit()
 
-    
     def closeEvent(self, event):
         """
         Close the database when user quits the app.

@@ -57,9 +57,9 @@
     <addaction name="actionSwitch_To_SubWindow_View"/>
     <addaction name="actionSwitch_To_Cascade_View"/>
     <addaction name="separator"/>
-    <addaction name="actionData_Points"/>
-    <addaction name="actionSensors"/>
-    <addaction name="actionApplication_Messages"/>
+    <addaction name="actionHideShowPoints"/>
+    <addaction name="actionHideShowSensors"/>
+    <addaction name="actionHideShowAppMessages"/>
    </widget>
    <widget class="QMenu" name="menuMolonaViz">
     <property name="title">
@@ -243,7 +243,7 @@
     </layout>
    </widget>
   </widget>
-  <widget class="QDockWidget" name="dockMessages">
+  <widget class="QDockWidget" name="dockAppMessages">
    <property name="features">
     <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
    </property>
@@ -332,7 +332,7 @@
     <string>Quit MolonaViz</string>
    </property>
   </action>
-  <action name="actionData_Points">
+  <action name="actionHideShowPoints">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -343,7 +343,7 @@
     <string>Points</string>
    </property>
   </action>
-  <action name="actionSensors">
+  <action name="actionHideShowSensors">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -354,7 +354,7 @@
     <string>Sensors</string>
    </property>
   </action>
-  <action name="actionApplication_Messages">
+  <action name="actionHideShowAppMessages">
    <property name="checkable">
     <bool>true</bool>
    </property>
