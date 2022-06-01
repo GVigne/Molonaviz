@@ -1,8 +1,9 @@
 import os
 import re #Regular expression, to check if a pattern is in a string.
 from PyQt5 import QtWidgets, uic
-from PyQt5.QtSql import QSqlQuery,QSqlDatabase
+from PyQt5.QtSql import QSqlQuery
 import pandas as pd
+from numpy import float64
 from utils.utils import displayCriticalMessage
 
 From_DialogImportPoint = uic.loadUiType(os.path.join(os.path.dirname(__file__), "..", "ui","dialogImportPoint.ui"))[0]
@@ -94,18 +95,15 @@ class DialogImportPoint(QtWidgets.QDialog, From_DialogImportPoint):
             paths = [None,None,None,None,None] #Info, .png, notice, P_, T_
             for file in files : 
                 if re.search('info', file) and not paths[0]:
-                    try :
-                        filePath = os.path.join(dirPath, file)
-                        self.checkInfoIntegrity(filePath)
+                    filePath = os.path.join(dirPath, file)
+                    success, pointName, psensorName, shaftName = self.checkInfoIntegrity(filePath)
+                    if success:
                         paths[0] = filePath
+                        self.lineEditPointName.setText(pointName)
+                        self.lineEditPSensorName.setText(psensorName)
+                        self.lineEditShaftName.setText(shaftName)
                         self.lineEditInfo.setText(filePath)
-                    except :
-                        #Something went wrong and pandas can't read the file or extract data: ignore this file
-                        self.lineEditPointName.setText('')
-                        self.lineEditPSensorName.setText('') 
-                        self.lineEditShaftName.setText('') 
-                        self.lineEditInfo.setText('') 
-                        paths[0] = None
+                    #The file is ignored if pandas can't read the file or extract data.
                 if re.search('.png', file) and not paths[1]:
                     filePath = os.path.join(dirPath, file)
                     paths[1] = filePath
@@ -116,12 +114,14 @@ class DialogImportPoint(QtWidgets.QDialog, From_DialogImportPoint):
                     self.lineEditNotice.setText(filePath)
                 if re.search('P_', file) and not paths[3]:
                     filePath = os.path.join(dirPath, file)
-                    paths[3] = filePath
-                    self.lineEditPressures.setText(filePath)
+                    if self.checkPressureFileIntegrity(filePath):
+                        paths[3] = filePath
+                        self.lineEditPressures.setText(filePath)
                 if re.search('T_', file) and not paths[4]:
                     filePath = os.path.join(dirPath, file)
-                    paths[4] = filePath
-                    self.lineEditTemperatures.setText(filePath)
+                    if self.checkTemperatureFileIntegrity(filePath):
+                        paths[4] = filePath
+                        self.lineEditTemperatures.setText(filePath)
 
             #Now handle all error messages.
             nPath = len([elem for elem in paths if elem])  
@@ -133,10 +133,13 @@ class DialogImportPoint(QtWidgets.QDialog, From_DialogImportPoint):
     def browseInfo(self):
         filePath = QtWidgets.QFileDialog.getOpenFileName(self, "Get Info File")[0]
         if filePath:
-            try :
-                self.checkInfoIntegrity(filePath)
+            success, pointName, psensorName, shaftName = self.checkInfoIntegrity(filePath)
+            if success:
+                self.lineEditPointName.setText(pointName)
+                self.lineEditPSensorName.setText(psensorName)
+                self.lineEditShaftName.setText(shaftName)
                 self.lineEditInfo.setText(filePath)
-            except:
+            else:
                 displayCriticalMessage("Something went wrong and the file couldn't be imported. Check its structure and try again")
                 self.lineEditPointName.setText('') 
                 self.lineEditPSensorName.setText('')
@@ -146,12 +149,14 @@ class DialogImportPoint(QtWidgets.QDialog, From_DialogImportPoint):
     def browsePressures(self):
         filePath = QtWidgets.QFileDialog.getOpenFileName(self, "Get Pressure Measures File")[0]
         if filePath:
-            self.lineEditPressures.setText(filePath) 
+            if self.checkPressureFileIntegrity(filePath):
+                self.lineEditPressures.setText(filePath) 
     
     def browseTemperatures(self):
         filePath = QtWidgets.QFileDialog.getOpenFileName(self, "Get Temperature Measures File")[0]
         if filePath:
-            self.lineEditTemperatures.setText(filePath) 
+            if self.checkTemperatureFileIntegrity(filePath):
+                self.lineEditTemperatures.setText(filePath) 
     
     def browseNotice(self):
         filePath = QtWidgets.QFileDialog.getOpenFileName(self, "Get Notice File")[0]
@@ -179,19 +184,53 @@ class DialogImportPoint(QtWidgets.QDialog, From_DialogImportPoint):
     
     def checkInfoIntegrity(self,filePath):
         """
-        Check if the Info file has the correct configuration, and fill the labels with the names of the point and the sensors with relevant information.
+        If the Info file has the correct configuration, return True and the name of the point, pressure sensor and shaft.
+        If the Info file has the wrong configuration, return False and empty strings.
         """
-        df = pd.read_csv(filePath, header=None, index_col=0)
-        self.lineEditPointName.setText(df.iloc[0].at[1])
-        self.lineEditPSensorName.setText(df.iloc[1].at[1])
-        self.lineEditShaftName.setText(df.iloc[2].at[1])
+        try:
+            df = pd.read_csv(filePath, header=None, index_col=0)
+            pointName = df.iloc[0].at[1]
+            psensorName = df.iloc[1].at[1]
+            shaftName = df.iloc[2].at[1]
+            return True, pointName, psensorName,shaftName
+        except:
+            return False, "", "", ""
     
-    def checkPressureFileIntegrity(self):
-        pass
+    def checkPressureFileIntegrity(self, filePath):
+        """
+        Return True if the file with the pressure readings has the correct structure. 
+        """
+        try:
+            df = pd.read_csv(filePath)
+            if df.shape[1] < 4 : # Index + Date + Voltage + Temperature
+                print("Too few columns in pressure file")
+                return False
+            if df.dtypes[2]!=float64 or df.dtypes[3]!=float64:
+                print("The Voltage and Temperature columns are not floats.")
+                return False
+        except:
+            print("An error has occured while reading the file.")
+            return False
+        return True
+
     
-    def checkTemperatureFileIntegrity(self):
-        pass
-    
+    def checkTemperatureFileIntegrity(self, filePath):
+        """
+        Return True if the file with the temperature readings has the correct structure. 
+        """
+        try:
+            df = pd.read_csv(filePath)
+            if df.shape[1] < 6 : # Index + Date + 4 Temperatures
+                print("Too few columns in temperature file")
+                return False
+            if df.dtypes[2]!=float64 or df.dtypes[3]!=float64 or df.dtypes[4]!=float64 or df.dtypes[5]!=float64:
+                print("The Temperature columns are not floats.")
+                return False
+        except:
+            print("An error has occured while reading the file.")
+            return False
+        return True
+
     def build_point_names(self):
         """
         Build and return a query giving the names of all the points in the lab associated to the study.
@@ -228,6 +267,3 @@ class DialogImportPoint(QtWidgets.QDialog, From_DialogImportPoint):
                         ON Study.Labo = Labo.ID
                         WHERE Study.ID = '{self.studyID}'""")
         return query
-    
-    
-
