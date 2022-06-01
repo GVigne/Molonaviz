@@ -2,18 +2,19 @@ import os.path
 import glob
 import pandas as pd
 from ast import literal_eval
-from PyQt5.QtSql import QSqlQuery
+from PyQt5.QtSql import QSqlQuery, QSqlDatabase #QSqlDatabase in used only for type hints
 from utils.utilsQueries import build_lab_id
 from src.Containers import MoloQtList, Thermometer, PSensor, Shaft
+from src.MoloTreeViewModels import ThermometerTreeViewModel, PSensorTreeViewModel, ShaftTreeViewModel #Used only for type hints
 
 class Lab:
     """
     A concrete class to do some manipulations on a laboratory.
     When creating an instance of this class, one MUST give a boolean (isInDatabase):
-    -if isInDatabase, then the sensors corresponding to this lab will be extracted from the database. These are stored in a MoloQtList: the appropriate signals are connected to the MoloTreeViewModel thermoModel, psensorModel and shaftModel.
-    -else this means we are trying to create a new laboratory from a directory. In this case, pathToDir MUST NOT be an empty string and MUST be a valid directory path.
+    -if isInDatabase, then the sensors corresponding to this lab will be extracted from the database. These are stored in a MoloQtList: the appropriate signals are connected to the three MoloTreeViewModel given as arguments. Thus, if isInDatabase, one must give a total of 6 arguments (connection, laboratory name, isInDatabase and 3 models)
+    -else this means we are trying to create a new laboratory from a directory. In this case, pathToDir MUST NOT be an empty string and MUST be a valid directory path. Thus, if not isInDatabase, one must give a total of 4 arguments (connection, laboratory name, isInDatabase and path to the directory).
     """
-    def __init__(self, con, labName, isInDatabase, pathToDir = "", thermoModel = None, psensorModel = None, shaftModel = None):
+    def __init__(self, con : QSqlDatabase, labName : str, isInDatabase : bool, pathToDir : str = "", thermoModel : None | ThermometerTreeViewModel = None, psensorModel : None | PSensorTreeViewModel = None, shaftModel : None | ShaftTreeViewModel = None):
         self.con = con
         self.labName = labName
         self.labId = None #Should be updated when the lab is created.
@@ -90,12 +91,18 @@ class Lab:
         self.labId = get_id.value(0)
     
     def addLab(self):
+        """
+        Add this lab to the database.
+        """
         insert_lab = self.build_insert_lab()
         insert_lab.exec()
         print(f"The lab {self.labName} has been added to the database.")
         self.refreshLabId()
 
     def addThermometers(self):
+        """
+        Add this lab's thermometers to the database.
+        """
         tempdir = os.path.join(self.pathToDir, "temperature_sensors", "*.csv")
         files = glob.glob(tempdir)
         files.sort()
@@ -122,6 +129,9 @@ class Lab:
             print("The thermometers have been added to the database.")
 
     def addPressureSensors(self):
+        """
+        Add this lab's pressure sensors to the database.
+        """
         psdir = os.path.join(self.pathToDir, "pressure_sensors", "*.csv")
         files = glob.glob(psdir)
         files.sort()
@@ -160,6 +170,9 @@ class Lab:
             print("The pressure sensors have been added to the database.")
 
     def addShafts(self):
+        """
+        Add this lab's shafts to the database.
+        """
         psdir = os.path.join(self.pathToDir, "shafts", "*.csv")
         files = glob.glob(psdir)
         files.sort()
@@ -203,7 +216,7 @@ class Lab:
     
     def build_similar_lab(self):
         """
-        Build and return a query to check is a lab with the same name is in the database.
+        Build and return a query to check if a lab with the same name is in the database.
         """
         query = QSqlQuery(self.con)
         query.prepare(f"SELECT Labo.Name FROM Labo WHERE Labo.Name ='{self.labName}'")
@@ -235,9 +248,9 @@ class Lab:
         """)
         return insertQuery
     
-    def build_thermo_id(self,thermoname):
+    def build_thermo_id(self, thermoname : str):
         """
-        Build and return a query giving a the ID of a given thermometer.
+        Build and return a query giving the name of a given thermometer.
         """
         selectQuery = QSqlQuery(self.con)
         selectQuery.prepare(f"SELECT Thermometer.ID FROM Thermometer WHERE Thermometer.Name = '{thermoname}' AND Thermometer.Labo = '{self.labId}'")

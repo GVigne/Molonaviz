@@ -4,7 +4,9 @@ from utils.utils import displayCriticalMessage
 
 From_DialogImportLab = uic.loadUiType(os.path.join(os.path.dirname(__file__), "..", "ui","dialogImportLab.ui"))[0]
 class DialogImportLab(QtWidgets.QDialog,From_DialogImportLab):
-    
+    """
+    Enable the user to pick the path to the directory required for the creation of a laboratory in the database.
+    """
     def __init__(self):
         super(DialogImportLab, self).__init__()
         QtWidgets.QDialog.__init__(self)
@@ -13,6 +15,9 @@ class DialogImportLab(QtWidgets.QDialog,From_DialogImportLab):
         self.pushButtonBrowse.clicked.connect(self.browseDir)
         
     def browseDir(self):
+        """
+        Display a dialog so that the user may choose the laboratory's directory.
+        """
         fileDir = QtWidgets.QFileDialog.getExistingDirectory(self, "Select Laboratory Directory")
         if fileDir:
             self.lineEditLabDir.setText(fileDir)

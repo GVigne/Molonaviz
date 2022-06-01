@@ -1,9 +1,9 @@
 """
 Some useful queries which have been grouped here to prevent code duplication.
 """
-from PyQt5.QtSql import QSqlQuery
+from PyQt5.QtSql import QSqlQuery, QSqlDatabase #QSqlDatabase in used only for type hints
 
-def createStudyDatabase(con,studyname,labName):
+def createStudyDatabase(con : QSqlDatabase, studyname : str,labName : str):
     """
     Given a study name and a VALID laboratory name, create the corresponding study in the dabatase.
     """
@@ -18,7 +18,7 @@ def createStudyDatabase(con,studyname,labName):
     insertStudy.exec()
     print(f"The study {studyname} has been added to the database.")
 
-def build_insert_study(con):
+def build_insert_study(con : QSqlDatabase):
     """
     Build and return a query creating a study in the database
     """
@@ -31,7 +31,7 @@ def build_insert_study(con):
         """)
     return query
 
-def build_lab_id(con,labName):
+def build_lab_id(con : QSqlDatabase, labName : str):
     """
     Build and return a query giving the ID of the laboratory called labName.
     """

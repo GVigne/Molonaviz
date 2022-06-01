@@ -4,6 +4,38 @@ The only goal of the Containers classes (Thermometer, PSensor, Shaft and Point) 
 """
 from PyQt5.QtCore import QObject, pyqtSignal
 
+class Thermometer:
+    def __init__(self, name : str, manuName : str, manuRef : str, error : float | str):
+        self.name = name
+        self.manuName = manuName
+        self.manuRef = manuRef
+        self.error = error
+
+class PSensor:
+    def __init__(self, name : str, datalogger : str, calibrationDate : str, intercept : float | str, dudh : float | str, dudt : float | str, error : float | str):
+        self.name = name
+        self.datalogger = datalogger
+        self.calibrationDate = calibrationDate
+        self.intercept = intercept
+        self.dudh = dudh
+        self.dudt = dudt
+        self.error = error
+
+class Shaft:
+    def __init__(self, name : str, datalogger : str, depths : list[float | str], thermoType : str):
+        self.name = name
+        self.datalogger = datalogger
+        self.thermoType = thermoType
+        self.depths = depths
+
+class Point:
+    def __init__(self, name : str, psensor : str, shaft : str, rivBed : float | str, offset : float | str):
+        self.name = name
+        self.psensor = psensor
+        self.shaft = shaft
+        self.rivBed = rivBed
+        self.offset = offset
+
 class MoloQtList(QObject):
     """
     Custom list which can emit two signals, one when an item is appended and one when an item is removed.
@@ -17,7 +49,7 @@ class MoloQtList(QObject):
         super(MoloQtList, self).__init__()
         self.elements = []
     
-    def append(self,item):
+    def append(self, item : Thermometer | PSensor | Shaft | Point):
         """
         This is the method which should be called when trying to add an element to the MoloQtList.
         The parameter item must have a field or attribute called "name" which should be a string.
@@ -25,7 +57,7 @@ class MoloQtList(QObject):
         self.elements.append(item)
         self.appendSignal.emit(item)
     
-    def remove(self,itemName):
+    def remove(self, itemName : str):
         """
         This is the method which should be called when trying to remove an element from the MoloQtList.
         The parameter itemName is a string corresponding to the unique identifier of an element in the MoloQtList.
@@ -40,39 +72,7 @@ class MoloQtList(QObject):
     
     def clear(self):
         """
-        Clear the list and everything in it. Used only when the MoloQtList should be destroyed (ie when closing the lab or the study)
+        Clear the list and everything in it. Used only when the MoloQtList should be destroyed (ie when closing the lab or the study).
         """
         self.elements = []
         self.clearSignal.emit()
-
-class Thermometer:
-    def __init__(self, name, manuName, manuRef, error):
-        self.name = name
-        self.manuName = manuName
-        self.manuRef = manuRef
-        self.error = error
-
-class PSensor:
-    def __init__(self, name, datalogger, calibrationDate, intercept, dudh, dudt, error):
-        self.name = name
-        self.datalogger = datalogger
-        self.calibrationDate = calibrationDate
-        self.intercept = intercept
-        self.dudh = dudh
-        self.dudt = dudt
-        self.error = error
-
-class Shaft:
-    def __init__(self, name, datalogger, depths, thermoType):
-        self.name = name
-        self.datalogger = datalogger
-        self.thermoType = thermoType
-        self.depths = depths
-
-class Point:
-    def __init__(self, name, psensor, shaft, rivBed, offset):
-        self.name = name
-        self.psensor = psensor
-        self.shaft = shaft
-        self.rivBed = rivBed
-        self.offset = offset

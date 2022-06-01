@@ -1,14 +1,15 @@
-from PyQt5.QtSql import QSqlQuery
+from PyQt5.QtSql import QSqlQuery, QSqlDatabase #QSqlDatabase in used only for type hints
 from src.Laboratory import Lab
 from src.Containers import Point
+from src.MoloTreeViewModels import ThermometerTreeViewModel, PSensorTreeViewModel, ShaftTreeViewModel, PointTreeViewModel #Used only for type hints
 
 class Study:
     """
     A concrete class to handle the study being currently opened by the user.
     """
-    def __init__(self,con, studyName, thermoModel = None, psensorModel = None, shaftModel = None, pointModel = None):
+    def __init__(self, con : QSqlDatabase, studyName : str, thermoModel : ThermometerTreeViewModel, psensorModel : PSensorTreeViewModel, shaftModel : ShaftTreeViewModel, pointModel : PointTreeViewModel):
         """
-        thermoModel, psensorModel, shaftModel and pointModel are instances of MoloTreeViewModel. These are the models used to display data: the MoloQtList should be linked to these models.
+        thermoModel, psensorModel, shaftModel and pointModel are the models used to display data in the main window: the MoloQtList should be linked to these models.
         """
         self.con = con
         self.name = studyName
@@ -18,7 +19,7 @@ class Study:
         self.points = []
         self.createSelfPoints()
     
-    def createSelfLab(self,thermoModel, psensorModel, shaftModel):
+    def createSelfLab(self,thermoModel : ThermometerTreeViewModel, psensorModel : PSensorTreeViewModel, shaftModel : ShaftTreeViewModel):
         """
         Build a Lab object which corresponds to the laboratory in the database.
         """

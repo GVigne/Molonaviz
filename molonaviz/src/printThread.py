@@ -1,14 +1,19 @@
 
 from PyQt5.QtCore import QObject, pyqtSignal
+from queue import Queue #Used only for type hints
+
 
 class InterceptOutput:
     """
     The goal of this class is to intercept sys.stdout and put in in a queue: instead of displaying a message in the terminal, it will be put in a queue.
     """
-    def __init__(self,queue):
+    def __init__(self, queue : Queue):
         self.queue = queue
     
-    def write(self, text):
+    def write(self, text : str):
+        """
+        Method called when trying to print something. This is an overloaded function.
+        """
         self.queue.put(text)
     
     def flush(self):
@@ -19,11 +24,11 @@ class InterceptOutput:
 
 class Receiver(QObject):
     """
-    A QObject meant to run on its own QThread that waits for data to be pushed in its queue. When it has something in the queue, send it to the Main Thread by emitting a custom signal.
+    A QObject meant to run in its own QThread that waits for data to be pushed in its queue. When it has something in the queue, send it to the Main Thread by emitting a custom signal.
     """
     printMessage = pyqtSignal(str)
 
-    def __init__(self,queue):
+    def __init__(self, queue : Queue):
         QObject.__init__(self)
         self.queue = queue
 

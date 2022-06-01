@@ -1,9 +1,9 @@
 import os
 from PyQt5 import QtCore, QtWidgets, uic
-from PyQt5.QtSql import QSqlQuery
+from PyQt5.QtSql import QSqlQuery, QSqlDatabase #QSqlDatabase in used only for type hints
 from utils.utils import displayCriticalMessage
 
-def tryCreateStudy(con):
+def tryCreateStudy(con : QSqlDatabase):
     """
     This function either displays an error message (no labs in database) or a dialog to choose a lab and the name of the study.
     This function returns a string:
@@ -33,10 +33,12 @@ def tryCreateStudy(con):
 
 From_DialogCreateStudy = uic.loadUiType(os.path.join(os.path.dirname(__file__), "..", "ui","dialogCreateStudy.ui"))[0]
 class DialogCreateStudy(QtWidgets.QDialog,From_DialogCreateStudy):
-    
-    def __init__(self,labs):
+    """
+    Enable the user to pick a laboratory and the name of the study being created.
+    """
+    def __init__(self, labs : list[str]):
         """
-        Studies is a list of the names of the studies which should be displayed in the combo box.
+        labs is the list of the names of all the laboratories in the database.
         """
         super(DialogCreateStudy, self).__init__()
         QtWidgets.QDialog.__init__(self)
@@ -57,7 +59,7 @@ class DialogCreateStudy(QtWidgets.QDialog,From_DialogCreateStudy):
         """
         return self.lineEditStudyName.text()
 
-def checkUniqueStudyName(con,studyName):
+def checkUniqueStudyName(con : QSqlDatabase, studyName : str):
     """
     Return True if studyName is not the name of a study in the database.
     """
@@ -67,17 +69,17 @@ def checkUniqueStudyName(con,studyName):
         return False
     return True
 
-def build_similar_studies(con,studyName):
+def build_similar_studies(con : QSqlDatabase, studyName : str):
     """
-    Build and return a query giving all the studies in the database with the name studyName
+    Build and return a query giving all the studies in the database with the name studyName.
     """
     query = QSqlQuery(con)
     query.prepare(f"SELECT * FROM Study WHERE Study.Name='{studyName}'")
     return query
 
-def build_select_labs(con):
+def build_select_labs(con: QSqlDatabase):
     """
-    Build and return a query giving all available labs in the database
+    Build and return a query giving all available labs in the database.
     """
     query = QSqlQuery(con)
     query.prepare("SELECT Labo.Name FROM Labo")

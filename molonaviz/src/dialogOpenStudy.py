@@ -1,10 +1,10 @@
 import os
 from PyQt5 import QtCore, QtWidgets, uic
-from PyQt5.QtSql import QSqlQuery
+from PyQt5.QtSql import QSqlQuery, QSqlDatabase #QSqlDatabase in used only for type hints
 from utils.utils import displayCriticalMessage
 
 
-def tryOpenStudy(con):
+def tryOpenStudy(con : QSqlDatabase):
     """
     This function either displays an error message (no study in database) or a dialog to choose one study.
     This function returns a string:
@@ -29,10 +29,12 @@ def tryOpenStudy(con):
 
 From_DialogOpenStudy = uic.loadUiType(os.path.join(os.path.dirname(__file__), "..", "ui","dialogOpenStudy.ui"))[0]
 class DialogOpenStudy(QtWidgets.QDialog,From_DialogOpenStudy):
-    
-    def __init__(self, studies):
+    """
+    Enable the user to choose a study to open from the ones already existing in the database.
+    """
+    def __init__(self, studies : list[str]):
         """
-        Studies is a list of the names of the studies which should be displayed in the combo box.
+        studies is the list of the names of all the studies in the database.
         """
         super(DialogOpenStudy, self).__init__()
         QtWidgets.QDialog.__init__(self)
@@ -47,7 +49,7 @@ class DialogOpenStudy(QtWidgets.QDialog,From_DialogOpenStudy):
         """
         return self.comboBoxShowStudies.currentText()
 
-def build_select_studies(con):
+def build_select_studies(con : QSqlDatabase):
     """
     Build and return a query giving all available studies in the database
     """

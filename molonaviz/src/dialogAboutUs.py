@@ -5,6 +5,9 @@ import os.path
 From_DialogAboutUs = uic.loadUiType(os.path.join(os.path.dirname(__file__),"..","ui","dialogAboutUs.ui"))[0]
 
 class DialogAboutUs(QtWidgets.QDialog,From_DialogAboutUs):
+    """
+    Display some text and a picture about the app's creators.
+    """
     def __init__(self):
         super(DialogAboutUs, self).__init__()
         QtWidgets.QDialog.__init__(self)

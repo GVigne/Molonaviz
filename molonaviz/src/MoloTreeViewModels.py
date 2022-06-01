@@ -1,4 +1,5 @@
 from PyQt5 import QtGui
+from src.Containers import Thermometer, PSensor, Shaft, Point #Used only for type hints
 
 class MoloTreeViewModel(QtGui.QStandardItemModel):
     """
@@ -9,20 +10,20 @@ class MoloTreeViewModel(QtGui.QStandardItemModel):
         super().__init__()
         self.elements = []
     
-    def add_data(self, input_data):
+    def add_data(self, input_data : Thermometer | PSensor | Shaft | Point):
         """
         Add a new element to the model.
         """
         self.elements.append(input_data)
         self.display_element(input_data)
     
-    def display_element(self,input_data):
+    def display_element(self,input_data : Thermometer | PSensor | Shaft | Point):
         """
         Display the new element input_data in a pretty way.
         """
         pass
     
-    def remove_data(self,input_data):
+    def remove_data(self,input_data : Thermometer | PSensor | Shaft | Point):
         """
         Remove the given item.
         """
@@ -56,7 +57,7 @@ class ThermometerTreeViewModel(MoloTreeViewModel):
     def __init__(self):
         super().__init__()
     
-    def display_element(self, thermometer):
+    def display_element(self, thermometer : Thermometer):
         item = QtGui.QStandardItem(thermometer.name)
         self.appendRow(item)
         item.appendRow(QtGui.QStandardItem(f"Manufacturer name : {thermometer.manuName}"))
@@ -70,7 +71,7 @@ class PSensorTreeViewModel(MoloTreeViewModel):
     def __init__(self):
         super().__init__()
     
-    def display_element(self,psensor):
+    def display_element(self, psensor : PSensor):
         item = QtGui.QStandardItem(psensor.name)
         self.appendRow(item)
         item.appendRow(QtGui.QStandardItem(f"Datalogger : {psensor.datalogger}"))
@@ -87,7 +88,7 @@ class ShaftTreeViewModel(MoloTreeViewModel):
     def __init__(self):
         super().__init__()
     
-    def display_element(self, shaft):
+    def display_element(self, shaft : Shaft):
         item = QtGui.QStandardItem(shaft.name)
         self.appendRow(item)
         item.appendRow(QtGui.QStandardItem(f"Datalogger : {shaft.datalogger}"))
@@ -101,7 +102,7 @@ class PointTreeViewModel(MoloTreeViewModel):
     def __init__(self):
         super().__init__()
     
-    def display_element(self, point):
+    def display_element(self, point : Point):
         item = QtGui.QStandardItem(point.name)
         self.appendRow(item)
         item.appendRow(QtGui.QStandardItem(f"Pressure sensor : {point.psensor}"))

@@ -1,7 +1,7 @@
 import os
 import re #Regular expression, to check if a pattern is in a string.
 from PyQt5 import QtWidgets, uic
-from PyQt5.QtSql import QSqlQuery
+from PyQt5.QtSql import QSqlQuery, QSqlDatabase #QSqlDatabase in used only for type hints
 import pandas as pd
 from numpy import float64
 from utils.utils import displayCriticalMessage
@@ -9,8 +9,10 @@ from utils.utils import displayCriticalMessage
 From_DialogImportPoint = uic.loadUiType(os.path.join(os.path.dirname(__file__), "..", "ui","dialogImportPoint.ui"))[0]
 
 class DialogImportPoint(QtWidgets.QDialog, From_DialogImportPoint):
-    
-    def __init__(self,con,studyID):
+    """
+    Enable the user to pick the paths to the files needed for the creation of a sampling point in the database. Also check if the overall structure of the files is correct.
+    """
+    def __init__(self, con : QSqlDatabase, studyID : int | str):
         super(DialogImportPoint, self).__init__()
         QtWidgets.QDialog.__init__(self)
         
@@ -186,21 +188,7 @@ class DialogImportPoint(QtWidgets.QDialog, From_DialogImportPoint):
         if filePath:
             self.lineEditConfig.setText(filePath) 
     
-    def getPointInfo(self):
-        """
-        Retrieve all data from the dialog: the name of the point and the sensors, as well as the paths to the files.
-        """
-        name = self.lineEditPointName.text()
-        psensor = self.lineEditPSensorName.text()
-        shaft = self.lineEditShaftName.text()
-        infofile = self.lineEditInfo.text()
-        prawfile = self.lineEditPressures.text()
-        trawfile = self.lineEditTemperatures.text()
-        noticefile = self.lineEditNotice.text()
-        configfile = self.lineEditConfig.text()
-        return name, psensor, shaft, infofile, prawfile, trawfile, noticefile, configfile
-    
-    def checkInfoIntegrity(self,filePath):
+    def checkInfoIntegrity(self, filePath : str):
         """
         If the Info file has the correct configuration, return True and the name of the point, pressure sensor and shaft.
         If the Info file has the wrong configuration, return False and empty strings.
@@ -214,7 +202,7 @@ class DialogImportPoint(QtWidgets.QDialog, From_DialogImportPoint):
         except:
             return False, "", "", ""
     
-    def checkPressureFileIntegrity(self, filePath):
+    def checkPressureFileIntegrity(self, filePath : str):
         """
         Return True if the file with the pressure readings has the correct structure (at least 4 columns with 2 columns - voltage and temperature - being floats).
         """
@@ -232,7 +220,7 @@ class DialogImportPoint(QtWidgets.QDialog, From_DialogImportPoint):
         return True
 
     
-    def checkTemperatureFileIntegrity(self, filePath):
+    def checkTemperatureFileIntegrity(self, filePath : str):
         """
         Return True if the file with the temperature readings has the correct structure (at least 6 columns with 4 columns - corresponding to the temperatures - being floats).
         """
@@ -248,6 +236,20 @@ class DialogImportPoint(QtWidgets.QDialog, From_DialogImportPoint):
             print("An error has occured while reading the file.")
             return False
         return True
+    
+    def getPointInfo(self):
+        """
+        Retrieve all data from the dialog: the name of the point and the sensors, as well as the paths to the files.
+        """
+        name = self.lineEditPointName.text()
+        psensor = self.lineEditPSensorName.text()
+        shaft = self.lineEditShaftName.text()
+        infofile = self.lineEditInfo.text()
+        prawfile = self.lineEditPressures.text()
+        trawfile = self.lineEditTemperatures.text()
+        noticefile = self.lineEditNotice.text()
+        configfile = self.lineEditConfig.text()
+        return name, psensor, shaft, infofile, prawfile, trawfile, noticefile, configfile
 
     def build_point_names(self):
         """

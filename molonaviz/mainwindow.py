@@ -1,16 +1,13 @@
-from re import S
 from PyQt5 import QtWidgets, QtGui, QtCore, uic
 from PyQt5.QtSql import QSqlDatabase
 
 from queue import Queue
 import sys, os.path
-from src.Containers import Thermometer
 from src.Study import Study
 
 from src.dialogAboutUs import DialogAboutUs
 from src.dialogOpenDatabase import DialogOpenDatabase
 from src.dialogImportLab import DialogImportLab
-from src.dialogCreateStudy import DialogCreateStudy
 from src.dialogOpenStudy import tryOpenStudy
 from src.dialogCreateStudy import tryCreateStudy
 
@@ -22,6 +19,9 @@ from src.MoloTreeViewModels import ThermometerTreeViewModel, PSensorTreeViewMode
 
 From_MainWindow = uic.loadUiType(os.path.join(os.path.dirname(__file__),"ui","mainwindow.ui"))[0]
 class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
+    """
+    The main window of the Molonaviz application.
+    """
     def __init__(self):
         # Call constructor of parent classes
         super(MainWindow, self).__init__()
@@ -70,7 +70,6 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
     def openDatabase(self):
         """
         If the user has never opened the database of if the config file is not valid (as a reminder, config is a text document containing the path to the database), display a dialog so the user may choose th e database directory.
-
         Then, open the database in the directory. 
         """
         databaseDir = None
@@ -109,6 +108,9 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
             self.openDatabase()
         
     def importLabo(self):
+        """
+        Display a dialog so the user may import a laboratory from a directory. The laboratory is added to the database.
+        """
         dlg = DialogImportLab()
         dlg.setWindowModality(QtCore.Qt.ApplicationModal)
         res = dlg.exec_()
@@ -123,7 +125,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
     
     def createStudy(self):
         """
-        Display a dialog so the user may create a study. Then, open this study.
+        Display a dialog so the user may create a study.The study is added to the database. Then, open this study (by calling self.openStudy)
         """
         study_name, study_lab = tryCreateStudy(self.con)
         if study_name and study_lab:#Theses strings are not empty: create the corresponding study
@@ -138,7 +140,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         if study_name: #study_name is not an empty string: we should open the corresponding Study.
             self.openStudy(study_name)
     
-    def openStudy(self, studyName):
+    def openStudy(self, studyName : str):
         """
         Given a VALID name of a study, open it.
         """
@@ -155,6 +157,9 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.actionRemovePoint.setEnabled(True)
     
     def closeStudy(self):
+        """
+        Close the current study and revert the app to the initial state.
+        """
         self.currentStudy.close() #Close the study and related windows
         self.currentStudy = None #Forget the study        
 
@@ -168,26 +173,35 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.actionRemovePoint.setEnabled(False)
 
     def changeDockPointsStatus(self):
+        """
+        Hide or show the dock displaying the sampling points.
+        """
         if self.actionHideShowPoints.isChecked():
             self.dockDataPoints.show()
         else :
             self.dockDataPoints.hide()
     
     def changeDockSensorsStatus(self):
+        """
+        Hide or show the dock displaying the sensors.
+        """
         if self.actionHideShowSensors.isChecked():
             self.dockSensors.show()
         else :
             self.dockSensors.hide()
     
     def changeDockAppMessagesStatus(self):
+        """
+        Hide or show the dock displaying the application messages.
+        """
         if self.actionHideShowAppMessages.isChecked():
             self.dockAppMessages.show()
         else :
             self.dockAppMessages.hide()
 
-    def printApplicationMessage(self,text):
+    def printApplicationMessage(self, text : str):
         """
-        Method called when a message needs to be displayed (ie a new element was put in self.messageQueue)
+        Show in the corresponding dock a message which needs to be displayed. This means that the program called the print() method somewhere.
         """
         self.textEditApplicationMessages.moveCursor(QtGui.QTextCursor.End)
         self.textEditApplicationMessages.insertPlainText(text)
@@ -216,6 +230,9 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         super().close()
     
     def openUserGuideFR(self):
+        """
+        Display the French user guide in a new window.
+        """
         userguidepath=os.path.dirname(__file__)
         userguidepath=os.path.join(userguidepath,"docs","UserguideFR.pdf")
         QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(userguidepath))
