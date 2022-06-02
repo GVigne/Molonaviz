@@ -66,6 +66,10 @@ class DialogImportPoint(QtWidgets.QDialog, From_DialogImportPoint):
         if self.lineEditShaftName.text() not in shafts:
             displayCriticalMessage(f"There is no shaft with the name {self.lineEditShaftName.text()} in the database for this laboratory.")
             return
+        
+        if not self.lineEditPressures.text() or not self.lineEditTemperatures.text() or not self.lineEditNotice.text() or not self.lineEditConfig.text():
+            displayCriticalMessage(f"All file paths must be completed.")
+            return
         #All test have been passed: close the dialog.
         super().accept()
 
