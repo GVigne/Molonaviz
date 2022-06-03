@@ -81,7 +81,7 @@ class Study:
         insertPoint.bindValue(":Notice", newNoticePath)
         #Extract relevant data from the infofile.
         df = pd.read_csv(infofile, header=None)
-        insertPoint.bindValue(":Implentation", df.iloc[3].at[1])
+        insertPoint.bindValue(":Setup", df.iloc[3].at[1])
         insertPoint.bindValue(":LastTransfer", df.iloc[4].at[1])
         offset = df.iloc[6].at[1]
         insertPoint.bindValue(":DeltaH", offset)
@@ -134,7 +134,7 @@ class Study:
         insertRawPress.bindValue(":PointKey", pointID)
         for row in dfpress.itertuples():
             insertRawPress.bindValue(":Date", row[1])
-            insertRawPress.bindValue(":TempBed", row[3])
+            insertRawPress.bindValue(":Temp_bed", row[3])
             insertRawPress.bindValue(":Voltage", row[2])
             insertRawPress.exec()
         self.con.commit()
@@ -199,7 +199,7 @@ class Study:
         query.prepare(f"""INSERT INTO SamplingPoint (
                               Name,
                               Notice,
-                              Implentation,
+                              Setup,
                               LastTransfer,
                               DeltaH,
                               RiverBed,
@@ -208,7 +208,7 @@ class Study:
                               Study,
                               Scheme,
                               CleanupScript)
-                          VALUES (:Name, :Notice, :Implentation, :LastTransfer, :DeltaH, :RiverBed, :Shaft, :PressureSensor, :Study, :Scheme, null)""")
+                          VALUES (:Name, :Notice, :Setup, :LastTransfer, :DeltaH, :RiverBed, :Shaft, :PressureSensor, :Study, :Scheme, null)""")
         return query
     
     def build_insert_raw_pressures(self):
@@ -218,10 +218,10 @@ class Study:
         query = QSqlQuery(self.con)
         query.prepare(f"""INSERT INTO RawMeasuresPress (
                         Date,
-                        TempBed,
+                        Temp_bed,
                         Voltage,
                         PointKey)
-        VALUES (:Date, :TempBed, :Voltage, :PointKey)""")
+        VALUES (:Date, :Temp_bed, :Voltage, :PointKey)""")
         return query
     
     def build_insert_raw_temperatures(self):
