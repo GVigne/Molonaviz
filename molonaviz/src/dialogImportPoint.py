@@ -131,7 +131,6 @@ class DialogImportPoint(QtWidgets.QDialog, From_DialogImportPoint):
                     if self.checkTemperatureFileIntegrity(filePath):
                         paths[4] = filePath
                         self.lineEditTemperatures.setText(filePath)
-
             #Now handle all error messages.
             nPath = len([elem for elem in paths if elem])  
             if nPath<5 : 
@@ -212,14 +211,14 @@ class DialogImportPoint(QtWidgets.QDialog, From_DialogImportPoint):
         """
         try:
             df = pd.read_csv(filePath)
-            if df.shape[1] < 4 : # Index + Date + Voltage + Temperature
-                print("Too few columns in pressure file")
+            if df.shape[1] < 3 : # Date + Voltage + Temperature
+                print(f"Too few columns in pressure file {os.path.basename(filePath)}. This file will be ignored.")
                 return False
-            if df.dtypes[2]!=float64 or df.dtypes[3]!=float64:
-                print("The Voltage and Temperature columns are not floats.")
+            if df.dtypes[1]!=float64 or df.dtypes[2]!=float64: #Voltage and Temperature must be floats
+                print(f"The Voltage and Temperature columns are not floats in file {os.path.basename(filePath)}. This file will be ignored.")
                 return False
-        except:
-            print("An error has occured while reading the file.")
+        except Exception as e:
+            print(f"An error has occured while reading the file {os.path.basename(filePath)} : {str(e)}. This file will be ignored.")
             return False
         return True
 
@@ -230,14 +229,14 @@ class DialogImportPoint(QtWidgets.QDialog, From_DialogImportPoint):
         """
         try:
             df = pd.read_csv(filePath)
-            if df.shape[1] < 6 : # Index + Date + 4 Temperatures
-                print("Too few columns in temperature file")
+            if df.shape[1] < 5 : #Date + 4 Temperatures
+                print(f"Too few columns in temperature file {os.path.basename(filePath)}. This file will be ignored.")
                 return False
-            if df.dtypes[2]!=float64 or df.dtypes[3]!=float64 or df.dtypes[4]!=float64 or df.dtypes[5]!=float64:
-                print("The Temperature columns are not floats.")
+            if df.dtypes[1]!=float64 or df.dtypes[2]!=float64 or df.dtypes[3]!=float64 or df.dtypes[4]!=float64: #the 4 temperatures must be floats
+                print(f"The Temperature columns are not floats in file {os.path.basename(filePath)}. This file will be ignored.")
                 return False
-        except:
-            print("An error has occured while reading the file.")
+        except Exception as e:
+            print(f"An error has occured while reading the file {os.path.basename(filePath)} : {str(e)}. This file will be ignored.")
             return False
         return True
     
@@ -253,7 +252,7 @@ class DialogImportPoint(QtWidgets.QDialog, From_DialogImportPoint):
         trawfile = self.lineEditTemperatures.text()
         noticefile = self.lineEditNotice.text()
         configfile = self.lineEditConfig.text()
-        return name, psensor, shaft, infofile, prawfile, trawfile, noticefile, configfile
+        return name, psensor, shaft, infofile, noticefile, configfile, prawfile, trawfile
 
     def build_point_names(self):
         """

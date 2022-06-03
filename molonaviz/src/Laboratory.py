@@ -244,8 +244,7 @@ class Lab:
             Error,
             Labo
         )
-        VALUES (:Name, :Manu_name, :Manu_ref, :Error, :Labo)
-        """)
+        VALUES (:Name, :Manu_name, :Manu_ref, :Error, :Labo)""")
         return insertQuery
     
     def build_thermo_id(self, thermoname : str):
@@ -274,8 +273,7 @@ class Lab:
             Thermo_model,
             Labo
         )
-        VALUES (:Name, :Datalogger, :Calibration, :Intercept, :DuDh, :DuDt, :Precision, :Thermo_model, :Labo)
-        """)
+        VALUES (:Name, :Datalogger, :Calibration, :Intercept, :DuDh, :DuDt, :Precision, :Thermo_model, :Labo)""")
         return insertQuery
     
     def build_insert_shaft(self):
@@ -294,8 +292,7 @@ class Lab:
                 Thermo_model,
                 Labo
             )
-            VALUES (:Name, :Datalogger, :Depth1, :Depth2, :Depth3, :Depth4, :Thermo_model, :Labo)
-            """)
+            VALUES (:Name, :Datalogger, :Depth1, :Depth2, :Depth3, :Depth4, :Thermo_model, :Labo)""")
         return insertQuery
     
     def build_select_thermometers(self):

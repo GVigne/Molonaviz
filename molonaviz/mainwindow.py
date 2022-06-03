@@ -10,6 +10,7 @@ from src.dialogOpenDatabase import DialogOpenDatabase
 from src.dialogImportLab import DialogImportLab
 from src.dialogOpenStudy import tryOpenStudy
 from src.dialogCreateStudy import tryCreateStudy
+from src.dialogImportPoint import DialogImportPoint
 
 from src.Laboratory import Lab
 from utils.utils import displayCriticalMessage
@@ -50,6 +51,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.actionCreateStudy.triggered.connect(self.createStudy)
         self.actionOpenStudy.triggered.connect(self.chooseStudyName)
         self.actionCloseStudy.triggered.connect(self.closeStudy)
+        self.actionImportPoint.triggered.connect(self.importPoint)
         self.actionHideShowPoints.triggered.connect(self.changeDockPointsStatus)
         self.actionHideShowSensors.triggered.connect(self.changeDockSensorsStatus)
         self.actionHideShowAppMessages.triggered.connect(self.changeDockAppMessagesStatus)
@@ -171,6 +173,18 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.actionImportPoint.setEnabled(False)
         self.actionOpenPoint.setEnabled(False)
         self.actionRemovePoint.setEnabled(False)
+    
+    def importPoint(self):
+        """
+        Display a dialog so that the user may import and add to the database a point.
+        This function may only be called if a study is opened, ie if self.currentStudy is not None.
+        """
+        dlg = DialogImportPoint(self.con, self.currentStudy.ID)
+        dlg.setWindowModality(QtCore.Qt.ApplicationModal)
+        res = dlg.exec_()
+        if res == QtWidgets.QDialog.Accepted:
+            name, psensor, shaft, infofile, noticefile, configfile, prawfile, trawfile = dlg.getPointInfo()
+            self.currentStudy.importNewPoint(name, psensor, shaft, infofile, noticefile, configfile, prawfile, trawfile)
 
     def changeDockPointsStatus(self):
         """

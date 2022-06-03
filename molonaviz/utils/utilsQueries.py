@@ -38,3 +38,11 @@ def build_lab_id(con : QSqlDatabase, labName : str):
     query = QSqlQuery(con)
     query.prepare(f"SELECT Labo.ID FROM Labo WHERE Labo.Name ='{labName}'")
     return query
+
+def build_study_id(con : QSqlDatabase, studyName : str):
+    """
+    Build and return a query giving the ID of the study called studyName.
+    """
+    query = QSqlQuery(con)
+    query.prepare(f"SELECT Study.ID FROM Study WHERE Study.Name ='{studyName}'")
+    return query
