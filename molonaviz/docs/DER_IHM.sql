@@ -99,8 +99,8 @@ CREATE TABLE RawMeasuresPress (
                                 PRIMARY KEY AUTOINCREMENT,
             Date        DATETIME    NOT NULL
                                 UNIQUE,
-            TempBed     REAL,
-            Tension    REAL,
+            Temp_bed     REAL,
+            Voltage    REAL,
             PointKey   INTEGER
         );
 
@@ -131,7 +131,7 @@ CREATE TABLE RMSE (
         );
 
 -- Table: SamplingPoint
-CREATE TABLE SamplingPoint (ID INTEGER PRIMARY KEY AUTOINCREMENT, Name VARCHAR, Notice VARCHAR, Longitude REAL, Latitude REAL, Implentation DATETIME, LastTransfer DATETIME, DeltaH REAL, RiverBed REAL, Shaft INTEGER REFERENCES Shaft (ID), PressureSensor INTEGER REFERENCES PressureSensor (ID), Study INTEGER REFERENCES Study (ID), Scheme VARCHAR, CleanupScript VARCHAR);
+CREATE TABLE SamplingPoint (ID INTEGER PRIMARY KEY AUTOINCREMENT, Name VARCHAR, Notice VARCHAR, Setup DATETIME, LastTransfer DATETIME, DeltaH REAL, RiverBed REAL, Shaft INTEGER REFERENCES Shaft (ID), PressureSensor INTEGER REFERENCES PressureSensor (ID), Study INTEGER REFERENCES Study (ID), Scheme VARCHAR, CleanupScript VARCHAR);
 
 -- Table: Shaft
 CREATE TABLE Shaft (ID INTEGER PRIMARY KEY AUTOINCREMENT, Name VARCHAR NOT NULL, Datalogger VARCHAR NOT NULL, Depth1 REAL NOT NULL, Depth2 REAL NOT NULL, Depth3 REAL NOT NULL, Depth4 REAL NOT NULL, Thermo_model INTEGER REFERENCES Thermometer (ID), Labo INTEGER REFERENCES Labo (ID));
