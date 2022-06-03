@@ -76,10 +76,10 @@ class PSensorTreeViewModel(MoloTreeViewModel):
         self.appendRow(item)
         item.appendRow(QtGui.QStandardItem(f"Datalogger : {psensor.datalogger}"))
         item.appendRow(QtGui.QStandardItem(f"Calibration date : {psensor.calibrationDate}"))
-        item.appendRow(QtGui.QStandardItem(f"Intercept : {psensor.intercept:.2f}"))
-        item.appendRow(QtGui.QStandardItem(f"Du/Dh : {psensor.dudh:.2f}"))
-        item.appendRow(QtGui.QStandardItem(f"Du/Dt : {psensor.dudt:.2f}"))
-        item.appendRow(QtGui.QStandardItem(f"Error : {psensor.error:.2f}"))
+        item.appendRow(QtGui.QStandardItem(f"Intercept : {psensor.intercept}"))
+        item.appendRow(QtGui.QStandardItem(f"Du/Dh : {psensor.dudh}"))
+        item.appendRow(QtGui.QStandardItem(f"Du/Dt : {psensor.dudt}"))
+        item.appendRow(QtGui.QStandardItem(f"Error : {psensor.error}"))
 
 class ShaftTreeViewModel(MoloTreeViewModel):
     """
@@ -107,6 +107,6 @@ class PointTreeViewModel(MoloTreeViewModel):
         self.appendRow(item)
         item.appendRow(QtGui.QStandardItem(f"Pressure sensor : {point.psensor}"))
         item.appendRow(QtGui.QStandardItem(f"Shaft : {point.shaft}"))
-        item.appendRow(QtGui.QStandardItem(f"River bed = {point.rivBed:.2f}"))
-        item.appendRow(QtGui.QStandardItem(f"Offset = {point.offset:.2f}"))
+        item.appendRow(QtGui.QStandardItem(f"River bed = {point.rivBed}"))
+        item.appendRow(QtGui.QStandardItem(f"Offset = {point.offset}"))
 
