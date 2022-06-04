@@ -31,11 +31,9 @@ From_DialogOpenStudy = uic.loadUiType(os.path.join(os.path.dirname(__file__), ".
 class DialogOpenStudy(QtWidgets.QDialog,From_DialogOpenStudy):
     """
     Enable the user to choose a study to open from the ones already existing in the database.
+    Warning: this dialog does not ensure that the studies it display really are in the database. When creating an instance of this class, one must give a list names of studies: one element from this list will be chosen by the user but no verification is made that it is a valid study.
     """
     def __init__(self, studies : list[str]):
-        """
-        studies is the list of the names of all the studies in the database.
-        """
         super(DialogOpenStudy, self).__init__()
         QtWidgets.QDialog.__init__(self)
         self.setupUi(self)
@@ -45,13 +43,13 @@ class DialogOpenStudy(QtWidgets.QDialog,From_DialogOpenStudy):
     
     def selectedStudy(self):
         """
-        Return the currently selected study
+        Return the currently selected study.
         """
         return self.comboBoxShowStudies.currentText()
 
 def build_select_studies(con : QSqlDatabase):
     """
-    Build and return a query giving all available studies in the database
+    Build and return a query giving all available studies in the database.
     """
     query = QSqlQuery(con)
     query.prepare("SELECT Study.Name FROM Study")
