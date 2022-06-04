@@ -168,6 +168,7 @@ class Study:
         """
         # self.points #Clear 
         self.lab.close()
+        self.points.clear()
 
     def build_lab_name(self):
         """
