@@ -1,4 +1,4 @@
-from PyQt5 import QtGui
+from PyQt5 import QtGui, QtCore
 from src.Containers import Thermometer, PSensor, Shaft, Point #Used only for type hints
 
 class MoloTreeViewModel(QtGui.QStandardItemModel):
@@ -104,6 +104,7 @@ class PointTreeViewModel(MoloTreeViewModel):
     
     def display_element(self, point : Point):
         item = QtGui.QStandardItem(point.name)
+        item.setData(point.name, QtCore.Qt.UserRole) #Flag the name of the point as an information (in fact the only information) which the user will be able to retrieve. 
         self.appendRow(item)
         item.appendRow(QtGui.QStandardItem(f"Pressure sensor : {point.psensor}"))
         item.appendRow(QtGui.QStandardItem(f"Shaft : {point.shaft}"))

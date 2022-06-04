@@ -154,6 +154,13 @@ class Study:
             insertRawTemp.bindValue(":Temp4", row[5])
             insertRawTemp.exec()
         self.con.commit()
+    
+    def openPoint(self, pointName : str):
+        """
+        Given a VALID name of a point (ie the name of a point which is in the study), open it in the visualisation window.
+        """
+        print(pointName)
+        pass
             
     def close(self):
         """

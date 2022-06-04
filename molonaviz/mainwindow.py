@@ -10,6 +10,7 @@ from src.dialogOpenDatabase import DialogOpenDatabase
 from src.dialogImportLab import DialogImportLab
 from src.dialogOpenStudy import tryOpenStudy
 from src.dialogCreateStudy import tryCreateStudy
+from src.dialogOpenPoint import tryOpenPoint
 from src.dialogImportPoint import DialogImportPoint
 
 from src.Laboratory import Lab
@@ -52,9 +53,13 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.actionOpenStudy.triggered.connect(self.chooseStudyName)
         self.actionCloseStudy.triggered.connect(self.closeStudy)
         self.actionImportPoint.triggered.connect(self.importPoint)
+        self.actionOpenPoint.triggered.connect(self.openPointFromAction)
         self.actionHideShowPoints.triggered.connect(self.changeDockPointsStatus)
         self.actionHideShowSensors.triggered.connect(self.changeDockSensorsStatus)
         self.actionHideShowAppMessages.triggered.connect(self.changeDockAppMessagesStatus)
+
+        self.treeViewDataPoints.doubleClicked.connect(self.openPointFromDock)
+
     
         #Some actions or menus should not be enabled: disable them
         self.actionCloseStudy.setEnabled(False)
@@ -186,6 +191,28 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
             name, psensor, shaft, infofile, noticefile, configfile, prawfile, trawfile = dlg.getPointInfo()
             self.currentStudy.importNewPoint(name, psensor, shaft, infofile, noticefile, configfile, prawfile, trawfile)
 
+    def openPointFromAction(self):
+        """
+        This happens when the user clicks the "Open Point" action. Display a dialog so the user may choose a point to open, or display an error message. Then, open the corresponding point.
+        This function may only be called if a study is opened, ie if self.currentStudy is not None. 
+        """
+        point_name = tryOpenPoint(self.con, self.currentStudy.ID)
+        if point_name: #study_name is not an empty string: we should open the corresponding Point.
+            self.currentStudy.openPoint(point_name)
+    
+    def openPointFromDock(self):
+        """
+        This happens when the user double cliks a point from the dock. Open it.
+        This function may only be called if a study is opened, ie if self.currentStudy is not None.
+        """
+        #Get the information with the flag "UserRole": this information is the name of the point (as defined in MoloTreeViewModels).
+        pointName = self.treeViewDataPoints.selectedIndexes()[0].data(QtCore.Qt.UserRole)
+        if pointName is None:
+            #The user clicked on one of the sub-items instead (shaft, pressure sensor...). Get the information from the parent widget.
+            pointName = self.treeViewDataPoints.selectedIndexes()[0].parent().data(QtCore.Qt.UserRole)
+
+        self.currentStudy.openPoint(pointName)
+    
     def changeDockPointsStatus(self):
         """
         Hide or show the dock displaying the sampling points.

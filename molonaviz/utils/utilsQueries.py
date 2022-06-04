@@ -46,3 +46,14 @@ def build_study_id(con : QSqlDatabase, studyName : str):
     query = QSqlQuery(con)
     query.prepare(f"SELECT Study.ID FROM Study WHERE Study.Name ='{studyName}'")
     return query
+
+def build_point_names(con : QSqlDatabase, studyID: int | str):
+        """
+        Build and return a query giving the names of all the sampling points associated to a study (identified  by its ID).
+        """
+        query = QSqlQuery(con)
+        query.prepare(f"""SELECT SamplingPoint.Name FROM SamplingPoint
+                        JOIN Study
+                        ON SamplingPoint.Study = Study.ID
+                        WHERE Study.ID = '{studyID}'""")
+        return query

@@ -5,6 +5,7 @@ from PyQt5.QtSql import QSqlQuery, QSqlDatabase #QSqlDatabase in used only for t
 import pandas as pd
 from numpy import float64
 from utils.utils import displayCriticalMessage
+from utils.utilsQueries import build_point_names
 
 From_DialogImportPoint = uic.loadUiType(os.path.join(os.path.dirname(__file__), "..", "ui","dialogImportPoint.ui"))[0]
 
@@ -39,7 +40,7 @@ class DialogImportPoint(QtWidgets.QDialog, From_DialogImportPoint):
         This function runs integrity checks on the database before allowing the dialog to be closed. Theses checks make sure the name of the point, the pressure sensor and the shaft respect database integrity: the point must not already be in the study and the sensors must exist.
         """
         points = []
-        select_points = self.build_point_names()
+        select_points = build_point_names(self.con, self.studyID)
         select_points.exec()
         while select_points.next():
             points.append(select_points.value(0))
@@ -253,17 +254,6 @@ class DialogImportPoint(QtWidgets.QDialog, From_DialogImportPoint):
         noticefile = self.lineEditNotice.text()
         configfile = self.lineEditConfig.text()
         return name, psensor, shaft, infofile, noticefile, configfile, prawfile, trawfile
-
-    def build_point_names(self):
-        """
-        Build and return a query giving the names of all the points in the lab associated to the study.
-        """
-        query = QSqlQuery(self.con)
-        query.prepare(f"""SELECT SamplingPoint.Name FROM SamplingPoint
-                        JOIN Study
-                        ON SamplingPoint.Study = Study.ID
-                        WHERE Study.ID = '{self.studyID}'""")
-        return query
     
     def build_psensor_names(self):
         """
