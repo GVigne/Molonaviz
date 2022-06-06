@@ -5,6 +5,7 @@ from utils.utilsQueries import build_study_id
 import shutil, os
 import pandas as pd
 from src.MoloTreeViewModels import ThermometerTreeViewModel, PSensorTreeViewModel, ShaftTreeViewModel, PointTreeViewModel #Used only for type hints
+from src.widgetPoint import WidgetPoint
 
 class Study:
     """
@@ -159,8 +160,11 @@ class Study:
         """
         Given a VALID name of a point (ie the name of a point which is in the study), open it in the visualisation window.
         """
-        print(pointName)
-        pass
+        for p in self.points:
+            if p.name == pointName:
+                point = p
+        wdg = WidgetPoint(self.con, point)
+        wdg.show()
             
     def close(self):
         """

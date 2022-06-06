@@ -14,6 +14,7 @@ In the code, Point refers to SamplingPoint. This is because the Point table is a
 
 Known bugs:
 -When importing a lab, some messages may appear such as "The thermometers have been added to the database", despite it not being the case
+- build_data_queries first query is super ugly, and so are other queries ( = SELECT ...)
 
 TODO:
 -In the pressure sensors/shafts.csv files: less precision for floats? Right now, we have floats with a precision of more thant 10 digits...
