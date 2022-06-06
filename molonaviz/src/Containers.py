@@ -49,6 +49,12 @@ class MoloQtList(QObject):
         super(MoloQtList, self).__init__()
         self.elements = []
     
+    def __iter__(self):
+        """
+        This method makes the MoloQtList iterable (ie you can do 'for elem in MoloQtList').
+        """
+        return self.elements.__iter__()
+    
     def append(self, item : Thermometer | PSensor | Shaft | Point):
         """
         This is the method which should be called when trying to add an element to the MoloQtList.
