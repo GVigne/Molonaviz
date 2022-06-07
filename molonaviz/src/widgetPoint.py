@@ -1,21 +1,8 @@
-# import sys
-# import os
-# from PyQt5 import QtWidgets, QtCore, uic
-# from PyQt5.QtGui import QPixmap
-# from PyQt5.QtSql import QSqlQueryModel, QSqlDatabase, QSqlQuery
-# import pandas as pd
-# from pandasmodel import PandasModel
 # from dialogcleanupmain import DialogCleanupMain
 # from dialogcompute import DialogCompute
-# from point import Point
-# from study import Study
 # from compute import Compute
-# from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 # from usefulfonctions import *
 # from dialogreset import DialogReset
-
-# from MoloView import PressureView, TemperatureView,UmbrellaView,TempDepthView,TempMapView,AdvectiveFlowView, ConductiveFlowView, TotalFlowView, WaterFluxView, Log10KView, ConductivityView, PorosityView, CapacityView
-# from Database.mainDb import MainDb
 
 import os
 from PyQt5 import QtWidgets, QtCore, uic
@@ -29,7 +16,7 @@ from src.MoloView import PressureView, TemperatureView,UmbrellaView,TempDepthVie
 
 From_WidgetPoint = uic.loadUiType(os.path.join(os.path.dirname(__file__), "..", "ui", "widgetPoint.ui"))[0]
 
-class WidgetPoint(QtWidgets.QWidget,From_WidgetPoint):
+class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
     
     def __init__(self, con : QSqlDatabase, point: Point):
         # Call constructor of parent classes
@@ -42,7 +29,7 @@ class WidgetPoint(QtWidgets.QWidget,From_WidgetPoint):
         # self.computeEngine = Compute(db, self.point)
 
         #This should already be done in the .ui file
-        self.checkBoxRaw_Data.setChecked(True)
+        self.checkBoxRawData.setChecked(True)
         self.checkBoxDirectModel.setChecked(True)
         self.radioButtonTherm1.setChecked(True)
 
@@ -62,7 +49,7 @@ class WidgetPoint(QtWidgets.QWidget,From_WidgetPoint):
         self.pushButtonReset.clicked.connect(self.reset)
         self.pushButtonCleanUp.clicked.connect(self.cleanup)
         self.pushButtonCompute.clicked.connect(self.compute)
-        self.checkBoxRaw_Data.stateChanged.connect(self.checkbox)
+        self.checkBoxRawData.stateChanged.connect(self.checkbox)
         self.pushButtonRefreshBins.clicked.connect(self.refreshbins)
         self.horizontalSliderBins.valueChanged.connect(self.label_update)
 
@@ -77,7 +64,6 @@ class WidgetPoint(QtWidgets.QWidget,From_WidgetPoint):
 
     def setInfoTab(self):
         select_paths, select_infos = self.build_infos_queries()
-
         #Installation image
         select_paths.exec()
         select_paths.next()
@@ -775,10 +761,10 @@ class WidgetPoint(QtWidgets.QWidget,From_WidgetPoint):
         Build and return ONE AND ONLY ONE of the following queries:
         -if full_query is True, then extract the Date, Pressure and all Temperatures (this is for the Data part)
         -if field is not "", then it MUST be either "Temp" or "Pressure". Extract the Date and the corresponding field (this is for the Plot part): either all the temperatures or just the pressure.
-        Theses queries take into account the actual state of checkBoxRaw_Data to make to correct request (to either RawMeasuresTemp or CleanedMeasures)
+        Theses queries take into account the actual state of checkBoxRawData to make to correct request (to either RawMeasuresTemp or CleanedMeasures)
         """
         query = QSqlQuery(self.con)
-        if self.checkBoxRaw_Data.isChecked():
+        if self.checkBoxRawData.isChecked():
             #Raw data
             if full_query:
                 query.prepare(f"""

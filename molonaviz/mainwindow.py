@@ -198,7 +198,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         """
         point_name = tryOpenPoint(self.con, self.currentStudy.ID)
         if point_name: #study_name is not an empty string: we should open the corresponding Point.
-            self.currentStudy.openPoint(point_name)
+            self.currentStudy.openPoint(point_name, self.mdiArea)
     
     def openPointFromDock(self):
         """
@@ -211,7 +211,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
             #The user clicked on one of the sub-items instead (shaft, pressure sensor...). Get the information from the parent widget.
             pointName = self.treeViewDataPoints.selectedIndexes()[0].parent().data(QtCore.Qt.UserRole)
 
-        self.currentStudy.openPoint(pointName)
+        self.currentStudy.openPoint(pointName, self.mdiArea)
     
     def changeDockPointsStatus(self):
         """

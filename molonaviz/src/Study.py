@@ -1,4 +1,5 @@
 from PyQt5.QtSql import QSqlQuery, QSqlDatabase #QSqlDatabase in used only for type hints
+from PyQt5 import QtWidgets
 from src.Laboratory import Lab
 from src.Containers import MoloQtList, Point
 from utils.utilsQueries import build_study_id
@@ -6,6 +7,7 @@ import shutil, os
 import pandas as pd
 from src.MoloTreeViewModels import ThermometerTreeViewModel, PSensorTreeViewModel, ShaftTreeViewModel, PointTreeViewModel #Used only for type hints
 from src.widgetPoint import WidgetPoint
+from src.subWindow import SubWindow
 
 class Study:
     """
@@ -156,7 +158,7 @@ class Study:
             insertRawTemp.exec()
         self.con.commit()
     
-    def openPoint(self, pointName : str):
+    def openPoint(self, pointName : str, mdi):
         """
         Given a VALID name of a point (ie the name of a point which is in the study), open it in the visualisation window.
         """
@@ -164,7 +166,9 @@ class Study:
             if p.name == pointName:
                 point = p
         wdg = WidgetPoint(self.con, point)
-        wdg.show()
+        subwindow = SubWindow(wdg)
+        mdi.addSubWindow(subwindow)
+        subwindow.show()
             
     def close(self):
         """
