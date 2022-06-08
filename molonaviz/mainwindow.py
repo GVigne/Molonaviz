@@ -156,6 +156,8 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         """
         #Create the study. This will also create the corresponding Lab, and display the sensors by using the given models.
         self.currentStudy = Study(self.con,studyName, thermoModel=self.thermometersModel, psensorModel=self.psensorModel, shaftModel=self.shaftModel, pointModel=self.pointModel)
+
+        self.dockSensors.setWindowTitle(f"Current lab: {self.currentStudy.lab.labName}")
         
         #Enable previously disabled actions, such as the menu used to manage points
         self.actionCreateStudy.setEnabled(False)
@@ -171,7 +173,9 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         Close the current study and revert the app to the initial state.
         """
         self.currentStudy.close() #Close the study and related windows
-        self.currentStudy = None #Forget the study        
+        self.currentStudy = None #Forget the study   
+
+        self.dockSensors.setWindowTitle(f"Current lab:")     
 
         #Enable and disable actions so as to go back to go back to the initial state (no study opened)
         self.actionCreateStudy.setEnabled(True)

@@ -184,13 +184,10 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         self.tableViewDataArray.setModel(self.currentDataModel)
 
     def setWidgetInfos(self):
-        pointName = self.point.name
-        pointPressureSensor = "Pressure sensor"
-        pointShaft = "Shaft"
-
-        self.setWindowTitle(pointName)
-        self.lineEditSensor.setText(pointPressureSensor)
-        self.lineEditShaft.setText(pointShaft)
+        self.setWindowTitle(self.point.name)
+        self.lineEditPointName.setText(self.point.name)
+        self.lineEditSensor.setText(self.point.psensor)
+        self.lineEditShaft.setText(self.point.shaft)
     
     def checkbox(self):
         """
