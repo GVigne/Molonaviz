@@ -133,15 +133,16 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
                 quantile_checkbox = QtWidgets.QCheckBox(text_checkbox)
                 quantile_checkbox.stateChanged.connect(self.refreshTempDepthView)
                 self.gridLayoutQuantiles.addWidget(quantile_checkbox,i,0)
-                self.gridLayoutQuantiles.addWidget(QtWidgets.QLabel(f"RMSE: {select_quantiles.value(0)}"),i,1)
+                self.gridLayoutQuantiles.addWidget(QtWidgets.QLabel(f"RMSE: {select_quantiles.value(0)} °C"),i,1)
                 i +=1
 
         select_RMSE_therm = self.build_therm_RMSE()
         select_RMSE_therm.exec()
         select_RMSE_therm.next()
-        self.labelRMSETherm1.setText(f"RMSE: {select_RMSE_therm.value(0)}")
-        self.labelRMSETherm2.setText(f"RMSE: {select_RMSE_therm.value(1)}")
-        self.labelRMSETherm3.setText(f"RMSE: {select_RMSE_therm.value(2)}")
+        #Display the RMSE for each thermometer or 0 if it has not been computed yet (ie select_RMSE_therm has only None values)
+        self.labelRMSETherm1.setText(f"RMSE: {select_RMSE_therm.value(0) if select_RMSE_therm.value(0) else 0} °C")
+        self.labelRMSETherm2.setText(f"RMSE: {select_RMSE_therm.value(1) if select_RMSE_therm.value(1) else 0} °C")
+        self.labelRMSETherm3.setText(f"RMSE: {select_RMSE_therm.value(2) if select_RMSE_therm.value(2) else 0} °C")
 
 
     def refreshTempDepthView(self):
@@ -156,7 +157,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
                 if checkbox.isChecked():
                     txt = checkbox.text()
                     #A bit ugly but it works
-                    if txt == "Modèle direct":
+                    if txt == "Direct model":
                         quantiles.append(0)
                     else:
                         #txt is "Quantile ... "

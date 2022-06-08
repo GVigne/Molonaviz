@@ -182,13 +182,13 @@ class TemperatureView(MoloView1D):
     
     def retrieve_data(self):
         self.x  = self.model.get_dates()
-        self.y  = {f"Capteur n°{i}":np.float64(temp) for i,temp in enumerate(self.model.get_temperatures())}
+        self.y  = {f"Sensor n°{i}":np.float64(temp) for i,temp in enumerate(self.model.get_temperatures())}
 
 class UmbrellaView(MoloView1D):
     """
     Concrete class for the umbrellas plots.
     """
-    def __init__(self, molomodel: MoloModel, time_dependent=False, title="", ylabel="Profondeur en m", xlabel="Température en K", nb_dates =10):
+    def __init__(self, molomodel: MoloModel, time_dependent=False, title="", ylabel="Depth (m)", xlabel="Temperature (K)", nb_dates =10):
         super().__init__(molomodel, time_dependent, title, ylabel, xlabel)
         self.nb_dates = nb_dates
     
@@ -228,13 +228,13 @@ class TempDepthView(MoloView1D):
         thermo_depth = self.options[0]
         self.x = self.model.get_dates()
         for quantile in self.options[1]:
-            self.y[f"Température à la profondeur {thermo_depth} - quantile {quantile}"] = self.model.get_temp_by_date(thermo_depth, quantile)
+            self.y[f"Température à la profondeur {thermo_depth:.3f} m - quantile {quantile}"] = self.model.get_temp_by_date(thermo_depth, quantile)
 
 class WaterFluxView(MoloView1D):
     """
     Concrete class for the water flux as a function of time.
     """
-    def __init__(self, molomodel: MoloModel, time_dependent=True, title="", ylabel="Débit d'eau en m/s", xlabel=""):
+    def __init__(self, molomodel: MoloModel, time_dependent=True, title="", ylabel="Water flow  (m/s)", xlabel=""):
         super().__init__(molomodel, time_dependent, title, ylabel, xlabel)
     
     def retrieve_data(self):
@@ -243,13 +243,13 @@ class WaterFluxView(MoloView1D):
         if all_flows != {}:
             #The model is not empty so the view should display something
             self.y = {f"Quantile {key}":value for index, (key,value) in enumerate(all_flows.items()) if key!=0}
-            self.y["Modèle direct"] = all_flows[0] 
+            self.y["Direct model"] = all_flows[0] 
 
 class TempMapView(MoloView2D):
     """
     Concrete class for the heat map.
     """
-    def __init__(self, molomodel: MoloModel, time_dependent=True, title="", xlabel="", ylabel="Profondeur en m"):
+    def __init__(self, molomodel: MoloModel, time_dependent=True, title="", xlabel="", ylabel="Depth (m)"):
         super().__init__(molomodel, time_dependent, title, xlabel, ylabel)
     
     def retrieve_data(self):
@@ -261,7 +261,7 @@ class AdvectiveFlowView(MoloView2D):
     """
     Concrete class for the advective flow map.
     """
-    def __init__(self, molomodel: MoloModel, time_dependent=True, title="Flux advectif (W/m²)", xlabel="", ylabel="Profondeur en m"):
+    def __init__(self, molomodel: MoloModel, time_dependent=True, title="Advective flow (W/m²)", xlabel="", ylabel="Depth (m)"):
         super().__init__(molomodel, time_dependent, title, xlabel, ylabel)
     
     def retrieve_data(self):
@@ -273,7 +273,7 @@ class ConductiveFlowView(MoloView2D):
     """
     Concrete class for the conductive flow map.
     """
-    def __init__(self, molomodel: MoloModel, time_dependent=True, title="Flux convectif (W/m²)", xlabel="", ylabel="Profondeur en m"):
+    def __init__(self, molomodel: MoloModel, time_dependent=True, title="Convective flow (W/m²)", xlabel="", ylabel="Depth (m)"):
         super().__init__(molomodel, time_dependent, title, xlabel, ylabel)
     
     def retrieve_data(self):
@@ -285,7 +285,7 @@ class TotalFlowView(MoloView2D):
     """
     Concrete class for the total heat flow map.
     """
-    def __init__(self, molomodel: MoloModel, time_dependent=True, title="Flux d'énergie total (W/m²)", xlabel="", ylabel="Profondeur en m"):
+    def __init__(self, molomodel: MoloModel, time_dependent=True, title="Total energy flow (W/m²)", xlabel="", ylabel="Depth (m)"):
         super().__init__(molomodel, time_dependent, title, xlabel, ylabel)
     
     def retrieve_data(self):
@@ -297,7 +297,7 @@ class Log10KView(MoloViewHisto):
     """
     Concrete class to display the distribution of the -Log10K paramter
     """
-    def __init__(self, molomodel: MoloModel, bins=60, color='green', title="Histogramme a posteriori des -log10K"):
+    def __init__(self, molomodel: MoloModel, bins=60, color='green', title=" (WIP) Histogramme a posteriori des -log10K"):
         super().__init__(molomodel, bins, color, title)
     
     def retrieve_data(self):
@@ -307,7 +307,7 @@ class PorosityView(MoloViewHisto):
     """
     Concrete class to display the distribution of the porosity paramter
     """
-    def __init__(self, molomodel: MoloModel, bins=60, color='blue', title="Histogramme a posteriori des n"):
+    def __init__(self, molomodel: MoloModel, bins=60, color='blue', title=" (WIP) Histogramme a posteriori des n"):
         super().__init__(molomodel, bins, color, title)
     
     def retrieve_data(self):
@@ -317,7 +317,7 @@ class ConductivityView(MoloViewHisto):
     """
     Concrete class to display the distribution of the conductivity paramter
     """
-    def __init__(self, molomodel: MoloModel, bins=60, color='orange', title="Histogramme a posteriori des lambda_s"):
+    def __init__(self, molomodel: MoloModel, bins=60, color='orange', title=" (WIP) Histogramme a posteriori des lambda_s"):
         super().__init__(molomodel, bins, color, title)
     
     def retrieve_data(self):
@@ -327,7 +327,7 @@ class CapacityView(MoloViewHisto):
     """
     Concrete class to display the distribution of the capacity paramter
     """
-    def __init__(self, molomodel: MoloModel, bins=60, color='pink', title="Histogramme a posteriori des rho_s * c_s"):
+    def __init__(self, molomodel: MoloModel, bins=60, color='pink', title=" (WIP) Histogramme a posteriori des rho_s * c_s"):
         super().__init__(molomodel, bins, color, title)
     
     def retrieve_data(self):

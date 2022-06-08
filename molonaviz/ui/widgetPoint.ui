@@ -122,7 +122,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="tabInfos">
       <attribute name="title">
@@ -326,8 +326,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>98</width>
-             <height>67</height>
+             <width>1239</width>
+             <height>277</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_7">
@@ -366,8 +366,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>98</width>
-             <height>67</height>
+             <width>1239</width>
+             <height>276</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_5">
@@ -420,8 +420,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>307</width>
-             <height>242</height>
+             <width>1239</width>
+             <height>432</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -445,8 +445,8 @@
                     <rect>
                      <x>0</x>
                      <y>0</y>
-                     <width>167</width>
-                     <height>51</height>
+                     <width>836</width>
+                     <height>273</height>
                     </rect>
                    </property>
                    <layout class="QGridLayout" name="gridLayout_5">
@@ -455,7 +455,7 @@
                       <item row="0" column="0">
                        <widget class="QCheckBox" name="checkBoxDirectModel">
                         <property name="text">
-                         <string>Modèle direct</string>
+                         <string>Direct model</string>
                         </property>
                         <property name="checked">
                          <bool>true</bool>
@@ -544,8 +544,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>98</width>
-             <height>67</height>
+             <width>1239</width>
+             <height>121</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -652,8 +652,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>98</width>
-             <height>67</height>
+             <width>1239</width>
+             <height>257</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_8">
@@ -692,8 +692,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>98</width>
-             <height>67</height>
+             <width>1239</width>
+             <height>257</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_9">
