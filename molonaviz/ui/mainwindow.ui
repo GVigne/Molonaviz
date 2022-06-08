@@ -66,9 +66,9 @@
     <property name="title">
      <string>Windows</string>
     </property>
-    <addaction name="actionSwitch_To_Tabbed_View"/>
-    <addaction name="actionSwitch_To_SubWindow_View"/>
-    <addaction name="actionSwitch_To_Cascade_View"/>
+    <addaction name="actionSwitchToTabbedView"/>
+    <addaction name="actionSwitchToSubWindowView"/>
+    <addaction name="actionSwitchToCascadeView"/>
     <addaction name="separator"/>
     <addaction name="actionHideShowPoints"/>
     <addaction name="actionHideShowSensors"/>
@@ -319,7 +319,7 @@
     <string>Remove Point</string>
    </property>
   </action>
-  <action name="actionSwitch_To_Tabbed_View">
+  <action name="actionSwitchToTabbedView">
    <property name="enabled">
     <bool>true</bool>
    </property>
@@ -327,7 +327,7 @@
     <string>Switch To Tabbed View</string>
    </property>
   </action>
-  <action name="actionSwitch_To_SubWindow_View">
+  <action name="actionSwitchToSubWindowView">
    <property name="enabled">
     <bool>false</bool>
    </property>
@@ -388,7 +388,7 @@
     <string>Celsius</string>
    </property>
   </action>
-  <action name="actionSwitch_To_Cascade_View">
+  <action name="actionSwitchToCascadeView">
    <property name="enabled">
     <bool>true</bool>
    </property>

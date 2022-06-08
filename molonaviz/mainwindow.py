@@ -57,6 +57,9 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.actionHideShowPoints.triggered.connect(self.changeDockPointsStatus)
         self.actionHideShowSensors.triggered.connect(self.changeDockSensorsStatus)
         self.actionHideShowAppMessages.triggered.connect(self.changeDockAppMessagesStatus)
+        self.actionSwitchToTabbedView.triggered.connect(self.switchToTabbedView)
+        self.actionSwitchToSubWindowView.triggered.connect(self.switchToSubWindowView)
+        self.actionSwitchToCascadeView.triggered.connect(self.switchToCascadeView)
 
         self.treeViewDataPoints.doubleClicked.connect(self.openPointFromDock)
 
@@ -212,6 +215,36 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
             pointName = self.treeViewDataPoints.selectedIndexes()[0].parent().data(QtCore.Qt.UserRole)
 
         self.currentStudy.openPoint(pointName, self.mdiArea)
+    
+    def switchToTabbedView(self):
+        """
+        Rearrange the subwindows to display them as tabs.
+        """
+        self.mdiArea.setViewMode(QtWidgets.QMdiArea.TabbedView)
+        self.actionSwitchToTabbedView.setEnabled(False) #Disable this action to show the user it is the display mode currently being used.
+        self.actionSwitchToSubWindowView.setEnabled(True)
+        self.actionSwitchToCascadeView.setEnabled(True)
+
+    def switchToSubWindowView(self):
+        """
+        Rearrange the subwindows to display them in a tile pattern.
+        """
+        self.mdiArea.setViewMode(QtWidgets.QMdiArea.SubWindowView)
+        self.mdiArea.tileSubWindows()
+        self.actionSwitchToTabbedView.setEnabled(True)
+        self.actionSwitchToSubWindowView.setEnabled(False) #Disable this action to show the user it is the display mode currently being used.
+        self.actionSwitchToCascadeView.setEnabled(True)
+
+    def switchToCascadeView(self):
+        """
+        Rearrange the subwindows to display them in a cascade.
+        """
+        self.mdiArea.setViewMode(QtWidgets.QMdiArea.SubWindowView)
+        self.mdiArea.cascadeSubWindows()
+        self.actionSwitchToTabbedView.setEnabled(True)
+        self.actionSwitchToSubWindowView.setEnabled(True)
+        self.actionSwitchToCascadeView.setEnabled(False) #Disable this action to show the user it is the display mode currently being used.
+    
     
     def changeDockPointsStatus(self):
         """
