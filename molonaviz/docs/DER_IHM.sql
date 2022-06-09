@@ -1,29 +1,16 @@
+--
+-- File generated with SQLiteStudio v3.3.3 on Thu Jun 9 21:45:42 2022
+--
+-- Text encoding used: System
+--
 PRAGMA foreign_keys = off;
 BEGIN TRANSACTION;
 
 -- Table: BestParameters
-CREATE TABLE BestParameters (
-            ID            INTEGER  PRIMARY KEY AUTOINCREMENT,
-            log10KBest         REAL,
-            LambdaSBest         REAL,
-            NBest           REAL,
-            Cap             REAL,
-            Layer           INTEGER REFERENCES Layer (ID),
-            PointKey        INTEGER REFERENCES Point (ID)
-        );
+CREATE TABLE BestParameters (ID INTEGER PRIMARY KEY AUTOINCREMENT, Permeability REAL, ThermConduct REAL, Porosity REAL, Capacity REAL, Layer INTEGER REFERENCES Layer (ID), PointKey INTEGER REFERENCES Point (ID));
 
 -- Table: CleanedMeasures
-CREATE TABLE CleanedMeasures (
-            ID            INTEGER  PRIMARY KEY AUTOINCREMENT,
-            Date          INTEGER REFERENCES Date (ID),
-            TempBed      REAL     NOT NULL,
-            Temp1            REAL     NOT NULL,
-            Temp2            REAL     NOT NULL,
-            Temp3            REAL     NOT NULL,
-            Temp4            REAL     NOT NULL,
-            Pressure      REAL     NOT NULL,
-            PointKey     INTEGER REFERENCES Sampling_point (ID)
-        );
+CREATE TABLE CleanedMeasures (ID INTEGER PRIMARY KEY AUTOINCREMENT, Date INTEGER REFERENCES Date (ID), TempBed REAL NOT NULL, Temp1 REAL NOT NULL, Temp2 REAL NOT NULL, Temp3 REAL NOT NULL, Temp4 REAL NOT NULL, Pressure REAL NOT NULL, PointKey INTEGER REFERENCES SamplingPoint (ID));
 
 -- Table: Date
 CREATE TABLE Date (
@@ -51,41 +38,13 @@ CREATE TABLE Layer (
         );
 
 -- Table: ParametersDistribution
-CREATE TABLE ParametersDistribution (
-            ID            INTEGER  PRIMARY KEY AUTOINCREMENT,
-            log10K         REAL,
-            LambdaS         REAL,
-            N               REAL,
-            Cap             REAL,
-            Layer           INTEGER REFERENCES Layer (ID),
-            PointKey        INTEGER REFERENCES Point (ID)
-        );
+CREATE TABLE ParametersDistribution (ID INTEGER PRIMARY KEY AUTOINCREMENT, Permeability REAL, ThermConduct REAL, Porosity REAL, HeatCapacity REAL, Layer INTEGER REFERENCES Layer (ID), PointKey INTEGER REFERENCES Point (ID));
 
 -- Table: Point
-CREATE TABLE Point (
-            ID            INTEGER  PRIMARY KEY AUTOINCREMENT,
-            SamplingPoint   INTEGER REFERENCES SamplingPoint (ID),
-            IncertK         REAL,
-            IncertLambda    REAL,
-            IncertN         REAL,
-            IncertRho       REAL,
-            IncertT         REAL,
-            IncertPressure  REAL
-        );
+CREATE TABLE Point (ID INTEGER PRIMARY KEY AUTOINCREMENT, SamplingPoint INTEGER REFERENCES SamplingPoint (ID), IncertK REAL, IncertLambda REAL, DiscretStep INTEGER, IncertRho REAL, TempUncertainty REAL, IncertPressure REAL);
 
 -- Table: PressureSensor
-CREATE TABLE PressureSensor (
-            ID           INTEGER  PRIMARY KEY AUTOINCREMENT,
-            Name         VARCHAR,
-            Datalogger   VARCHAR,
-            Calibration  DATETIME,
-            Intercept    REAL,
-            [Du/Dh]      REAL,
-            [Du/Dt]      REAL,
-            Precision    REAL,
-            Thermo_model INTEGER  REFERENCES Thermometer (ID),
-            Labo         INTEGER  REFERENCES Labo (ID)
-        );
+CREATE TABLE PressureSensor (ID INTEGER PRIMARY KEY AUTOINCREMENT, Name VARCHAR, Datalogger VARCHAR, Calibration DATETIME, Intercept REAL, DuDH REAL, DuDT REAL, Precision REAL, ThermoModel INTEGER REFERENCES Thermometer (ID), Labo INTEGER REFERENCES Labo (ID));
 
 -- Table: Quantile
 CREATE TABLE Quantile (
@@ -94,15 +53,7 @@ CREATE TABLE Quantile (
         );
 
 -- Table: RawMeasuresPress
-CREATE TABLE RawMeasuresPress (
-            ID          INTEGER UNIQUE
-                                PRIMARY KEY AUTOINCREMENT,
-            Date        DATETIME    NOT NULL
-                                UNIQUE,
-            Temp_bed     REAL,
-            Voltage    REAL,
-            PointKey   INTEGER
-        );
+CREATE TABLE RawMeasuresPress (ID INTEGER UNIQUE PRIMARY KEY AUTOINCREMENT, Date DATETIME NOT NULL UNIQUE, TempBed REAL, Voltage REAL, PointKey INTEGER REFERENCES SamplingPoint (ID));
 
 -- Table: RawMeasuresTemp
 CREATE TABLE RawMeasuresTemp (
@@ -116,25 +67,13 @@ CREATE TABLE RawMeasuresTemp (
         );
 
 -- Table: RMSE
-CREATE TABLE RMSE (
-            ID                  INTEGER  PRIMARY KEY AUTOINCREMENT,
-            Date                INTEGER REFERENCES Date (ID),
-            Depth1              INTEGER REFERENCES Depth (ID),
-            Depth2              INTEGER REFERENCES Depth (ID),
-            Depth3              INTEGER REFERENCES Depth (ID),
-            Temp1RMSE           REAL,
-            Temp2RMSE           REAL,
-            Temp3RMSE           REAL,
-            RMSET               REAL,
-            PointKey            INTEGER REFERENCES Point (ID),
-            Quantile            INTEGER REFERENCES Quantile (ID)
-        );
+CREATE TABLE RMSE (ID INTEGER PRIMARY KEY AUTOINCREMENT, Date INTEGER REFERENCES Date (ID), Depth1 INTEGER REFERENCES Depth (ID), Depth2 INTEGER REFERENCES Depth (ID), Depth3 INTEGER REFERENCES Depth (ID), RMSE1 REAL, RMSE2 REAL, RMSE3 REAL, RMSETotal REAL, PointKey INTEGER REFERENCES Point (ID), Quantile INTEGER REFERENCES Quantile (ID));
 
 -- Table: SamplingPoint
-CREATE TABLE SamplingPoint (ID INTEGER PRIMARY KEY AUTOINCREMENT, Name VARCHAR, Notice VARCHAR, Setup DATETIME, LastTransfer DATETIME, DeltaH REAL, RiverBed REAL, Shaft INTEGER REFERENCES Shaft (ID), PressureSensor INTEGER REFERENCES PressureSensor (ID), Study INTEGER REFERENCES Study (ID), Scheme VARCHAR, CleanupScript VARCHAR);
+CREATE TABLE SamplingPoint (ID INTEGER PRIMARY KEY AUTOINCREMENT, Name VARCHAR, Notice VARCHAR, Setup DATETIME, LastTransfer DATETIME, "Offset" REAL, RiverBed REAL, Shaft INTEGER REFERENCES Shaft (ID), PressureSensor INTEGER REFERENCES PressureSensor (ID), Study INTEGER REFERENCES Study (ID), Scheme VARCHAR, CleanupScript VARCHAR);
 
 -- Table: Shaft
-CREATE TABLE Shaft (ID INTEGER PRIMARY KEY AUTOINCREMENT, Name VARCHAR NOT NULL, Datalogger VARCHAR NOT NULL, Depth1 REAL NOT NULL, Depth2 REAL NOT NULL, Depth3 REAL NOT NULL, Depth4 REAL NOT NULL, Thermo_model INTEGER REFERENCES Thermometer (ID), Labo INTEGER REFERENCES Labo (ID));
+CREATE TABLE Shaft (ID INTEGER PRIMARY KEY AUTOINCREMENT, Name VARCHAR NOT NULL, Datalogger VARCHAR NOT NULL, Depth1 REAL NOT NULL, Depth2 REAL NOT NULL, Depth3 REAL NOT NULL, Depth4 REAL NOT NULL, ThermoModel INTEGER REFERENCES Thermometer (ID), Labo INTEGER REFERENCES Labo (ID));
 
 -- Table: Study
 CREATE TABLE Study (
@@ -157,7 +96,7 @@ CREATE TABLE TemperatureAndHeatFlows (
         );
 
 -- Table: Thermometer
-CREATE TABLE Thermometer (ID INTEGER PRIMARY KEY AUTOINCREMENT, Name VARCHAR NOT NULL, Manu_name VARCHAR NOT NULL, Manu_ref VARCHAR NOT NULL, Error REAL NOT NULL, Labo INTEGER REFERENCES Labo (ID));
+CREATE TABLE Thermometer (ID INTEGER PRIMARY KEY AUTOINCREMENT, Name VARCHAR NOT NULL, ManuName VARCHAR NOT NULL, ManuRef VARCHAR NOT NULL, Error REAL NOT NULL, Labo INTEGER REFERENCES Labo (ID));
 
 -- Table: WaterFlow
 CREATE TABLE WaterFlow (

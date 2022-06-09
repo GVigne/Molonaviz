@@ -117,8 +117,8 @@ class Lab:
                 sigma = float(df.iloc[3].at[1].replace(',','.'))
 
                 insertQuery.bindValue(":Name",name)
-                insertQuery.bindValue(":Manu_name",consName)
-                insertQuery.bindValue(":Manu_ref",ref)
+                insertQuery.bindValue(":ManuName",consName)
+                insertQuery.bindValue(":ManuRef",ref)
                 insertQuery.bindValue(":Error",sigma)
                 insertQuery.bindValue(":Labo",self.labId)
                 insertQuery.exec()
@@ -160,7 +160,7 @@ class Lab:
                 insertPsensor.bindValue(":DuDh",dudh)
                 insertPsensor.bindValue(":DuDt",dudt)
                 insertPsensor.bindValue(":Precision",sigma)
-                insertPsensor.bindValue(":Thermo_model",thermo_model)
+                insertPsensor.bindValue(":ThermoModel",thermo_model)
                 insertPsensor.bindValue(":Labo",self.labId)
                 insertPsensor.exec()
             except Exception:
@@ -196,7 +196,7 @@ class Lab:
                 insertShaft.bindValue(":Depth2",depths[1])
                 insertShaft.bindValue(":Depth3",depths[2])
                 insertShaft.bindValue(":Depth4",depths[3])
-                insertShaft.bindValue(":Thermo_model",thermo_model)
+                insertShaft.bindValue(":ThermoModel",thermo_model)
                 insertShaft.bindValue(":Labo",self.labId)
                 insertShaft.exec()
             except Exception:
@@ -239,12 +239,12 @@ class Lab:
         """
         INSERT INTO Thermometer (
             Name,
-            Manu_name,
-            Manu_ref,
+            ManuName,
+            ManuRef,
             Error,
             Labo
         )
-        VALUES (:Name, :Manu_name, :Manu_ref, :Error, :Labo)""")
+        VALUES (:Name, :ManuName, :ManuRef, :Error, :Labo)""")
         return insertQuery
     
     def build_thermo_id(self, thermoname : str):
@@ -267,13 +267,13 @@ class Lab:
             Datalogger,
             Calibration,
             Intercept,
-            [Du/Dh],
-            [Du/Dt],
+            DuDH,
+            DuDT,
             Precision,
-            Thermo_model,
+            ThermoModel,
             Labo
         )
-        VALUES (:Name, :Datalogger, :Calibration, :Intercept, :DuDh, :DuDt, :Precision, :Thermo_model, :Labo)""")
+        VALUES (:Name, :Datalogger, :Calibration, :Intercept, :DuDh, :DuDt, :Precision, :ThermoModel, :Labo)""")
         return insertQuery
     
     def build_insert_shaft(self):
@@ -289,10 +289,10 @@ class Lab:
                 Depth2,
                 Depth3,
                 Depth4,
-                Thermo_model,
+                ThermoModel,
                 Labo
             )
-            VALUES (:Name, :Datalogger, :Depth1, :Depth2, :Depth3, :Depth4, :Thermo_model, :Labo)""")
+            VALUES (:Name, :Datalogger, :Depth1, :Depth2, :Depth3, :Depth4, :ThermoModel, :Labo)""")
         return insertQuery
     
     def build_select_thermometers(self):
@@ -300,7 +300,7 @@ class Lab:
         Build and return a query which selects all thermometers corresponding to this lab.
         """
         selectQuery = QSqlQuery(self.con)
-        selectQuery.prepare(f"""SELECT Thermometer.Name, Thermometer.Manu_name, Thermometer.Manu_ref, Thermometer.Error  
+        selectQuery.prepare(f"""SELECT Thermometer.Name, Thermometer.ManuName, Thermometer.ManuRef, Thermometer.Error  
         FROM Thermometer
         WHERE Thermometer.Labo = {self.labId}""")
         return selectQuery
@@ -310,7 +310,7 @@ class Lab:
         Build and return a query which selects all pressure sensors corresponding to this lab.
         """
         selectQuery = QSqlQuery(self.con)
-        selectQuery.prepare(f"""SELECT PressureSensor.Name, PressureSensor.Datalogger, PressureSensor.Calibration, PressureSensor.Intercept, PressureSensor."Du/Dh", PressureSensor."Du/Dt", PressureSensor.Precision
+        selectQuery.prepare(f"""SELECT PressureSensor.Name, PressureSensor.Datalogger, PressureSensor.Calibration, PressureSensor.Intercept, PressureSensor.DuDH, PressureSensor.DuDT, PressureSensor.Precision
         FROM PressureSensor
         WHERE PressureSensor.Labo = {self.labId}""")
         return selectQuery
@@ -324,6 +324,6 @@ class Lab:
         selectQuery.prepare(f""" SELECT Shaft.Name, Shaft.Datalogger, Shaft.Depth1, Shaft.Depth2, Shaft.Depth3, Shaft.Depth4, Thermometer.Name
         FROM Shaft
         JOIN Thermometer
-        ON Shaft.Thermo_model = Thermometer.ID
+        ON Shaft.ThermoModel = Thermometer.ID
         WHERE Shaft.Labo = {self.labId}""")
         return selectQuery

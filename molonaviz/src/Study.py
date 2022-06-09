@@ -87,7 +87,7 @@ class Study:
         insertPoint.bindValue(":Setup", df.iloc[3].at[1])
         insertPoint.bindValue(":LastTransfer", df.iloc[4].at[1])
         offset = df.iloc[6].at[1]
-        insertPoint.bindValue(":DeltaH", offset)
+        insertPoint.bindValue(":Offset", offset)
         rivBed = df.iloc[5].at[1]
         insertPoint.bindValue(":RiverBed", rivBed)
         #Add the shaft's ID
@@ -137,7 +137,7 @@ class Study:
         insertRawPress.bindValue(":PointKey", pointID)
         for row in dfpress.itertuples():
             insertRawPress.bindValue(":Date", row[1])
-            insertRawPress.bindValue(":Temp_bed", row[3])
+            insertRawPress.bindValue(":TempBed", row[3])
             insertRawPress.bindValue(":Voltage", row[2])
             insertRawPress.exec()
         self.con.commit()
@@ -195,7 +195,7 @@ class Study:
         Build and return a query giving all the informations about the points in this study.
         """
         query = QSqlQuery(self.con)
-        query.prepare(f"""SELECT SamplingPoint.Name, PressureSensor.Name, Shaft.Name, SamplingPoint.RiverBed, SamplingPoint.DeltaH
+        query.prepare(f"""SELECT SamplingPoint.Name, PressureSensor.Name, Shaft.Name, SamplingPoint.RiverBed, SamplingPoint.Offset
                     FROM SamplingPoint
                     JOIN PressureSensor
                     ON SamplingPoint.PressureSensor = PressureSensor.ID
@@ -217,14 +217,14 @@ class Study:
                               Notice,
                               Setup,
                               LastTransfer,
-                              DeltaH,
+                              Offset,
                               RiverBed,
                               Shaft,
                               PressureSensor,
                               Study,
                               Scheme,
                               CleanupScript)
-                          VALUES (:Name, :Notice, :Setup, :LastTransfer, :DeltaH, :RiverBed, :Shaft, :PressureSensor, :Study, :Scheme, null)""")
+                          VALUES (:Name, :Notice, :Setup, :LastTransfer, :Offset, :RiverBed, :Shaft, :PressureSensor, :Study, :Scheme, null)""")
         return query
     
     def build_insert_raw_pressures(self):
@@ -234,10 +234,10 @@ class Study:
         query = QSqlQuery(self.con)
         query.prepare(f"""INSERT INTO RawMeasuresPress (
                         Date,
-                        Temp_bed,
+                        TempBed,
                         Voltage,
                         PointKey)
-        VALUES (:Date, :Temp_bed, :Voltage, :PointKey)""")
+        VALUES (:Date, :TempBed, :Voltage, :PointKey)""")
         return query
     
     def build_insert_raw_temperatures(self):

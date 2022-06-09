@@ -89,7 +89,7 @@ class TemperatureDataModel(MoloModel):
     def update_df(self):
         try:
             while self.queries[0].next():
-                self.array_data.append([self.queries[0].value(0),self.queries[0].value(1),self.queries[0].value(2),self.queries[0].value(3),self.queries[0].value(4),self.queries[0].value(5)]) #Date, Temp1 to 4, Temp_Bed
+                self.array_data.append([self.queries[0].value(0),self.queries[0].value(1),self.queries[0].value(2),self.queries[0].value(3),self.queries[0].value(4),self.queries[0].value(5)]) #Date, Temp1 to 4, TempBed
             self.array_data = np.array(self.array_data)
         except Exception:
             #Empty query or invalid query: then revert any changes done. The model is empty: nothing will be displayed.

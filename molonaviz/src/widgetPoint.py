@@ -669,7 +669,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
 
         infos = QSqlQuery(self.con)
         infos.prepare(f"""
-            SELECT SamplingPoint.Name, SamplingPoint.Setup,SamplingPoint.LastTransfer,SamplingPoint.DeltaH, SamplingPoint.RiverBed FROM SamplingPoint 
+            SELECT SamplingPoint.Name, SamplingPoint.Setup,SamplingPoint.LastTransfer,SamplingPoint.Offset, SamplingPoint.RiverBed FROM SamplingPoint 
             WHERE SamplingPoint.Name = '{self.point.name}' 
         """)
         return paths, infos
@@ -695,7 +695,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         """
         query = QSqlQuery(self.con)
         query.prepare(f"""
-            SELECT BestParameters.log10KBest, BestParameters.LambdaSBest, BestParameters.NBest FROM BestParameters 
+            SELECT BestParameters.Permeability, BestParameters.ThermConduct, BestParameters.Porosity FROM BestParameters 
             JOIN Layer ON BestParameters.Layer = Layer.id 
             WHERE Layer.DepthBed = {depth}
         """)
@@ -707,7 +707,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         """
         query = QSqlQuery(self.con)
         query.prepare(f"""
-            SELECT RMSE.RMSET, Quantile.Quantile FROM RMSE 
+            SELECT RMSE.RMSETotal, Quantile.Quantile FROM RMSE 
             JOIN Quantile
             ON RMSE.Quantile = Quantile.id
             ORDER BY Quantile.Quantile
@@ -720,7 +720,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         """
         query = QSqlQuery(self.con)
         query.prepare(f"""
-            SELECT Temp1RMSE, Temp2RMSE, Temp3RMSE FROM RMSE 
+            SELECT RMSE1, RMSE2, RMSE3 FROM RMSE 
             JOIN Quantile
             ON RMSE.Quantile = Quantile.id
             WHERE RMSE.PointKey = (SELECT id FROM SamplingPoint WHERE SamplingPoint.Name = '{self.point.name}')
@@ -786,7 +786,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         """
         query = QSqlQuery(self.con)
         query.prepare(f"""
-            SELECT log10K, LambdaS, N, Cap FROM ParametersDistribution
+            SELECT Permeability, ThermConduct, Porosity, HeatCapacity FROM ParametersDistribution
             JOIN Point
             ON ParametersDistribution.PointKey = Point.id
             JOIN SamplingPoint
@@ -939,7 +939,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
                     JOIN Date
                     ON TemperatureAndHeatFlows.Date = Date.id
                     JOIN Depth
-                    ON TemperatureAndHeatFlows.Depth = Depth.id
+                    ON eatFlows.Depth = Depth.id
                     WHERE TemperatureAndHeatFlows.Quantile = (SELECT Quantile.id FROM Quantile WHERE Quantile.Quantile = {quantile})
                     AND  TemperatureAndHeatFlows.PointKey = (SELECT Point.id FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.id FROM SamplingPoint WHERE SamplingPoint.name = '{self.point.name}'))
                     ORDER BY Date.Date, Depth.Depth
