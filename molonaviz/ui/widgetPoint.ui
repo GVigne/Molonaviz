@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1651</width>
-    <height>1099</height>
+    <width>1345</width>
+    <height>961</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -130,7 +130,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>3</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tabInfos">
       <attribute name="title">
@@ -192,8 +192,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>1571</width>
-                 <height>639</height>
+                 <width>1265</width>
+                 <height>501</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -227,17 +227,28 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_5">
        <item>
-        <widget class="QCheckBox" name="checkBoxRawData">
-         <property name="layoutDirection">
-          <enum>Qt::RightToLeft</enum>
-         </property>
-         <property name="text">
-          <string>Show Raw Data</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
+        <layout class="QHBoxLayout" name="horizontalLayout_10" stretch="0,1">
+         <item>
+          <widget class="QPushButton" name="pushButtonExportMeasures">
+           <property name="text">
+            <string>Export cleaned measures</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="checkBoxRawData">
+           <property name="layoutDirection">
+            <enum>Qt::RightToLeft</enum>
+           </property>
+           <property name="text">
+            <string>Show Raw Data</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
         <widget class="QSplitter" name="splitter">
@@ -253,8 +264,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>1601</width>
-             <height>807</height>
+             <width>1295</width>
+             <height>679</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -334,8 +345,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>1601</width>
-             <height>470</height>
+             <width>1295</width>
+             <height>401</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_7">
@@ -374,8 +385,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>1601</width>
-             <height>469</height>
+             <width>1295</width>
+             <height>400</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_5">
@@ -428,8 +439,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>1601</width>
-             <height>733</height>
+             <width>1295</width>
+             <height>626</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -453,8 +464,8 @@
                     <rect>
                      <x>0</x>
                      <y>0</y>
-                     <width>1094</width>
-                     <height>574</height>
+                     <width>876</width>
+                     <height>467</height>
                     </rect>
                    </property>
                    <layout class="QGridLayout" name="gridLayout_5">
@@ -552,8 +563,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>1601</width>
-             <height>206</height>
+             <width>1295</width>
+             <height>175</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -660,8 +671,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>1601</width>
-             <height>450</height>
+             <width>1295</width>
+             <height>381</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_8">
@@ -700,8 +711,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>1601</width>
-             <height>450</height>
+             <width>1295</width>
+             <height>381</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_9">

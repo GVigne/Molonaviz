@@ -5,10 +5,12 @@
 # from dialogreset import DialogReset
 
 import os
+import csv
 from PyQt5 import QtWidgets, QtCore, uic
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtSql import QSqlQueryModel, QSqlQuery, QSqlDatabase #QSqlDatabase in used only for type hints
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+from src.dialogExportCleanedMeasures import DialogExportCleanedMeasures
 from src.Containers import Point
 from src.MoloModel import  PressureDataModel, TemperatureDataModel, SolvedTemperatureModel, HeatFluxesModel, WaterFluxModel,ParamsDistributionModel
 from src.MoloView import PressureView, TemperatureView,UmbrellaView,TempDepthView,TempMapView,AdvectiveFlowView, ConductiveFlowView, TotalFlowView, WaterFluxView, Log10KView, ConductivityView, PorosityView, CapacityView
@@ -49,6 +51,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         self.pushButtonReset.clicked.connect(self.reset)
         self.pushButtonCleanUp.clicked.connect(self.cleanup)
         self.pushButtonCompute.clicked.connect(self.compute)
+        self.pushButtonExportMeasures.clicked.connect(self.exportMeasures)
         self.checkBoxRawData.stateChanged.connect(self.checkbox)
         self.pushButtonRefreshBins.clicked.connect(self.refreshbins)
         self.horizontalSliderBins.valueChanged.connect(self.label_update)
@@ -144,6 +147,30 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         self.labelRMSETherm2.setText(f"RMSE: {select_RMSE_therm.value(1) if select_RMSE_therm.value(1) else 0} °C")
         self.labelRMSETherm3.setText(f"RMSE: {select_RMSE_therm.value(2) if select_RMSE_therm.value(2) else 0} °C")
 
+    def exportMeasures(self):
+        """
+        Export two .csv files corresponding to the cleaned measures to the location given by the user.
+        """
+        dlg = DialogExportCleanedMeasures(self.point)
+        dlg.setWindowModality(QtCore.Qt.ApplicationModal)
+        res = dlg.exec_()
+        if res == QtWidgets.QDialog.Accepted:
+            pressPath, tempPath = dlg.getFilesNames()
+            pressfile = open(pressPath, 'w')
+            presswriter = csv.writer(pressfile)
+            presswriter.writerow(["Date", "Differential pressure (m)", "Temperature (K)"])
+            tempfile = open(tempPath, 'w')
+            tempwriter = csv.writer(tempfile)
+            tempwriter.writerow(["Date", "Temperature 1 (K)", "Temperature 2 (K)", "Temperature 3 (K)", "Temperature 4 (K)"])
+            
+            select_data = self.build_cleaned_measures(full_query=True)
+            select_data.exec()
+            while select_data.next():
+                presswriter.writerow([select_data.value(0), select_data.value(6),select_data.value(5)])
+                tempwriter.writerow([select_data.value(i) for i in range(5)])
+            pressfile.close()
+            tempfile.close()
+            print("The cleaned measures have been exported successfully.")
 
     def refreshTempDepthView(self):
         """
@@ -178,7 +205,10 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
 
     def setPressureAndTemperatureModels(self):
         # Set the Temperature and Pressure arrays
-        select_query = self.build_data_queries(full_query=True) #Query changes according to self.currentdata
+        if self.checkBoxRawData.isChecked():
+            select_query = self.build_raw_measures(full_query=True)
+        else:
+            select_query = self.build_cleaned_measures(full_query=True)
         self.currentDataModel = QSqlQueryModel()
         self.currentDataModel.setQuery(select_query)
         self.tableViewDataArray.setModel(self.currentDataModel)
@@ -195,11 +225,16 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         """
         self.setPressureAndTemperatureModels()
 
-        select_pressure = self.build_data_queries(field ="Pressure")
+        if self.checkBoxRawData.isChecked():
+            select_pressure = self.build_raw_measures(field ="Pressure")
+            select_temp = self.build_raw_measures(field ="Temp")
+        else:
+            select_pressure = self.build_cleaned_measures(field ="Pressure")
+            select_temp = self.build_cleaned_measures(field ="Temp")
+
         self.pressuremodel.new_queries([select_pressure])
         self.pressuremodel.exec()
 
-        select_temp = self.build_data_queries(field ="Temp")
         self.tempmodel.new_queries([select_temp])
         self.tempmodel.exec()
 
@@ -389,7 +424,10 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
 
     def setDataPlots(self):
         #Pressure :
-        select_pressure = self.build_data_queries(field ="Pressure")
+        if self.checkBoxRawData.isChecked():
+            select_pressure = self.build_raw_measures(field ="Pressure")
+        else:
+            select_pressure = self.build_cleaned_measures(field ="Pressure")
         self.pressuremodel = PressureDataModel([select_pressure])
         self.graphpress = PressureView(self.pressuremodel, time_dependent=True,ylabel="Pression différentielle (m)")
         self.toolbarPress = NavigationToolbar(self.graphpress, self)
@@ -401,7 +439,10 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         self.pressuremodel.exec()
       
         #Temperatures :
-        select_temp = self.build_data_queries(field ="Temp")
+        if self.checkBoxRawData.isChecked():
+            select_temp = self.build_raw_measures(field ="Temp")
+        else:
+            select_temp = self.build_cleaned_measures(field ="Temp")
         self.tempmodel = TemperatureDataModel([select_temp])
         self.graphtemp = TemperatureView(self.tempmodel, time_dependent=True,ylabel="Température en K")
         self.toolbarTemp = NavigationToolbar(self.graphtemp, self)
@@ -586,10 +627,13 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
 
         self.setPressureAndTemperatureModels()
     
-        select_pressure = self.build_data_queries(field ="Pressure")
+        if self.checkBoxRawData.isChecked():
+            select_pressure = self.build_raw_measures(field ="Pressure")
+            select_temp = self.build_raw_measures(field ="Temp")
+        else:
+            select_pressure = self.build_cleaned_measures(field ="Pressure")
+            select_temp = self.build_cleaned_measures(field ="Temp")
         self.pressuremodel.new_queries([select_pressure])
-        
-        select_temp = self.build_data_queries(field ="Temp")
         self.tempmodel.new_queries([select_temp])
 
         select_tempmap = self.build_result_queries(result_type="2DMap",option="Temperature") #This is a list of temperatures for all quantiles
@@ -754,42 +798,43 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         """)
         return query
     
-    def build_data_queries(self, full_query : bool = False, field : str = ""):
+    def build_raw_measures(self, full_query : bool = False, field : str = ""):
         """
-        Build and return ONE AND ONLY ONE of the following queries:
-        -if full_query is True, then extract the Date, Pressure and all Temperatures (this is for the Data part)
-        -if field is not "", then it MUST be either "Temp" or "Pressure". Extract the Date and the corresponding field (this is for the Plot part): either all the temperatures or just the pressure.
-        Theses queries take into account the actual state of checkBoxRawData to make to correct request (to either RawMeasuresTemp or CleanedMeasures)
+        Build an return a query getting the raw measures:
+        -if full_query is True, then extract the Date, Pressure and all Temperatures.
+        -if field is not an empty string, then it MUST be either "Temp" or "Pressure". Extract the Date and the corresponding field : either all the temperatures or just the pressure.
         """
         query = QSqlQuery(self.con)
-        if self.checkBoxRawData.isChecked():
-            #Raw data
-            if full_query:
-                query.prepare(f"""
-                    SELECT RawMeasuresTemp.Date, RawMeasuresTemp.Temp1, RawMeasuresTemp.Temp2, RawMeasuresTemp.Temp3, RawMeasuresTemp.Temp4, RawMeasuresPress.TempBed, RawMeasuresPress.Tension FROM RawMeasuresTemp, RawMeasuresPress
-                    WHERE RawMeasuresTemp.Date = RawMeasuresPress.Date
-                    AND RawMeasuresPress.PointKey=RawMeasuresTemp.PointKey = (SELECT id FROM SamplingPoint WHERE SamplingPoint.Name = '{self.point.name}')
-                    ORDER BY RawMeasuresTemp.Date
-                """)
-                return query
-            elif field =="Temp":
-                query.prepare(f"""
-                    SELECT RawMeasuresTemp.Date, RawMeasuresTemp.Temp1, RawMeasuresTemp.Temp2, RawMeasuresTemp.Temp3, RawMeasuresTemp.Temp4, RawMeasuresPress.TempBed FROM RawMeasuresTemp, RawMeasuresPress
-                    WHERE RawMeasuresTemp.Date = RawMeasuresPress.Date
-                    AND RawMeasuresPress.PointKey=RawMeasuresTemp.PointKey = (SELECT id FROM SamplingPoint WHERE SamplingPoint.Name = '{self.point.name}')
-                    ORDER BY RawMeasuresTemp.Date
-                """)
-                return query
-            elif field =="Pressure":
-                query.prepare(f"""
-                    SELECT RawMeasuresPress.Date,RawMeasuresPress.Tension FROM RawMeasuresPress
-                    WHERE RawMeasuresPress.PointKey= (SELECT id FROM SamplingPoint WHERE SamplingPoint.Name = '{self.point.name}')
-                    ORDER BY RawMeasuresPress.Date
-                """)
-                return query
-        else:
-            #Display cleaned measures
-            if full_query:
+        if full_query:
+            query.prepare(f"""
+                SELECT RawMeasuresTemp.Date, RawMeasuresTemp.Temp1, RawMeasuresTemp.Temp2, RawMeasuresTemp.Temp3, RawMeasuresTemp.Temp4, RawMeasuresPress.TempBed, RawMeasuresPress.Tension FROM RawMeasuresTemp, RawMeasuresPress
+                WHERE RawMeasuresTemp.Date = RawMeasuresPress.Date
+                AND RawMeasuresPress.PointKey=RawMeasuresTemp.PointKey = (SELECT id FROM SamplingPoint WHERE SamplingPoint.Name = '{self.point.name}')
+                ORDER BY RawMeasuresTemp.Date
+            """)
+            return query
+        elif field =="Temp":
+            query.prepare(f"""
+                SELECT RawMeasuresTemp.Date, RawMeasuresTemp.Temp1, RawMeasuresTemp.Temp2, RawMeasuresTemp.Temp3, RawMeasuresTemp.Temp4, RawMeasuresPress.TempBed FROM RawMeasuresTemp, RawMeasuresPress
+                WHERE RawMeasuresTemp.Date = RawMeasuresPress.Date
+                AND RawMeasuresPress.PointKey=RawMeasuresTemp.PointKey = (SELECT id FROM SamplingPoint WHERE SamplingPoint.Name = '{self.point.name}')
+                ORDER BY RawMeasuresTemp.Date
+            """)
+            return query
+        elif field =="Pressure":
+            query.prepare(f"""
+                SELECT RawMeasuresPress.Date,RawMeasuresPress.Tension FROM RawMeasuresPress
+                WHERE RawMeasuresPress.PointKey= (SELECT id FROM SamplingPoint WHERE SamplingPoint.Name = '{self.point.name}')
+                ORDER BY RawMeasuresPress.Date
+            """)
+            return query
+
+    def build_cleaned_measures(self, full_query : bool = False, field : str = ""):
+        """
+        Build an return a query getting the cleaned measures. This function behaves the same as build_raw_measures: see its docstrings for additional information.
+        """
+        query = QSqlQuery(self.con)
+        if full_query:
                 query.prepare(f"""
                     SELECT Date.Date, CleanedMeasures.Temp1, CleanedMeasures.Temp2, CleanedMeasures.Temp3, CleanedMeasures.Temp4, CleanedMeasures.TempBed, CleanedMeasures.Pressure FROM CleanedMeasures
                     JOIN Date
@@ -798,24 +843,24 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
                     ORDER BY Date.Date
                 """)
                 return query
-            elif field =="Temp":
-                query.prepare(f"""
-                    SELECT Date.Date, CleanedMeasures.Temp1, CleanedMeasures.Temp2, CleanedMeasures.Temp3, CleanedMeasures.Temp4, CleanedMeasures.TempBed FROM CleanedMeasures
-                    JOIN Date
-                    ON CleanedMeasures.Date = Date.id
-                    WHERE CleanedMeasures.PointKey = (SELECT id FROM SamplingPoint WHERE SamplingPoint.Name = '{self.point.name}')
-                    ORDER BY Date.Date
-                """)
-                return query
-            elif field =="Pressure":
-                query.prepare(f"""
-                    SELECT Date.Date, CleanedMeasures.Pressure FROM CleanedMeasures
-                    JOIN Date
-                    ON CleanedMeasures.Date = Date.id
-                    WHERE CleanedMeasures.PointKey = (SELECT id FROM SamplingPoint WHERE SamplingPoint.Name = '{self.point.name}')
-                    ORDER BY Date.Date
-                """)
-                return query
+        elif field =="Temp":
+            query.prepare(f"""
+                SELECT Date.Date, CleanedMeasures.Temp1, CleanedMeasures.Temp2, CleanedMeasures.Temp3, CleanedMeasures.Temp4, CleanedMeasures.TempBed FROM CleanedMeasures
+                JOIN Date
+                ON CleanedMeasures.Date = Date.id
+                WHERE CleanedMeasures.PointKey = (SELECT id FROM SamplingPoint WHERE SamplingPoint.Name = '{self.point.name}')
+                ORDER BY Date.Date
+            """)
+            return query
+        elif field =="Pressure":
+            query.prepare(f"""
+                SELECT Date.Date, CleanedMeasures.Pressure FROM CleanedMeasures
+                JOIN Date
+                ON CleanedMeasures.Date = Date.id
+                WHERE CleanedMeasures.PointKey = (SELECT id FROM SamplingPoint WHERE SamplingPoint.Name = '{self.point.name}')
+                ORDER BY Date.Date
+            """)
+            return query
 
     def computation_type(self):
         """
