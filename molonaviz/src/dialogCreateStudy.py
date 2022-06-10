@@ -21,7 +21,7 @@ def tryCreateStudy(con : QSqlDatabase):
     else:
         dlg = DialogCreateStudy(labs)
         dlg.setWindowModality(QtCore.Qt.ApplicationModal)
-        res = dlg.exec_()
+        res = dlg.exec()
         if res == QtWidgets.QDialog.Accepted:
             userLab = dlg.selectedLab()
             userStudyName = dlg.studyName()

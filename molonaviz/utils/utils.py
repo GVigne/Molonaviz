@@ -11,7 +11,7 @@ def displayCriticalMessage(mainMessage: str, infoMessage: str = ''):
     msg.setIcon(QtWidgets.QMessageBox.Critical)
     msg.setText(mainMessage)
     msg.setInformativeText(infoMessage)
-    msg.exec_()
+    msg.exec()
 
 def displayWarningMessage(mainMessage: str, infoMessage: str = ''):
     """
@@ -21,4 +21,4 @@ def displayWarningMessage(mainMessage: str, infoMessage: str = ''):
     msg.setIcon(QtWidgets.QMessageBox.Warning)
     msg.setText(mainMessage)
     msg.setInformativeText(infoMessage)
-    msg.exec_() 
+    msg.exec() 

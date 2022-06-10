@@ -21,7 +21,7 @@ class MoloModel(QObject):
     
     def exec(self):
         """
-        Exec all queries and notify the subscribed views that the data has been modified.
+        Execute all queries and notify the subscribed views that the data has been modified.
         """
         for i in self.queries:
             i.exec()

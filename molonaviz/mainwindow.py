@@ -91,7 +91,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
             #The config file does not exist. 
             dlg = DialogOpenDatabase()
             dlg.setWindowModality(QtCore.Qt.ApplicationModal)
-            res = dlg.exec_()
+            res = dlg.exec()
             if res == QtWidgets.QDialog.Accepted:
                 databaseDir = dlg.getDir()
                 remember = dlg.checkBoxRemember.isChecked()
@@ -113,7 +113,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
                     #Write (or overwrite) the path to the database file
                     f.write(databaseDir)
         else:
-            #Problemn when finding the database.
+            #Problem when finding the database.
             displayCriticalMessage("The database wasn't found. Please try again.")
             self.openDatabase()
         
@@ -123,7 +123,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         """
         dlg = DialogImportLab()
         dlg.setWindowModality(QtCore.Qt.ApplicationModal)
-        res = dlg.exec_()
+        res = dlg.exec()
         if res == QtWidgets.QDialog.Accepted:
             labdir,labname = dlg.getLaboInfo()
             if labdir and labname: #Both strings are not empty
@@ -193,7 +193,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         """
         dlg = DialogImportPoint(self.con, self.currentStudy.ID)
         dlg.setWindowModality(QtCore.Qt.ApplicationModal)
-        res = dlg.exec_()
+        res = dlg.exec()
         if res == QtWidgets.QDialog.Accepted:
             name, psensor, shaft, infofile, noticefile, configfile, prawfile, trawfile = dlg.getPointInfo()
             self.currentStudy.importNewPoint(name, psensor, shaft, infofile, noticefile, configfile, prawfile, trawfile)
@@ -289,7 +289,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         Display a small dialog about the app.
         """
         dlg = DialogAboutUs()
-        dlg.exec_()
+        dlg.exec()
     
     def quitMolonaviz(self):
         """
@@ -330,4 +330,4 @@ if __name__ == '__main__':
     messageThread.started.connect(my_receiver.run)
     messageThread.start()
 
-    sys.exit(app.exec_())
+    sys.exit(app.exec())

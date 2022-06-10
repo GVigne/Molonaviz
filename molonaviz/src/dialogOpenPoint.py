@@ -23,7 +23,7 @@ def tryOpenPoint(con : QSqlDatabase, studyID : int | str):
     else:
         dlg = DialogOpenPoint(pointsNames)
         dlg.setWindowModality(QtCore.Qt.ApplicationModal)
-        res = dlg.exec_()
+        res = dlg.exec()
         if res == QtWidgets.QDialog.Accepted:
             return dlg.selectedPoint()
     return ""

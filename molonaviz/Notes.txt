@@ -12,9 +12,17 @@ MoloTreeViewModel and MoloQtList are meant to work with object having at least t
 
 In the code, Point refers to SamplingPoint. This is because the Point table is a dummy table, used only for computations: it doesn't have any physical meaning. A SamplingPoint (in the code, a Point) corresponds to a physical implantation of different sensors giving readings.
 
+Better import -> other window
+
+/!\ /!\ /!\ Requires python 3.10 for type hints /!\ /!\ /!\
+/!\ /!\ /!\ Not compatible with Python older than 3. exec was a reserveed keyword, so all QT code requiring to execute something (app.exec, dialog.exec, Query.exec...) used an underscore. The functions exec and exec were the same. In Python >3 exec is no longer reserved, and in PyQT6, exec disappears entirely. So, use exec and not exec /!\ /!\ /!\
+
+
 Known bugs:
 -When importing a lab, some messages may appear such as "The thermometers have been added to the database", despite it not being the case
 - build_data_queries first query is super ugly, and so are other queries ( = SELECT ...)
+-Subwindows do not fill up the zone.
+-When opening a new point, respect the rule to display subwindows (tabbed, cascade...)
 
 TODO:
 -In the pressure sensors/shafts.csv files: less precision for floats? Right now, we have floats with a precision of more thant 10 digits...
@@ -22,3 +30,36 @@ TODO:
 -Schemes -> Diagrams?
 -More robust imports of Lab when informations are missing.
 -Creating and opening a study: do not close window if something went wrong (ie wrong study name, empty lab name...) -> Create a FilterComboBox widget?
+
+
+
+query.prepare(f"""
+    INSERT INTO CleanedMeasures (
+        Date,
+        TempBed,
+        Temp1,
+        Temp2,
+        Temp3,
+        Temp4,
+        Pressure,
+        PointKey)
+    VALUES (:Date, :TempBed, :Temp1, :Temp2, :Temp3, :Temp4, :Pressure, 1)
+""")
+
+con.transaction()
+for i in range(1):
+            q.bindValue(":Date", rng.randint(1,2000))
+            q.bindValue(":TempBed", rng.random())
+            q.bindValue(":Temp1", rng.random())
+            q.bindValue(":Temp2", rng.random())
+            q.bindValue(":Temp3", rng.random())
+            q.bindValue(":Temp4", rng.random())
+            q.bindValue(":Pressure",rng.random())
+            print(q.exec())
+con.commit()
+
+query.prepare(f"""
+    INSERT INTO Date (
+        Date)
+    VALUES (:Date)
+""")

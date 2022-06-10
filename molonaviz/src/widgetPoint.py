@@ -153,7 +153,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         """
         dlg = DialogExportCleanedMeasures(self.point)
         dlg.setWindowModality(QtCore.Qt.ApplicationModal)
-        res = dlg.exec_()
+        res = dlg.exec()
         if res == QtWidgets.QDialog.Accepted:
             pressPath, tempPath = dlg.getFilesNames()
             pressfile = open(pressPath, 'w')
@@ -242,14 +242,14 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         pointname = self.point.getName()
         deleteTableQuery = QSqlQuery()
         #Careful: should have joins as WaterFlow.PointKey !=Samplingpoint.name
-        deleteTableQuery.exec_(f'DELETE FROM WaterFlow WHERE WaterFlow.PointKey=(SELECT Point.id FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.id FROM SamplingPoint WHERE SamplingPoint.Name="{pointname}"))')
-        deleteTableQuery.exec_(f'DELETE FROM RMSE WHERE PointKey=(SELECT Point.id FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.id FROM SamplingPoint WHERE SamplingPoint.Name="{pointname}"))')
-        deleteTableQuery.exec_(f'DELETE FROM TemperatureAndHeatFlows WHERE PointKey=(SELECT Point.id FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.id FROM SamplingPoint WHERE SamplingPoint.Name="{pointname}"))')
-        deleteTableQuery.exec_(f'DELETE FROM ParametersDistribution WHERE ParametersDistribution.PointKey=(SELECT Point.id FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.id FROM SamplingPoint WHERE SamplingPoint.Name="{pointname}"))')
-        deleteTableQuery.exec_(f'DELETE FROM BestParameters WHERE BestParameters.PointKey=(SELECT Point.id FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.id FROM SamplingPoint WHERE SamplingPoint.Name="{pointname}"))')
+        deleteTableQuery.exec(f'DELETE FROM WaterFlow WHERE WaterFlow.PointKey=(SELECT Point.id FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.id FROM SamplingPoint WHERE SamplingPoint.Name="{pointname}"))')
+        deleteTableQuery.exec(f'DELETE FROM RMSE WHERE PointKey=(SELECT Point.id FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.id FROM SamplingPoint WHERE SamplingPoint.Name="{pointname}"))')
+        deleteTableQuery.exec(f'DELETE FROM TemperatureAndHeatFlows WHERE PointKey=(SELECT Point.id FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.id FROM SamplingPoint WHERE SamplingPoint.Name="{pointname}"))')
+        deleteTableQuery.exec(f'DELETE FROM ParametersDistribution WHERE ParametersDistribution.PointKey=(SELECT Point.id FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.id FROM SamplingPoint WHERE SamplingPoint.Name="{pointname}"))')
+        deleteTableQuery.exec(f'DELETE FROM BestParameters WHERE BestParameters.PointKey=(SELECT Point.id FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.id FROM SamplingPoint WHERE SamplingPoint.Name="{pointname}"))')
 
-        deleteTableQuery.exec_("DELETE FROM Date WHERE (SELECT count(*) FROM RMSE)==0")    #We delete the rows of this table if and only if the point we reset was the only one open
-        deleteTableQuery.exec_("DELETE FROM Depth WHERE (SELECT count(*) FROM RMSE)==0")
+        deleteTableQuery.exec("DELETE FROM Date WHERE (SELECT count(*) FROM RMSE)==0")    #We delete the rows of this table if and only if the point we reset was the only one open
+        deleteTableQuery.exec("DELETE FROM Depth WHERE (SELECT count(*) FROM RMSE)==0")
 
         '''
         clearLayout(self.groupBoxWaterFlux)
@@ -265,12 +265,12 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
     def deleteCleaned(self):
         pointname = self.point.getName()
         deleteTableQuery = QSqlQuery()
-        deleteTableQuery.exec_("DELETE FROM CleanedMeasures WHERE PointKey=(SELECT id FROM SamplingPoint WHERE SamplingPoint.Name='"+pointname+"')")
+        deleteTableQuery.exec("DELETE FROM CleanedMeasures WHERE PointKey=(SELECT id FROM SamplingPoint WHERE SamplingPoint.Name='"+pointname+"')")
         #clearLayout(self.tableViewDataArray)
 
     def reset(self):
         dlg = DialogReset()
-        res = dlg.exec_()
+        res = dlg.exec()
         if res == QtWidgets.QDialog.Accepted:
             self.deleteComputations()
             self.deleteCleaned()
@@ -279,7 +279,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
     def cleanup(self):
         cleanUpDir = os.path.join(self.study.rootDir,"Cleanup_scripts")
         dlg = DialogCleanupMain(self.point.name, cleanUpDir,self.study,self.study.con)
-        res = dlg.exec_()
+        res = dlg.exec()
         #print(self.pointDir)
         if res == QtWidgets.QDialog.Accepted:
             dlg.df_cleaned["date"] = dlg.df_cleaned.apply(lambda x: x['date'].strftime("%Y:%m:%d:%H:%M:%S"), axis=1)
@@ -295,7 +295,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         #     print("Please clean-up your processed data. Click again on the raw data box")
         # else:
         #     dlg = DialogCleanupMain(self.point.name,self.pointDir,self.study)
-        #     res = dlg.exec_()
+        #     res = dlg.exec()
         #     #print(self.pointDir)
         #     if res == QtWidgets.QDialog.Accepted:
         #         dlg.mainDb.newDatesDb.insert(dlg.df_cleaned)

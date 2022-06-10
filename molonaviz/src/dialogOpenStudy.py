@@ -22,7 +22,7 @@ def tryOpenStudy(con : QSqlDatabase):
     else:
         dlg = DialogOpenStudy(studies)
         dlg.setWindowModality(QtCore.Qt.ApplicationModal)
-        res = dlg.exec_()
+        res = dlg.exec()
         if res == QtWidgets.QDialog.Accepted:
             return dlg.selectedStudy()
     return ""
