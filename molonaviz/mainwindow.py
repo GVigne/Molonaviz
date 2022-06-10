@@ -1,3 +1,4 @@
+from xml.dom.pulldom import parseString
 from PyQt5 import QtWidgets, QtGui, QtCore, uic
 from PyQt5.QtSql import QSqlDatabase
 
@@ -14,7 +15,7 @@ from src.dialogOpenPoint import tryOpenPoint
 from src.dialogImportPoint import DialogImportPoint
 
 from src.Laboratory import Lab
-from utils.utils import displayCriticalMessage
+from utils.utils import displayCriticalMessage, createDatabaseDirectory, checkDbFolderIntegrity
 from utils.utilsQueries import createStudyDatabase
 from src.printThread import InterceptOutput, Receiver
 from src.MoloTreeViewModels import ThermometerTreeViewModel, PSensorTreeViewModel, ShaftTreeViewModel, PointTreeViewModel
@@ -83,6 +84,8 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         Then, open the database in the directory. 
         """
         databaseDir = None
+        createNewDatabase = False
+        newDatabaseName = ""
         remember = False
         try:
             with open(os.path.join(os.path.dirname(__file__),'config.txt')) as f:
@@ -93,30 +96,43 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
             dlg.setWindowModality(QtCore.Qt.ApplicationModal)
             res = dlg.exec()
             if res == QtWidgets.QDialog.Accepted:
-                databaseDir = dlg.getDir()
+                databaseDir, createNewDatabase, newDatabaseName = dlg.getDir()
                 remember = dlg.checkBoxRemember.isChecked()
             else:
                 #If the user cancels or quits the dialog, quit Molonaviz.
                 #This is a bit brutal. Maybe there can be some other way to quit via Qt: the problem is that, at this point in the script, the app (QtWidgets.QApplication) has not been executed yet.
                 sys.exit()
-
-        databaseFile = os.path.join(databaseDir,"Molonari.sqlite")
-
-        if os.path.isfile(databaseFile):
-            #The database exists: open it.
-            self.con = QSqlDatabase.addDatabase("QSQLITE")
-            self.con.setDatabaseName(databaseFile)
-            self.con.open()
-
-            if remember:
-                with open(os.path.join(os.path.dirname(__file__),'config.txt'), 'w') as f:
-                    #Write (or overwrite) the path to the database file
-                    f.write(databaseDir)
-        else:
-            #Problem when finding the database.
-            displayCriticalMessage("The database wasn't found. Please try again.")
-            self.openDatabase()
         
+        #Now create or check the integrity of the folder given by databaseDir
+        if createNewDatabase:
+            #Create all folders and subfolders
+            noerror = createDatabaseDirectory(databaseDir, newDatabaseName)
+            if noerror:
+                databaseDir = os.path.join(databaseDir, newDatabaseName)
+            else:
+                displayCriticalMessage(f"Something went wrong when creating the directory and the database creation was aborted.\nPlease make sure a directory with the name {newDatabaseName} does not already exist at path {databaseDir}")
+                self.openDatabase()
+        else:
+            #Check if the folder has the correct format
+            if not checkDbFolderIntegrity(databaseDir):
+                displayCriticalMessage("The specified folder does not have the correct structure. Please try again.")
+                #The database with the given path cannot be opened. If this is because the config.txt file was modified (and the path is not valid or points to somewhere else), then the config file needs to be deleted in order to prevent an infinite loop when opening Molonaviz.
+                configPath = os.path.join(os.path.dirname(__file__),'config.txt')
+                if os.path.isfile(configPath):
+                    os.remove(configPath)
+                self.openDatabase()
+
+        #Now, databaseDir is the path to a valid folder containing a database. Open it!
+        databaseFile = os.path.join(databaseDir,"Molonari.sqlite")
+        self.con = QSqlDatabase.addDatabase("QSQLITE")
+        self.con.setDatabaseName(databaseFile)
+        self.con.open()
+
+        if remember:
+            with open(os.path.join(os.path.dirname(__file__),'config.txt'), 'w') as f:
+                #Write (or overwrite) the path to the database file
+                f.write(databaseDir)
+    
     def importLabo(self):
         """
         Display a dialog so the user may import a laboratory from a directory. The laboratory is added to the database.
