@@ -12,10 +12,16 @@ MoloTreeViewModel and MoloQtList are meant to work with object having at least t
 
 In the code, Point refers to SamplingPoint. This is because the Point table is a dummy table, used only for computations: it doesn't have any physical meaning. A SamplingPoint (in the code, a Point) corresponds to a physical implantation of different sensors giving readings.
 
-Better import -> other window
+Better laboratory import and point import -> generate CSV in another window
 
 /!\ /!\ /!\ Requires python 3.10 for type hints /!\ /!\ /!\
 /!\ /!\ /!\ Not compatible with Python older than 3. exec was a reserveed keyword, so all QT code requiring to execute something (app.exec, dialog.exec, Query.exec...) used an underscore. The functions exec and exec were the same. In Python >3 exec is no longer reserved, and in PyQT6, exec disappears entirely. So, use exec and not exec /!\ /!\ /!\
+
+For dates:
+    -For raw measures, the format can be anything (I as a programmer still need to know what the convention is).
+    -Convert it into YYYY/MM/DD HH:MM:SS This is how it is stored in the database.
+    -To access these dates, simply use datetime object. For matplotlib date format, there is a function (matplotib.dates.date) which takes a datetime object and returns an matplotib date object.
+CONCLUSION: Always use datetime objects in the program. In database, always store strings in format YYYY/MM/DD HH:MM:SS
 
 
 Known bugs:
@@ -23,6 +29,7 @@ Known bugs:
 - build_data_queries first query is super ugly, and so are other queries ( = SELECT ...)
 -Subwindows do not fill up the zone.
 -When opening a new point, respect the rule to display subwindows (tabbed, cascade...)
+-The C++ file which writes sensor data to csv take dates in the format YYYY:MM:DD:HH:MM:SS (and sampling time in format HH:MM:SS) but writes on the CSV file dates in format YYYY/MM/DD HH:MM:SS
 
 TODO:
 -In the pressure sensors/shafts.csv files: less precision for floats? Right now, we have floats with a precision of more thant 10 digits...
@@ -30,7 +37,7 @@ TODO:
 -Schemes -> Diagrams?
 -More robust imports of Lab when informations are missing.
 -Creating and opening a study: do not close window if something went wrong (ie wrong study name, empty lab name...) -> Create a FilterComboBox widget?
-
+-Add a simple dialog which can send QDialog::Accept or QDialog::Reject (confirmation dialog)
 
 
 query.prepare(f"""

@@ -2,6 +2,7 @@ from PyQt5.QtSql import QSqlQuery, QSqlDatabase #QSqlDatabase in used only for t
 from PyQt5 import QtWidgets
 from src.Laboratory import Lab
 from src.Containers import MoloQtList, Point
+from utils.utils import inputToDatabaseDate
 from utils.utilsQueries import build_study_id
 import shutil, os
 import pandas as pd
@@ -61,7 +62,7 @@ class Study:
         newPoint = self.createNewPoint(pointName, psensorName, shaftName, infofile, noticefile, configfile) #This is a Point object
         self.points.append(newPoint)
 
-        dfpress, dftemp = self.processDataFrames(prawfile,trawfile) 
+        dfpress, dftemp = self.processDataFrames(prawfile,trawfile)
         select_point_id = self.build_point_id(newPoint.name)
         select_point_id.exec()
         select_point_id.next()
@@ -111,7 +112,7 @@ class Study:
     
     def processDataFrames(self, prawfile : str, trawfile : str):
         """
-        Given the path to the pressure readings and the path to the temperature profiles, return two cleaned dataframes: these dataframes are compatible with the database (ie correct number of lines, no NaN,...)
+        Given the path to the pressure readings and the path to the temperature profiles, return two cleaned dataframes: these dataframes are compatible with the database (ie correct date format, correct number of lines, no NaN,...)
         """
         #Rename the colonnes, delete lignes without any value and delete the index.
         dfpress = pd.read_csv(prawfile)
@@ -119,18 +120,20 @@ class Study:
         for i in range(len(val_cols)) :
             dfpress.columns.values[i] = val_cols[i]
         dfpress.dropna(subset=val_cols,inplace=True)
+        dfpress["Date"] = dfpress["Date"].apply(inputToDatabaseDate)
         
         dftemp = pd.read_csv(trawfile)
         val_cols = ["Date", "Temp1", "Temp2", "Temp3", "Temp4"]
         for i in range(len(val_cols)) :
             dftemp.columns.values[i] = val_cols[i] 
         dftemp.dropna(subset=val_cols,inplace=True)
+        dftemp["Date"] = dftemp["Date"].apply(inputToDatabaseDate)
         
         return dfpress, dftemp
     
     def createRawPressRecord(self, dfpress : pd.DataFrame, pointID : int | str):
         """
-        Extract data from a dataframe and fill the table RawMeasuresPressure with it.
+        Extract data from a dataframe and fill the table RawMeasuresPressure with it. The dataframe MUST be compatible with the database (correct date format, no Nan...)
         """
         self.con.transaction()
         insertRawPress = self.build_insert_raw_pressures()
@@ -144,7 +147,7 @@ class Study:
     
     def createRawTempRecord(self, dftemp : pd.DataFrame, pointID : int | str):
         """
-        Extract data from a dataframe and fill the table RawMeasuresTemp with it.
+        Extract data from a dataframe and fill the table RawMeasuresTemp with it. The dataframe MUST be compatible with the database (correct date format, no Nan...)
         """
         self.con.transaction()
         insertRawTemp = self.build_insert_raw_temperatures()

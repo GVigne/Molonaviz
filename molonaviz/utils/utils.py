@@ -3,6 +3,7 @@ Some useful functions which can be used throughout the code.
 """
 from PyQt5 import QtWidgets
 import os
+from datetime import datetime
 
 def displayCriticalMessage(mainMessage: str, infoMessage: str = ''):
     """
@@ -45,3 +46,28 @@ def checkDbFolderIntegrity(dbPath):
     Given the path to a database folder, check if it has all the subfolders and the database in it.
     """
     return os.path.isfile(os.path.join(dbPath, "Molonari.sqlite")) and os.path.isdir(os.path.join(dbPath, "Notices")) and os.path.isdir(os.path.join(dbPath, "Schemes")) and os.path.isdir(os.path.join(dbPath, "Scripts"))
+
+def inputToDatabaseDate(date: str):
+    """
+    This function should only be used when importing raw measures from a CSV file (data coming from sensors) into the database. Convert the dates from the CSV file into a string of format YYYY/MM/DD HH:MM:SS (this is the convention for the database dates).
+    The dates in the CSV file should be in format  YYYY/MM/DD HH:MM:SS: however, this function can also deal with other types of format.
+    """
+    formats = ("%Y/%m/%d %H:%M:%S",  "%Y/%m/%d %I:%M:%S %p",
+                "%y/%m/%d %H:%M:%S", "%y/%m/%d %H:%M:%S"
+                "%m/%d/%y %H:%M:%S", "%m/%d/%y %I:%M:%S %p",
+               "%d/%m/%y %H:%M",    "%d/%m/%y %I:%M %p",
+               "%m/%d/%Y %H:%M:%S", "%m/%d/%Y %I:%M:%S %p", 
+               "%d/%m/%Y %H:%M",    "%d/%m/%Y %I:%M %p",
+               "%y/%m/%d %H:%M:%S", "%y/%m/%d %I:%M:%S %p", 
+               "%y/%m/%d %H:%M",    "%y/%m/%d %I:%M %p",
+               "%Y/%m/%d %H:%M:%S", "%Y/%m/%d %I:%M:%S %p", 
+               "%Y/%m/%d %H:%M",    "%Y/%m/%d %I:%M %p",
+               "%Y-%m-%d %H:%M:%S", "%Y-%m-%d %I:%M:%S %p",
+               "%Y:%m:%d %H:%M:%S", "%Y:%m:%d %I:%M:%S %p",
+               "%m:%d:%Y %H:%M:%S", "%m:%d:%Y %I:%M:%S %p")
+    for f in formats:
+        try:
+            dtObj = datetime.strptime(date, f) 
+            return datetime.strftime(dtObj, "%Y/%m/%d %H:%M:%S") #This is the database date convention
+        except:
+            continue
