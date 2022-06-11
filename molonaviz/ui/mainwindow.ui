@@ -108,7 +108,14 @@
     </property>
     <addaction name="actionImportLabo"/>
    </widget>
+   <widget class="QMenu" name="menuDatabase">
+    <property name="title">
+     <string>Database</string>
+    </property>
+    <addaction name="actionChangeDatabase"/>
+   </widget>
    <addaction name="menuMolonaViz"/>
+   <addaction name="menuDatabase"/>
    <addaction name="menuStudy"/>
    <addaction name="menuPoint"/>
    <addaction name="menuLabo"/>
@@ -404,6 +411,11 @@
   <action name="actionImportLabo">
    <property name="text">
     <string>Import Laboratory</string>
+   </property>
+  </action>
+  <action name="actionChangeDatabase">
+   <property name="text">
+    <string>Change Database</string>
    </property>
   </action>
  </widget>
