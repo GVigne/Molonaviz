@@ -1,9 +1,9 @@
-from xml.dom.pulldom import parseString
 from PyQt5 import QtWidgets, QtGui, QtCore, uic
 from PyQt5.QtSql import QSqlDatabase
 
 from queue import Queue
 import sys, os.path
+
 from src.Study import Study
 
 from src.dialogAboutUs import DialogAboutUs
@@ -61,9 +61,9 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.actionSwitchToTabbedView.triggered.connect(self.switchToTabbedView)
         self.actionSwitchToSubWindowView.triggered.connect(self.switchToSubWindowView)
         self.actionSwitchToCascadeView.triggered.connect(self.switchToCascadeView)
+        self.actionChangeDatabase.triggered.connect(self.closeDatabase)
 
         self.treeViewDataPoints.doubleClicked.connect(self.openPointFromDock)
-
     
         #Some actions or menus should not be enabled: disable them
         self.actionCloseStudy.setEnabled(False)
@@ -133,6 +133,30 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
                 #Write (or overwrite) the path to the database file
                 f.write(databaseDir)
     
+    def closeDatabase(self):
+        """
+        Close the database and revert Molonaviz to its initial state.
+        """
+        self.con.close()
+        self.con = None
+        if self.currentStudy:
+            self.currentStudy.close()
+        self.currentStudy = None
+
+        self.actionCreateStudy.setEnabled(True)
+        self.actionOpenStudy.setEnabled(True)
+        self.actionCloseStudy.setEnabled(False)
+        self.menuPoint.setEnabled(False)
+        self.actionImportPoint.setEnabled(False)
+        self.actionOpenPoint.setEnabled(False)
+        self.actionRemovePoint.setEnabled(False)
+        self.switchToSubWindowView()
+
+        if os.path.isfile(os.path.join(os.path.dirname(__file__),'config.txt')):
+            os.remove(os.path.join(os.path.dirname(__file__),'config.txt'))
+    
+        self.openDatabase()
+
     def importLabo(self):
         """
         Display a dialog so the user may import a laboratory from a directory. The laboratory is added to the database.
