@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1345</width>
-    <height>961</height>
+    <height>967</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -130,7 +130,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="tabInfos">
       <attribute name="title">
@@ -193,7 +193,7 @@
                  <x>0</x>
                  <y>0</y>
                  <width>1265</width>
-                 <height>501</height>
+                 <height>507</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -265,7 +265,7 @@
              <x>0</x>
              <y>0</y>
              <width>1295</width>
-             <height>679</height>
+             <height>685</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -346,7 +346,7 @@
              <x>0</x>
              <y>0</y>
              <width>1295</width>
-             <height>401</height>
+             <height>404</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_7">
@@ -386,7 +386,7 @@
              <x>0</x>
              <y>0</y>
              <width>1295</width>
-             <height>400</height>
+             <height>403</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_5">
@@ -426,164 +426,145 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_6">
        <item>
-        <widget class="QSplitter" name="splitter_3">
+        <widget class="QSplitter" name="splitterVertical">
          <property name="orientation">
-          <enum>Qt::Vertical</enum>
+          <enum>Qt::Horizontal</enum>
          </property>
-         <widget class="QScrollArea" name="scrollArea_7">
-          <property name="widgetResizable">
-           <bool>true</bool>
+         <property name="handleWidth">
+          <number>10</number>
+         </property>
+         <widget class="QSplitter" name="splitterHorizLeft">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
           </property>
-          <widget class="QWidget" name="scrollAreaWidgetContents_10">
-           <property name="geometry">
-            <rect>
-             <x>0</x>
-             <y>0</y>
-             <width>1295</width>
-             <height>626</height>
-            </rect>
-           </property>
-           <layout class="QVBoxLayout" name="verticalLayout_9">
+          <property name="handleWidth">
+           <number>10</number>
+          </property>
+          <widget class="QWidget" name="topLeftBox" native="true">
+           <layout class="QVBoxLayout" name="verticalLayout_18">
             <item>
-             <widget class="QSplitter" name="splitter_7">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <widget class="QGroupBox" name="groupBox_6">
-               <property name="title">
-                <string/>
-               </property>
-               <layout class="QVBoxLayout" name="verticalLayout_10">
-                <item>
-                 <widget class="QScrollArea" name="scrollArea_2">
-                  <property name="widgetResizable">
-                   <bool>true</bool>
-                  </property>
-                  <widget class="QWidget" name="scrollAreaWidgetContents_2">
-                   <property name="geometry">
-                    <rect>
-                     <x>0</x>
-                     <y>0</y>
-                     <width>876</width>
-                     <height>467</height>
-                    </rect>
+             <layout class="QVBoxLayout" name="topLeftVLayout">
+              <item>
+               <widget class="QGroupBox" name="groupBox_6">
+                <property name="title">
+                 <string/>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_11">
+                 <item>
+                  <widget class="QScrollArea" name="scrollArea_3">
+                   <property name="widgetResizable">
+                    <bool>true</bool>
                    </property>
-                   <layout class="QGridLayout" name="gridLayout_5">
-                    <item row="0" column="0">
-                     <layout class="QGridLayout" name="gridLayoutQuantiles">
-                      <item row="0" column="0">
-                       <widget class="QCheckBox" name="checkBoxDirectModel">
-                        <property name="text">
-                         <string>Direct model</string>
-                        </property>
-                        <property name="checked">
-                         <bool>true</bool>
-                        </property>
-                       </widget>
-                      </item>
-                     </layout>
-                    </item>
-                   </layout>
+                   <widget class="QWidget" name="scrollAreaWidgetContents_3">
+                    <property name="geometry">
+                     <rect>
+                      <x>0</x>
+                      <y>0</y>
+                      <width>1129</width>
+                      <height>573</height>
+                     </rect>
+                    </property>
+                    <layout class="QGridLayout" name="gridLayout_6">
+                     <item row="0" column="0">
+                      <layout class="QGridLayout" name="gridLayoutQuantiles">
+                       <item row="0" column="0">
+                        <widget class="QCheckBox" name="checkBoxDirectModel">
+                         <property name="text">
+                          <string>Modèle direct</string>
+                         </property>
+                         <property name="checked">
+                          <bool>true</bool>
+                         </property>
+                        </widget>
+                       </item>
+                      </layout>
+                     </item>
+                    </layout>
+                   </widget>
                   </widget>
-                 </widget>
-                </item>
-                <item>
-                 <layout class="QGridLayout" name="gridLayout">
-                  <item row="2" column="0">
-                   <widget class="QRadioButton" name="radioButtonTherm3">
-                    <property name="text">
-                     <string>Thermometer 3</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="1" column="0">
-                   <widget class="QRadioButton" name="radioButtonTherm2">
-                    <property name="text">
-                     <string>Thermometer 2</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="0" column="0">
-                   <widget class="QRadioButton" name="radioButtonTherm1">
-                    <property name="text">
-                     <string>Thermometer 1</string>
-                    </property>
-                    <property name="checked">
-                     <bool>true</bool>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="0" column="1">
-                   <widget class="QLabel" name="labelRMSETherm1">
-                    <property name="text">
-                     <string>RMSE: </string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="1" column="1">
-                   <widget class="QLabel" name="labelRMSETherm2">
-                    <property name="text">
-                     <string>RMSE: </string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="2" column="1">
-                   <widget class="QLabel" name="labelRMSETherm3">
-                    <property name="text">
-                     <string>RMSE: </string>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-               </layout>
-              </widget>
-              <widget class="QGroupBox" name="groupBoxTempDepth">
-               <property name="contextMenuPolicy">
-                <enum>Qt::DefaultContextMenu</enum>
-               </property>
-               <property name="title">
-                <string/>
-               </property>
-               <property name="flat">
-                <bool>false</bool>
-               </property>
-              </widget>
-             </widget>
+                 </item>
+                 <item>
+                  <layout class="QGridLayout" name="gridLayout_2">
+                   <item row="2" column="0">
+                    <widget class="QRadioButton" name="radioButtonTherm3">
+                     <property name="text">
+                      <string>Thermometer 3</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="1" column="0">
+                    <widget class="QRadioButton" name="radioButtonTherm2">
+                     <property name="text">
+                      <string>Thermometer 2</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="0">
+                    <widget class="QRadioButton" name="radioButtonTherm1">
+                     <property name="text">
+                      <string>Thermometer 1</string>
+                     </property>
+                     <property name="checked">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="1">
+                    <widget class="QLabel" name="labelRMSETherm1">
+                     <property name="text">
+                      <string>RMSE: </string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="1" column="1">
+                    <widget class="QLabel" name="labelRMSETherm2">
+                     <property name="text">
+                      <string>RMSE: </string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="1">
+                    <widget class="QLabel" name="labelRMSETherm3">
+                     <property name="text">
+                      <string>RMSE: </string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="botLeftBox" native="true">
+           <layout class="QVBoxLayout" name="verticalLayout_19">
+            <item>
+             <layout class="QVBoxLayout" name="botLeftVLayout"/>
             </item>
            </layout>
           </widget>
          </widget>
-         <widget class="QScrollArea" name="scrollArea_8">
-          <property name="widgetResizable">
-           <bool>true</bool>
+         <widget class="QSplitter" name="splitterHorizRight">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
           </property>
-          <widget class="QWidget" name="scrollAreaWidgetContents_11">
-           <property name="geometry">
-            <rect>
-             <x>0</x>
-             <y>0</y>
-             <width>1295</width>
-             <height>175</height>
-            </rect>
-           </property>
-           <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <property name="handleWidth">
+           <number>10</number>
+          </property>
+          <widget class="QWidget" name="topRightBox" native="true">
+           <layout class="QVBoxLayout" name="verticalLayout_20">
             <item>
-             <widget class="QSplitter" name="splitter_4">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <widget class="QGroupBox" name="groupBoxUmbrella">
-               <property name="title">
-                <string/>
-               </property>
-              </widget>
-              <widget class="QGroupBox" name="groupBoxTempMap">
-               <property name="title">
-                <string/>
-               </property>
-              </widget>
-             </widget>
+             <layout class="QVBoxLayout" name="topRightVLayout"/>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="botRightBox" native="true">
+           <layout class="QVBoxLayout" name="verticalLayout_21">
+            <item>
+             <layout class="QVBoxLayout" name="botRightVLayout"/>
             </item>
            </layout>
           </widget>
@@ -672,7 +653,7 @@
              <x>0</x>
              <y>0</y>
              <width>1295</width>
-             <height>381</height>
+             <height>384</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_8">
@@ -712,7 +693,7 @@
              <x>0</x>
              <y>0</y>
              <width>1295</width>
-             <height>381</height>
+             <height>384</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_9">

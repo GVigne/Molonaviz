@@ -42,6 +42,9 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         self.fluxes_model = HeatFluxesModel([])
         self.waterflux_model = WaterFluxModel([])
         self.paramsdistr_model = ParamsDistributionModel([])
+
+        self.splitterHorizLeft.splitterMoved.connect(self.adjustRightSplitter)
+        self.splitterHorizRight.splitterMoved.connect(self.adjustLeftSplitter)
         
         # Link every button to their function
         self.comboBoxSelectLayer.textActivated.connect(self.changeDisplayedParams)
@@ -135,8 +138,8 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
                 text_checkbox = f"Quantile {select_quantiles.value(1)}"
                 quantile_checkbox = QtWidgets.QCheckBox(text_checkbox)
                 quantile_checkbox.stateChanged.connect(self.refreshTempDepthView)
-                self.gridLayoutQuantiles.addWidget(quantile_checkbox,i,0)
-                self.gridLayoutQuantiles.addWidget(QtWidgets.QLabel(f"RMSE: {select_quantiles.value(0)} °C"),i,1)
+                self.topLeftVLayout.addWidget(quantile_checkbox,i,0)
+                self.topLeftVLayout.addWidget(QtWidgets.QLabel(f"RMSE: {select_quantiles.value(0)} °C"),i,1)
                 i +=1
 
         select_RMSE_therm = self.build_therm_RMSE()
@@ -178,8 +181,8 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         """
         #Needs to be adapted!
         quantiles = []
-        for i in range (self.gridLayoutQuantiles.count()):
-            checkbox = self.gridLayoutQuantiles.itemAt(i).widget()
+        for i in range (self.topLeftVLayout.count()):
+            checkbox = self.topLeftVLayout.itemAt(i).widget()
             if isinstance(checkbox, QtWidgets.QCheckBox):
                 if checkbox.isChecked():
                     txt = checkbox.text()
@@ -256,7 +259,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         clearLayout(self.groupBoxAdvectiveFlux)
         clearLayout(self.groupBoxConductiveFlux)
         clearLayout(self.groupBoxTotalFlux)
-        clearLayout(self.gridLayoutQuantiles)
+        clearLayout(self.topLeftVLayout)
         clearLayout(self.labelRMSETherm1)
         clearLayout(self.labelRMSETherm2)
         clearLayout(self.labelRMSETherm3)
@@ -476,15 +479,9 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
             vbox = QtWidgets.QVBoxLayout()
             vbox.addWidget(QtWidgets.QLabel("No model has been computed yet"),QtCore.Qt.AlignCenter)
             self.groupBoxConductiveFlux.setLayout(vbox)
-            vbox = QtWidgets.QVBoxLayout()
-            vbox.addWidget(QtWidgets.QLabel("No model has been computed yet"),QtCore.Qt.AlignCenter)
-            self.groupBoxTempMap.setLayout(vbox)
-            vbox = QtWidgets.QVBoxLayout()
-            vbox.addWidget(QtWidgets.QLabel("No model has been computed yet"),QtCore.Qt.AlignCenter)
-            self.groupBoxUmbrella.setLayout(vbox)
-            vbox = QtWidgets.QVBoxLayout()
-            vbox.addWidget(QtWidgets.QLabel("No model has been computed yet"),QtCore.Qt.AlignCenter)
-            self.groupBoxTempDepth.setLayout(vbox)
+            self.botRightVLayout.addWidget(QtWidgets.QLabel("No model has been computed yet"),QtCore.Qt.AlignCenter)
+            self.botLeftVLayout.addWidget(QtWidgets.QLabel("No model has been computed yet"),QtCore.Qt.AlignCenter)
+            self.topRightVLayout.addWidget(QtWidgets.QLabel("No model has been computed yet"),QtCore.Qt.AlignCenter)
             vbox = QtWidgets.QVBoxLayout()
             vbox.addWidget(QtWidgets.QLabel("No model has been computed yet"),QtCore.Qt.AlignCenter)
             self.groupBoxLog10K.setLayout(vbox)
@@ -513,23 +510,17 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         options = [sel_depth.value(0), [0]] #First thermometer, direct model
         self.depth_view = TempDepthView(self.tempmap_model, options=options)
         
-        self.toolbarUmbrella = NavigationToolbar(self.umbrella_view, self)
-        vbox = QtWidgets.QVBoxLayout()
-        self.groupBoxUmbrella.setLayout(vbox)
-        vbox.addWidget(self.umbrella_view)
-        vbox.addWidget(self.toolbarUmbrella)
+        self.toolbarUmbrella = NavigationToolbar(self.umbrella_view, self) 
+        self.botLeftVLayout.addWidget(self.umbrella_view)
+        self.botLeftVLayout.addWidget(self.toolbarUmbrella)
 
         self.toolbarTempMap = NavigationToolbar(self.tempmap_view, self)
-        vbox = QtWidgets.QVBoxLayout()
-        self.groupBoxTempMap.setLayout(vbox)
-        vbox.addWidget(self.tempmap_view)
-        vbox.addWidget(self.toolbarTempMap)
+        self.botRightVLayout.addWidget(self.tempmap_view)
+        self.botRightVLayout.addWidget(self.toolbarTempMap)
 
         self.toolbarDepth = NavigationToolbar(self.depth_view, self)
-        vbox = QtWidgets.QVBoxLayout()
-        self.groupBoxTempDepth.setLayout(vbox)
-        vbox.addWidget(self.depth_view)
-        vbox.addWidget(self.toolbarDepth)
+        self.topRightVLayout.addWidget(self.depth_view)
+        self.topRightVLayout.addWidget(self.toolbarDepth)
 
         self.tempmap_model.exec()
 
@@ -611,6 +602,18 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         vbox.addWidget(self.toolbarCapacity)
 
         self.paramsdistr_model.exec()
+
+    def adjustRightSplitter(self, pos : int, index : int):
+        """
+        This is called when the left horizontal splitter is moved. Move the right one accordingly.
+        """
+        self.splitterHorizRight.setSizes(self.splitterHorizLeft.sizes())
+    
+    def adjustLeftSplitter(self, pos : int, index : int):
+        """
+        This is called when the right horizontal splitter is moved. Move the left one accordingly.
+        """
+        self.splitterHorizLeft.setSizes(self.splitterHorizRight.sizes())    
 
     def label_update(self):
         self.labelBins.setText(str(self.horizontalSliderBins.value()))
