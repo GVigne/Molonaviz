@@ -7,33 +7,39 @@
 import os
 import csv
 from PyQt5 import QtWidgets, QtCore, uic
-from PyQt5.QtGui import QPixmap
+from PyQt5 import QtGui
 from PyQt5.QtSql import QSqlQueryModel, QSqlQuery, QSqlDatabase #QSqlDatabase in used only for type hints
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from src.dialogExportCleanedMeasures import DialogExportCleanedMeasures
 from src.Containers import Point
 from src.MoloModel import  PressureDataModel, TemperatureDataModel, SolvedTemperatureModel, HeatFluxesModel, WaterFluxModel,ParamsDistributionModel
 from src.MoloView import PressureView, TemperatureView,UmbrellaView,TempDepthView,TempMapView,AdvectiveFlowView, ConductiveFlowView, TotalFlowView, WaterFluxView, Log10KView, ConductivityView, PorosityView, CapacityView
-
+from src.dialogCleanupMain import DialogCleanupMain
+from utils.utils import inputToDatabaseDate
 
 From_WidgetPoint = uic.loadUiType(os.path.join(os.path.dirname(__file__), "..", "ui", "widgetPoint.ui"))[0]
 
 class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
     
-    def __init__(self, con : QSqlDatabase, point: Point):
+    def __init__(self, con : QSqlDatabase, point: Point, pointID : int | str):
         # Call constructor of parent classes
         super(WidgetPoint, self).__init__()
         QtWidgets.QWidget.__init__(self)
         
         self.setupUi(self)        
         self.point = point
+        self.pointID = pointID #The ID of the point being opened
         self.con = con
         # self.computeEngine = Compute(db, self.point)
-
+        
         #This should already be done in the .ui file
         self.checkBoxRawData.setChecked(True)
         self.checkBoxDirectModel.setChecked(True)
         self.radioButtonTherm1.setChecked(True)
+        #By default, this widget tries to maximize the size of the boxes, even if they are empty.
+        self.splitterVertical.setSizes([QtGui.QGuiApplication.primaryScreen().virtualSize().height(),QtGui.QGuiApplication.primaryScreen().virtualSize().height()])
+        self.splitterHorizLeft.setSizes([QtGui.QGuiApplication.primaryScreen().virtualSize().width(),QtGui.QGuiApplication.primaryScreen().virtualSize().width()])
+        self.splitterHorizRight.setSizes([QtGui.QGuiApplication.primaryScreen().virtualSize().width(),QtGui.QGuiApplication.primaryScreen().virtualSize().width()])
 
         #Create all models: they are empty for now
         self.pressuremodel = PressureDataModel([])
@@ -73,7 +79,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         #Installation image
         select_paths.exec()
         select_paths.next()
-        self.labelSchema.setPixmap(QPixmap(select_paths.value(0))) 
+        self.labelSchema.setPixmap(QtGui.QPixmap(select_paths.value(0))) 
         self.labelSchema.setAlignment(QtCore.Qt.AlignHCenter)
         #This allows the image to take the entire size of the widget, however it will be misshapen
         # self.labelSchema.setScaledContents(True)
@@ -280,57 +286,28 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
             self.update_all_models()
 
     def cleanup(self):
-        cleanUpDir = os.path.join(self.study.rootDir,"Cleanup_scripts")
-        dlg = DialogCleanupMain(self.point.name, cleanUpDir,self.study,self.study.con)
+        dlg = DialogCleanupMain(self.con,self.point, self.pointID)
         res = dlg.exec()
-        #print(self.pointDir)
         if res == QtWidgets.QDialog.Accepted:
-            dlg.df_cleaned["date"] = dlg.df_cleaned.apply(lambda x: x['date'].strftime("%Y:%m:%d:%H:%M:%S"), axis=1)
-            dlg.mainDb.dateDb.insert(dlg.df_cleaned["date"])
-            dlg.mainDb.cleanedMeasuresDb.update(dlg.df_cleaned,dlg.pointKey)
+            dlg.df_cleaned["date"] = dlg.df_cleaned["date"].apply(inputToDatabaseDate) #Convert the dates to database format
 
-            zh = dlg.df_cleaned[["date","t1","t2","t3","t4"]]
-            zh.to_csv(os.path.join(cleanUpDir,f"processed_temperatures_{self.point.name}.csv"))
-            press = dlg.df_cleaned[["date","charge_diff","t_stream"]]
-            press.to_csv(os.path.join(cleanUpDir,f"processed_pressures_{self.point.name}.csv"))
-        # #Needs to be adapted!
-        # if self.currentdata == "raw":
-        #     print("Please clean-up your processed data. Click again on the raw data box")
-        # else:
-        #     dlg = DialogCleanupMain(self.point.name,self.pointDir,self.study)
-        #     res = dlg.exec()
-        #     #print(self.pointDir)
-        #     if res == QtWidgets.QDialog.Accepted:
-        #         dlg.mainDb.newDatesDb.insert(dlg.df_cleaned)
-        #         dlg.mainDb.cleanedMeasuresDb.update(dlg.df_cleaned,dlg.pointKey)
+            query_dates = self.build_insert_date()
+            query_measures = self.build_insert_cleaned_measures()
+            query_measures.bindValue(":PointKey", self.pointID)
+            self.con.transaction()
+            for row in dlg.df_cleaned.itertuples():
+                query_dates.bindValue(":Date", row[1])
+                query_dates.exec()
+                query_measures.bindValue(":DateID", query_dates.lastInsertId())
+                query_measures.bindValue(":TempBed", row[2])
+                query_measures.bindValue(":Temp1", row[4])
+                query_measures.bindValue(":Temp2", row[5])
+                query_measures.bindValue(":Temp3", row[6])
+                query_measures.bindValue(":Temp4", row[7])
+                query_measures.bindValue(":Pressure", row[3])
+                query_measures.exec()
+            self.con.commit()
 
-        #         # script,scriptpartiel = dlg.getScript()
-        #         # print("Cleaning data...")
-
-        #         # try :
-        #         #     self.dftemp, self.dfpress = self.point.cleanup(script, self.dftemp, self.dfpress)
-        #         #     print("Data successfully cleaned !...")
-                    
-        #         #     #On actualise les modèles
-        #         #     self.currentTemperatureModel.setData(self.dftemp)
-        #         #     self.currentPressureModel.setData(self.dfpress)
-        #         #     #self.tableViewTemp.resizeColumnsToContents()
-        #         #     #self.tableViewPress.resizeColumnsToContents()
-        #         #     self.graphpress.update_(self.dfpress)
-        #         #     self.graphtemp.update_(self.dftemp, dfpressure=self.dfpress)
-        #         #     print("Plots successfully updated")
-                    
-        #         #     # Save the modified text
-        #         #     with open(os.path.join(self.pointDir,"script_"+self.point.name+".txt"),'w') as file:
-        #         #         file.write(scriptpartiel)
-        #         #     print("Script successfully saved")
-                    
-                    
-        #         # except Exception as e :
-        #         #     print(e, "==> Clean-up aborted")
-        #         #     displayCriticalMessage("Error : Clean-up aborted", f'Clean-up was aborted due to the following error : \n"{str(e)}" ' )
-        #         #     self.cleanup()
-    
 
     def compute(self):
         #Needs to be adapted! Especially self.onMCMCisFinished (when computations are done)
@@ -810,7 +787,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         query = QSqlQuery(self.con)
         if full_query:
             query.prepare(f"""
-                SELECT RawMeasuresTemp.Date, RawMeasuresTemp.Temp1, RawMeasuresTemp.Temp2, RawMeasuresTemp.Temp3, RawMeasuresTemp.Temp4, RawMeasuresPress.TempBed, RawMeasuresPress.Tension FROM RawMeasuresTemp, RawMeasuresPress
+                SELECT RawMeasuresTemp.Date, RawMeasuresTemp.Temp1, RawMeasuresTemp.Temp2, RawMeasuresTemp.Temp3, RawMeasuresTemp.Temp4, RawMeasuresPress.TempBed, RawMeasuresPress.Voltage FROM RawMeasuresTemp, RawMeasuresPress
                 WHERE RawMeasuresTemp.Date = RawMeasuresPress.Date
                 AND RawMeasuresPress.PointKey=RawMeasuresTemp.PointKey = (SELECT id FROM SamplingPoint WHERE SamplingPoint.Name = '{self.point.name}')
                 ORDER BY RawMeasuresTemp.Date
@@ -826,7 +803,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
             return query
         elif field =="Pressure":
             query.prepare(f"""
-                SELECT RawMeasuresPress.Date,RawMeasuresPress.Tension FROM RawMeasuresPress
+                SELECT RawMeasuresPress.Date,RawMeasuresPress.Voltage FROM RawMeasuresPress
                 WHERE RawMeasuresPress.PointKey= (SELECT id FROM SamplingPoint WHERE SamplingPoint.Name = '{self.point.name}')
                 ORDER BY RawMeasuresPress.Date
             """)
@@ -948,3 +925,25 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
                     ORDER BY Date.Date, Depth.Depth
                 """)
                 return query
+    
+    def build_insert_date(self):
+        """
+        Build and return a query to insert dates in the Date table.
+        """
+        query = QSqlQuery(self.con)
+        query.prepare(f"""
+            INSERT INTO Date (Date)
+            VALUES (:Date)
+        """)
+        return query
+    
+    def build_insert_cleaned_measures(self):
+        """
+        Build and return a query to insert cleaned measures in the database.
+        """
+        query = QSqlQuery(self.con)
+        query.prepare(f"""
+            INSERT INTO CleanedMeasures (Date, TempBed, Temp1, Temp2, Temp3, Temp4, Pressure, PointKey)
+            VALUES (:DateID, :TempBed, :Temp1, :Temp2, :Temp3, :Temp4, :Pressure, :PointKey)        
+        """)
+        return query
