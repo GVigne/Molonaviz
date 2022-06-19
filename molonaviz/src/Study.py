@@ -2,8 +2,8 @@ from PyQt5.QtSql import QSqlQuery, QSqlDatabase #QSqlDatabase in used only for t
 from PyQt5 import QtWidgets
 from src.Laboratory import Lab
 from src.Containers import MoloQtList, Point
-from utils.utils import inputToDatabaseDate
-from utils.utilsQueries import build_study_id
+from utils.utils import inputToDatabaseDate,convertDates
+from utils.utilsQueries import build_study_id, build_point_id
 import shutil, os
 import pandas as pd
 from src.MoloTreeViewModels import ThermometerTreeViewModel, PSensorTreeViewModel, ShaftTreeViewModel, PointTreeViewModel #Used only for type hints
@@ -61,13 +61,14 @@ class Study:
         """
         newPoint = self.createNewPoint(pointName, psensorName, shaftName, infofile, noticefile, configfile) #This is a Point object
         self.points.append(newPoint)
-
         dfpress, dftemp = self.processDataFrames(prawfile,trawfile)
-        select_point_id = self.build_point_id(newPoint.name)
+        select_point_id = build_point_id(self.con, self.ID, newPoint.name)
         select_point_id.exec()
         select_point_id.next()
-        self.createRawPressRecord(dfpress, select_point_id.value(0))
-        self.createRawTempRecord(dftemp, select_point_id.value(0))
+
+        pointID = select_point_id.value(0)
+        self.createRawPressRecord(dfpress, pointID)
+        self.createRawTempRecord(dftemp, pointID)
         
     
     def createNewPoint(self, pointName : str, psensorName : str, shaftName :str, infofile : str, noticefile : str, configfile : str):
@@ -105,6 +106,8 @@ class Study:
         newConfigPath = os.path.join(os.path.dirname(self.con.databaseName()),"Schemes", os.path.basename(configfile))
         shutil.copy2(configfile, newConfigPath)
         insertPoint.bindValue(":Scheme", newConfigPath)
+        cleanupScriptPath = os.path.join(os.path.dirname(self.con.databaseName()),"Scripts", "sample_text.txt")
+        insertPoint.bindValue(":CleanupScript", cleanupScriptPath)
 
         insertPoint.exec()
 
@@ -116,19 +119,16 @@ class Study:
         """
         #Rename the colonnes, delete lignes without any value and delete the index.
         dfpress = pd.read_csv(prawfile)
-        val_cols = ["Date", "Voltage", "Temp_Stream"]
-        for i in range(len(val_cols)) :
-            dfpress.columns.values[i] = val_cols[i]
-        dfpress.dropna(subset=val_cols,inplace=True)
-        dfpress["Date"] = dfpress["Date"].apply(inputToDatabaseDate)
+        dfpress.columns = ["Date", "Voltage", "Temp_Stream"]
+        dfpress.dropna(inplace=True)
+        convertDates(dfpress)
+        dfpress["Date"] = dfpress["Date"].dt.strftime("%Y/%m/%d %H:%M:%S")
         
         dftemp = pd.read_csv(trawfile)
-        val_cols = ["Date", "Temp1", "Temp2", "Temp3", "Temp4"]
-        for i in range(len(val_cols)) :
-            dftemp.columns.values[i] = val_cols[i] 
-        dftemp.dropna(subset=val_cols,inplace=True)
-        dftemp["Date"] = dftemp["Date"].apply(inputToDatabaseDate)
-        
+        dftemp.columns = ["Date", "Temp1", "Temp2", "Temp3", "Temp4"]
+        dftemp.dropna(inplace=True)
+        convertDates(dftemp)
+        dftemp["Date"] = dftemp["Date"].dt.strftime("%Y/%m/%d %H:%M:%S")
         return dfpress, dftemp
     
     def createRawPressRecord(self, dfpress : pd.DataFrame, pointID : int | str):
@@ -168,7 +168,12 @@ class Study:
         for p in self.points:
             if p.name == pointName:
                 point = p
-        wdg = WidgetPoint(self.con, point)
+                break
+        pointID_query = build_point_id(self.con, self.ID, pointName)
+        pointID_query.exec()
+        pointID_query.next()
+
+        wdg = WidgetPoint(self.con, point,pointID_query.value(0))
         subwindow = SubWindow(wdg)
         mdi.addSubWindow(subwindow)
         subwindow.show()
@@ -227,7 +232,7 @@ class Study:
                               Study,
                               Scheme,
                               CleanupScript)
-                          VALUES (:Name, :Notice, :Setup, :LastTransfer, :Offset, :RiverBed, :Shaft, :PressureSensor, :Study, :Scheme, null)""")
+                          VALUES (:Name, :Notice, :Setup, :LastTransfer, :Offset, :RiverBed, :Shaft, :PressureSensor, :Study, :Scheme, :CleanupScript)""")
         return query
     
     def build_insert_raw_pressures(self):
@@ -282,15 +287,4 @@ class Study:
                         JOIN Study 
                         ON Study.Labo = Labo.ID
                         WHERE Study.ID = '{self.ID}' AND Shaft.Name = '{shaftName}'""")
-        return query
-    
-    def build_point_id(self, pointName : str):
-        """
-        Build and return a query giving the ID of the sampling point in this study called pointName.
-        """
-        query = QSqlQuery(self.con)
-        query.prepare(f"""SELECT SamplingPoint.ID FROM SamplingPoint
-                        JOIN Study 
-                        ON SamplingPoint.Study = Study.ID
-                        WHERE Study.ID = '{self.ID}' AND SamplingPoint.Name = '{pointName}'""")
         return query
