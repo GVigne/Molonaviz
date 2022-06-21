@@ -2,7 +2,6 @@
 # from dialogcompute import DialogCompute
 # from compute import Compute
 # from usefulfonctions import *
-# from dialogreset import DialogReset
 
 import os
 import csv
@@ -249,7 +248,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         self.tempmodel.exec()
 
     def reset(self):
-        dlg = DialogReset()
+        dlg = DialogConfirm("Are you sure you want to delete the cleaned measures and all computations made for this point? This cannot be undone")
         res = dlg.exec()
         if res == QtWidgets.QDialog.Accepted:
             self.deleteComputations()
