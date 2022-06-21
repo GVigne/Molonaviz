@@ -9,6 +9,7 @@ import matplotlib.dates as mdates
 from matplotlib.ticker import MaxNLocator
 from matplotlib.widgets import RectangleSelector
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
+from utils.utils import databaseDateToDatetime
 
 From_DialogCleanPoints = uic.loadUiType(os.path.join(os.path.dirname(__file__),"..","ui","dialogCleanPoints.ui"))[0]
 
@@ -70,7 +71,9 @@ class MplCanvasTimeScatter(FigureCanvasQTAgg):
         else:
             p = 0
             ms = 1
-        self.axes.plot(mdates.date2num(times), values,'.',c=color,picker=p,markersize=ms)
+        if type(times.iloc[0]) == str:
+            times = mdates.date2num(times.apply(databaseDateToDatetime)) #Conversion to mdates
+        self.axes.plot(times, values,'.',c=color,picker=p,markersize=ms)
         
         self.format_axes()
         self.fig.canvas.draw()

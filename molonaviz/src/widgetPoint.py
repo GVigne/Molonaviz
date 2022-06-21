@@ -15,6 +15,7 @@ from src.Containers import Point
 from src.MoloModel import  PressureDataModel, TemperatureDataModel, SolvedTemperatureModel, HeatFluxesModel, WaterFluxModel,ParamsDistributionModel
 from src.MoloView import PressureView, TemperatureView,UmbrellaView,TempDepthView,TempMapView,AdvectiveFlowView, ConductiveFlowView, TotalFlowView, WaterFluxView, Log10KView, ConductivityView, PorosityView, CapacityView
 from src.dialogCleanupMain import DialogCleanupMain
+from src.dialogConfirm import DialogConfirm
 from utils.utils import inputToDatabaseDate
 
 From_WidgetPoint = uic.loadUiType(os.path.join(os.path.dirname(__file__), "..", "ui", "widgetPoint.ui"))[0]
@@ -247,36 +248,6 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         self.tempmodel.new_queries([select_temp])
         self.tempmodel.exec()
 
-    def deleteComputations(self):
-        pointname = self.point.getName()
-        deleteTableQuery = QSqlQuery()
-        #Careful: should have joins as WaterFlow.PointKey !=Samplingpoint.name
-        deleteTableQuery.exec(f'DELETE FROM WaterFlow WHERE WaterFlow.PointKey=(SELECT Point.id FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.id FROM SamplingPoint WHERE SamplingPoint.Name="{pointname}"))')
-        deleteTableQuery.exec(f'DELETE FROM RMSE WHERE PointKey=(SELECT Point.id FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.id FROM SamplingPoint WHERE SamplingPoint.Name="{pointname}"))')
-        deleteTableQuery.exec(f'DELETE FROM TemperatureAndHeatFlows WHERE PointKey=(SELECT Point.id FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.id FROM SamplingPoint WHERE SamplingPoint.Name="{pointname}"))')
-        deleteTableQuery.exec(f'DELETE FROM ParametersDistribution WHERE ParametersDistribution.PointKey=(SELECT Point.id FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.id FROM SamplingPoint WHERE SamplingPoint.Name="{pointname}"))')
-        deleteTableQuery.exec(f'DELETE FROM BestParameters WHERE BestParameters.PointKey=(SELECT Point.id FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.id FROM SamplingPoint WHERE SamplingPoint.Name="{pointname}"))')
-
-        deleteTableQuery.exec("DELETE FROM Date WHERE (SELECT count(*) FROM RMSE)==0")    #We delete the rows of this table if and only if the point we reset was the only one open
-        deleteTableQuery.exec("DELETE FROM Depth WHERE (SELECT count(*) FROM RMSE)==0")
-
-        '''
-        clearLayout(self.groupBoxWaterFlux)
-        clearLayout(self.groupBoxAdvectiveFlux)
-        clearLayout(self.groupBoxConductiveFlux)
-        clearLayout(self.groupBoxTotalFlux)
-        clearLayout(self.topLeftVLayout)
-        clearLayout(self.labelRMSETherm1)
-        clearLayout(self.labelRMSETherm2)
-        clearLayout(self.labelRMSETherm3)
-        clearLayout(self.tableViewDataArray)'''
-
-    def deleteCleaned(self):
-        pointname = self.point.getName()
-        deleteTableQuery = QSqlQuery()
-        deleteTableQuery.exec("DELETE FROM CleanedMeasures WHERE PointKey=(SELECT id FROM SamplingPoint WHERE SamplingPoint.Name='"+pointname+"')")
-        #clearLayout(self.tableViewDataArray)
-
     def reset(self):
         dlg = DialogReset()
         res = dlg.exec()
@@ -289,24 +260,32 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         dlg = DialogCleanupMain(self.con,self.point, self.pointID)
         res = dlg.exec()
         if res == QtWidgets.QDialog.Accepted:
-            dlg.df_cleaned["date"] = dlg.df_cleaned["date"].apply(inputToDatabaseDate) #Convert the dates to database format
+            confirm = DialogConfirm("Cleaning up the measures will delete the previous cleanup, as well as any computations made for this point. Are you sure?")
+            confirmRes = confirm.exec()
+            if confirmRes == QtWidgets.QDialog.Accepted:
+                #Clean the database first before putting new data
+                self.deleteComputations()
+                self.deleteCleaned()
+                self.deleteDates()
 
-            query_dates = self.build_insert_date()
-            query_measures = self.build_insert_cleaned_measures()
-            query_measures.bindValue(":PointKey", self.pointID)
-            self.con.transaction()
-            for row in dlg.df_cleaned.itertuples():
-                query_dates.bindValue(":Date", row[1])
-                query_dates.exec()
-                query_measures.bindValue(":DateID", query_dates.lastInsertId())
-                query_measures.bindValue(":TempBed", row[2])
-                query_measures.bindValue(":Temp1", row[4])
-                query_measures.bindValue(":Temp2", row[5])
-                query_measures.bindValue(":Temp3", row[6])
-                query_measures.bindValue(":Temp4", row[7])
-                query_measures.bindValue(":Pressure", row[3])
-                query_measures.exec()
-            self.con.commit()
+                dlg.df_cleaned["date"] = dlg.df_cleaned["date"].apply(inputToDatabaseDate) #Convert the dates to database format
+
+                query_dates = self.build_insert_date()
+                query_measures = self.build_insert_cleaned_measures()
+                query_measures.bindValue(":PointKey", self.pointID)
+                self.con.transaction()
+                for row in dlg.df_cleaned.itertuples():
+                    query_dates.bindValue(":Date", row[1])
+                    query_dates.exec()
+                    query_measures.bindValue(":DateID", query_dates.lastInsertId())
+                    query_measures.bindValue(":TempBed", row[2])
+                    query_measures.bindValue(":Temp1", row[4])
+                    query_measures.bindValue(":Temp2", row[5])
+                    query_measures.bindValue(":Temp3", row[6])
+                    query_measures.bindValue(":Temp4", row[7])
+                    query_measures.bindValue(":Pressure", row[3])
+                    query_measures.exec()
+                self.con.commit()
 
 
     def compute(self):
@@ -635,6 +614,38 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         self.fluxes_model.exec()
         self.waterflux_model.exec()
     
+    def deleteComputations(self):
+        """
+        Delete every computations made for this point. This function builds and execute the DELETE queries. Be careful, calling it will clear the database for this point!
+        """
+        pointname = self.point.getName()
+        deleteTableQuery = QSqlQuery()
+        #Careful: should have joins as WaterFlow.PointKey !=Samplingpoint.name
+        deleteTableQuery.exec(f'DELETE FROM WaterFlow WHERE WaterFlow.PointKey=(SELECT Point.id FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.id FROM SamplingPoint WHERE SamplingPoint.ID="{self.pointID}"))')
+        deleteTableQuery.exec(f'DELETE FROM RMSE WHERE PointKey=(SELECT Point.id FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.id FROM SamplingPoint WHERE SamplingPoint.ID="{self.pointID}"))')
+        deleteTableQuery.exec(f'DELETE FROM TemperatureAndHeatFlows WHERE PointKey=(SELECT Point.id FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.id FROM SamplingPoint WHERE SamplingPoint.ID="{self.pointID}"))')
+        deleteTableQuery.exec(f'DELETE FROM ParametersDistribution WHERE ParametersDistribution.PointKey=(SELECT Point.id FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.id FROM SamplingPoint.ID="{self.pointID}"))')
+        deleteTableQuery.exec(f'DELETE FROM BestParameters WHERE BestParameters.PointKey=(SELECT Point.id FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.id FROM SamplingPoint.ID="{self.pointID}"))')
+
+        deleteTableQuery.exec("DELETE FROM Date WHERE (SELECT count(*) FROM RMSE)==0")    #We delete the rows of this table if and only if the point we reset was the only one open
+        deleteTableQuery.exec("DELETE FROM Depth WHERE (SELECT count(*) FROM RMSE)==0")
+
+    def deleteCleaned(self):
+        """
+        Delete the cleaned measures made for this point. This function builds and execute the DELETE queries. Be careful, calling it will clear the database for this point!
+        """
+        pointname = self.point.getName()
+        deleteTableQuery = QSqlQuery()
+        deleteTableQuery.exec("DELETE FROM CleanedMeasures WHERE PointKey=(SELECT id FROM SamplingPoint WHERE SamplingPoint.Name='"+pointname+"')")
+        #clearLayout(self.tableViewDataArray)
+    
+    def deleteDates(self):
+        """
+        Delete the dates linked to the data registered for this point. This function builds and execute the DELETE queries. Be careful, calling it will clear the database for this point!
+        """
+        pass
+
+
     def build_infos_queries(self):
         """
         Build and return two queries for the info tab:
