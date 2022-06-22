@@ -1,8 +1,3 @@
---
--- File generated with SQLiteStudio v3.3.3 on Thu Jun 9 21:45:42 2022
---
--- Text encoding used: System
---
 PRAGMA foreign_keys = off;
 BEGIN TRANSACTION;
 
@@ -19,10 +14,7 @@ CREATE TABLE Date (
         );
 
 -- Table: Depth
-CREATE TABLE Depth (
-            ID            INTEGER  PRIMARY KEY AUTOINCREMENT,
-            Depth         REAL
-        );
+CREATE TABLE Depth (ID INTEGER PRIMARY KEY AUTOINCREMENT, Depth REAL, PointKey REFERENCES Point (ID));
 
 -- Table: Labo
 CREATE TABLE Labo (
@@ -31,11 +23,7 @@ CREATE TABLE Labo (
         );
 
 -- Table: Layer
-CREATE TABLE Layer (
-            ID            INTEGER  PRIMARY KEY AUTOINCREMENT,
-            Layer           INTEGER,
-            DepthBed        REAL
-        );
+CREATE TABLE Layer (ID INTEGER PRIMARY KEY AUTOINCREMENT, Layer INTEGER, DepthBed REAL, PointKey REFERENCES Point (ID));
 
 -- Table: ParametersDistribution
 CREATE TABLE ParametersDistribution (ID INTEGER PRIMARY KEY AUTOINCREMENT, Permeability REAL, ThermConduct REAL, Porosity REAL, HeatCapacity REAL, Layer INTEGER REFERENCES Layer (ID), PointKey INTEGER REFERENCES Point (ID));
@@ -47,10 +35,7 @@ CREATE TABLE Point (ID INTEGER PRIMARY KEY AUTOINCREMENT, SamplingPoint INTEGER 
 CREATE TABLE PressureSensor (ID INTEGER PRIMARY KEY AUTOINCREMENT, Name VARCHAR, Datalogger VARCHAR, Calibration DATETIME, Intercept REAL, DuDH REAL, DuDT REAL, Precision REAL, ThermoModel INTEGER REFERENCES Thermometer (ID), Labo INTEGER REFERENCES Labo (ID));
 
 -- Table: Quantile
-CREATE TABLE Quantile (
-            ID          INTEGER PRIMARY KEY AUTOINCREMENT,
-            Quantile    REAL NOT NULL
-        );
+CREATE TABLE Quantile (ID INTEGER PRIMARY KEY AUTOINCREMENT, Quantile REAL NOT NULL, PointKey REFERENCES Point (ID));
 
 -- Table: RawMeasuresPress
 CREATE TABLE RawMeasuresPress (ID INTEGER UNIQUE PRIMARY KEY AUTOINCREMENT, Date DATETIME NOT NULL UNIQUE, TempBed REAL, Voltage REAL, PointKey INTEGER REFERENCES SamplingPoint (ID));
