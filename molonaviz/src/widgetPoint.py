@@ -100,7 +100,8 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
 
     def setupComboBoxLayers(self):
         """
-        Setup the Combo box and which will be used to display the parameters
+        Setup the Combo box and which will be used to display the parameters.
+        If no layer is in the database, then the warning "QSqlQuery::value: not positioned on a valid record" will be raised, and nothing will be added to the combo box.
         """
         select_depths_layers = self.build_layers_query()
         select_depths_layers.exec()
@@ -248,11 +249,11 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         self.tempmodel.exec()
 
     def reset(self):
-        dlg = DialogConfirm("Are you sure you want to delete the cleaned measures and all computations made for this point? This cannot be undone")
+        dlg = DialogConfirm("Are you sure you want to delete the cleaned measures and all computations made for this point? This cannot be undone.")
         res = dlg.exec()
         if res == QtWidgets.QDialog.Accepted:
             self.deleteComputations()
-            self.deleteCleaned()
+            self.deleteCleanedAndDates()
             self.update_all_models()
 
     def cleanup(self):
@@ -264,8 +265,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
             if confirmRes == QtWidgets.QDialog.Accepted:
                 #Clean the database first before putting new data
                 self.deleteComputations()
-                self.deleteCleaned()
-                self.deleteDates()
+                self.deleteCleanedAndDates()
 
                 dlg.df_cleaned["date"] = dlg.df_cleaned["date"].apply(inputToDatabaseDate) #Convert the dates to database format
 
@@ -617,32 +617,40 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         """
         Delete every computations made for this point. This function builds and execute the DELETE queries. Be careful, calling it will clear the database for this point!
         """
-        pointname = self.point.getName()
-        deleteTableQuery = QSqlQuery()
+        deleteTableQuery = QSqlQuery(self.con)
         #Careful: should have joins as WaterFlow.PointKey !=Samplingpoint.name
-        deleteTableQuery.exec(f'DELETE FROM WaterFlow WHERE WaterFlow.PointKey=(SELECT Point.id FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.id FROM SamplingPoint WHERE SamplingPoint.ID="{self.pointID}"))')
-        deleteTableQuery.exec(f'DELETE FROM RMSE WHERE PointKey=(SELECT Point.id FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.id FROM SamplingPoint WHERE SamplingPoint.ID="{self.pointID}"))')
-        deleteTableQuery.exec(f'DELETE FROM TemperatureAndHeatFlows WHERE PointKey=(SELECT Point.id FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.id FROM SamplingPoint WHERE SamplingPoint.ID="{self.pointID}"))')
-        deleteTableQuery.exec(f'DELETE FROM ParametersDistribution WHERE ParametersDistribution.PointKey=(SELECT Point.id FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.id FROM SamplingPoint.ID="{self.pointID}"))')
-        deleteTableQuery.exec(f'DELETE FROM BestParameters WHERE BestParameters.PointKey=(SELECT Point.id FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.id FROM SamplingPoint.ID="{self.pointID}"))')
-
-        deleteTableQuery.exec("DELETE FROM Date WHERE (SELECT count(*) FROM RMSE)==0")    #We delete the rows of this table if and only if the point we reset was the only one open
-        deleteTableQuery.exec("DELETE FROM Depth WHERE (SELECT count(*) FROM RMSE)==0")
-
-    def deleteCleaned(self):
-        """
-        Delete the cleaned measures made for this point. This function builds and execute the DELETE queries. Be careful, calling it will clear the database for this point!
-        """
-        pointname = self.point.getName()
-        deleteTableQuery = QSqlQuery()
-        deleteTableQuery.exec("DELETE FROM CleanedMeasures WHERE PointKey=(SELECT id FROM SamplingPoint WHERE SamplingPoint.Name='"+pointname+"')")
-        #clearLayout(self.tableViewDataArray)
+        deleteTableQuery.exec(f'DELETE FROM WaterFlow WHERE WaterFlow.PointKey=(SELECT Point.ID FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.ID FROM SamplingPoint WHERE SamplingPoint.ID={self.pointID}))')
+        deleteTableQuery.exec(f'DELETE FROM RMSE WHERE PointKey=(SELECT Point.ID FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.ID FROM SamplingPoint WHERE SamplingPoint.ID={self.pointID}))')
+        deleteTableQuery.exec(f'DELETE FROM TemperatureAndHeatFlows WHERE PointKey=(SELECT Point.ID FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.ID FROM SamplingPoint WHERE SamplingPoint.ID={self.pointID}))')
+        deleteTableQuery.exec(f'DELETE FROM ParametersDistribution WHERE ParametersDistribution.PointKey=(SELECT Point.ID FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.ID FROM SamplingPoint WHERE SamplingPoint.ID={self.pointID}))')
+        deleteTableQuery.exec(f'DELETE FROM BestParameters WHERE BestParameters.PointKey=(SELECT Point.ID FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.ID FROM SamplingPoint WHERE SamplingPoint.ID={self.pointID}))')
+        deleteTableQuery.exec(f'DELETE FROM Quantiles WHERE Quantiles.PointKey=(SELECT Point.ID FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.ID FROM SamplingPoint WHERE SamplingPoint.ID={self.pointID}))')
+        deleteTableQuery.exec(f'DELETE FROM Depth WHERE Depth.PointKey=(SELECT Point.ID FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.ID FROM SamplingPoint WHERE SamplingPoint.ID={self.pointID}))')
+        deleteTableQuery.exec(f'DELETE FROM Layer WHERE Layer.PointKey=(SELECT Point.ID FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.ID FROM SamplingPoint WHERE SamplingPoint.ID={self.pointID}))')
+        deleteTableQuery.exec(f'DELETE FROM Point WHERE Point.PointKey=(SELECT SamplingPoint.ID FROM SamplingPoint WHERE SamplingPoint.ID={self.pointID})')
     
-    def deleteDates(self):
+
+    def deleteCleanedAndDates(self):
         """
-        Delete the dates linked to the data registered for this point. This function builds and execute the DELETE queries. Be careful, calling it will clear the database for this point!
+        Delete the cleaned measures made for this point as well as the dates. This function builds and execute the DELETE queries. Be careful, calling it will clear the database for this point!
         """
-        pass
+        dateID = QSqlQuery(self.con)
+        dateID.exec(f"""SELECT Date.ID FROM DATE
+                        JOIN CleanedMeasures
+                        ON Date.ID = CleanedMeasures.Date
+                        JOIN SamplingPoint
+                        ON CleanedMeasures.PointKey = SamplingPoint.ID
+                        WHERE SamplingPoint.ID={self.pointID}""")
+        deleteTableQuery = QSqlQuery(self.con)
+        deleteTableQuery.exec(f"DELETE FROM CleanedMeasures WHERE CleanedMeasures.PointKey=(SELECT ID FROM SamplingPoint WHERE SamplingPoint.ID={self.pointID})")
+        deleteDate = QSqlQuery(self.con)
+
+        deleteDate.prepare("DELETE FROM Date WHERE Date.ID = :Date")
+        self.con.transaction()
+        while dateID.next():
+            deleteDate.bindValue(":Date", dateID.value(0))
+            deleteDate.exec()
+        self.con.commit()
 
 
     def build_infos_queries(self):
@@ -736,7 +744,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         query.prepare(f"""
             SELECT Quantile.Quantile FROM Quantile
             JOIN Point
-            ON Quantile.PointKey = Point.id
+            ON Quantile.PointKey = Point.ID
             JOIN SamplingPoint
             ON Point.SamplingPoint = SamplingPoint.ID
             WHERE SamplingPoint.ID = {self.pointID}
@@ -781,7 +789,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
             query.prepare(f"""
                 SELECT Depth.Depth FROM Depth
                 JOIN RMSE
-                ON Depth.id = RMSE.{field} 
+                ON Depth.ID = RMSE.{field} 
                 JOIN Point
                 ON RMSE.PointKey = Point.ID 
                 JOIN SamplingPoint
@@ -816,7 +824,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         """
         query = QSqlQuery(self.con)
         if full_query:
-            a = query.prepare(f"""
+            query.prepare(f"""
                 SELECT RawMeasuresTemp.Date, RawMeasuresTemp.Temp1, RawMeasuresTemp.Temp2, RawMeasuresTemp.Temp3, RawMeasuresTemp.Temp4, RawMeasuresPress.TempBed, RawMeasuresPress.Voltage FROM RawMeasuresTemp, RawMeasuresPress
                 WHERE RawMeasuresTemp.Date = RawMeasuresPress.Date
                 AND RawMeasuresPress.PointKey=RawMeasuresTemp.PointKey = (SELECT id FROM SamplingPoint WHERE SamplingPoint.Name = '{self.point.name}')
@@ -848,7 +856,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
                 query.prepare(f"""
                     SELECT Date.Date, CleanedMeasures.Temp1, CleanedMeasures.Temp2, CleanedMeasures.Temp3, CleanedMeasures.Temp4, CleanedMeasures.TempBed, CleanedMeasures.Pressure FROM CleanedMeasures
                     JOIN Date
-                    ON CleanedMeasures.Date = Date.id
+                    ON CleanedMeasures.Date = Date.ID
                     WHERE CleanedMeasures.PointKey = (SELECT id FROM SamplingPoint WHERE SamplingPoint.Name = '{self.point.name}')
                     ORDER BY Date.Date
                 """)
@@ -857,7 +865,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
             query.prepare(f"""
                 SELECT Date.Date, CleanedMeasures.Temp1, CleanedMeasures.Temp2, CleanedMeasures.Temp3, CleanedMeasures.Temp4, CleanedMeasures.TempBed FROM CleanedMeasures
                 JOIN Date
-                ON CleanedMeasures.Date = Date.id
+                ON CleanedMeasures.Date = Date.ID
                 WHERE CleanedMeasures.PointKey = (SELECT id FROM SamplingPoint WHERE SamplingPoint.Name = '{self.point.name}')
                 ORDER BY Date.Date
             """)
@@ -866,7 +874,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
             query.prepare(f"""
                 SELECT Date.Date, CleanedMeasures.Pressure FROM CleanedMeasures
                 JOIN Date
-                ON CleanedMeasures.Date = Date.id
+                ON CleanedMeasures.Date = Date.ID
                 WHERE CleanedMeasures.PointKey = (SELECT id FROM SamplingPoint WHERE SamplingPoint.Name = '{self.point.name}')
                 ORDER BY Date.Date
             """)
@@ -879,7 +887,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         q = QSqlQuery(self.con)
         q.prepare(f"""SELECT COUNT(*) FROM Quantile
                 JOIN Point
-                ON Quantile.PointKey = Point.id
+                ON Quantile.PointKey = Point.ID
                 JOIN SamplingPoint
                 ON Point.SamplingPoint = SamplingPoint.ID
                 WHERE SamplingPoint.ID = {self.pointID}""")
@@ -961,9 +969,9 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
                 query.prepare(f"""
                     SELECT Date.Date, TemperatureAndHeatFlows.AdvectiveFlow,TemperatureAndHeatFlows.ConductiveFlow,TemperatureAndHeatFlows.TotalFlow, TemperatureAndHeatFlows.Depth FROM TemperatureAndHeatFlows
                     JOIN Date
-                    ON TemperatureAndHeatFlows.Date = Date.id
+                    ON TemperatureAndHeatFlows.Date = Date.ID
                     JOIN Depth
-                    ON TemperatureAndHeatFlows.Depth = Depth.id
+                    ON TemperatureAndHeatFlows.Depth = Depth.ID
                     JOIN Quantile
                     ON TemperatureAndHeatFlows.Quantile = Quantile.ID
                     JOIN Point
