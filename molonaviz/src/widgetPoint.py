@@ -671,10 +671,11 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         query = QSqlQuery(self.con)
         query.prepare(f"""
             SELECT Layer.DepthBed FROM Layer 
-            JOIN BestParameters ON Layer.id = BestParameters.Layer
-            JOIN Point ON BestParameters.PointKey = Point.id
-            JOIN SamplingPoint ON Point.SamplingPoint = SamplingPoint.id
-            WHERE SamplingPoint.Name = '{self.point.name}'
+            JOIN Point
+            ON Layer.PointKey = Point.ID
+            JOIN SamplingPoint
+            ON Point.SamplingPoint = SamplingPoint.ID
+            WHERE SamplingPoint.ID = {self.pointID} 
             ORDER BY Layer.DepthBed 
         """)
         return query
@@ -686,7 +687,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         query = QSqlQuery(self.con)
         query.prepare(f"""
             SELECT BestParameters.Permeability, BestParameters.ThermConduct, BestParameters.Porosity FROM BestParameters 
-            JOIN Layer ON BestParameters.Layer = Layer.id 
+            JOIN Layer ON BestParameters.Layer = Layer.ID 
             WHERE Layer.DepthBed = {depth}
         """)
         return query
@@ -699,7 +700,12 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         query.prepare(f"""
             SELECT RMSE.RMSETotal, Quantile.Quantile FROM RMSE 
             JOIN Quantile
-            ON RMSE.Quantile = Quantile.id
+            ON RMSE.Quantile = Quantile.ID
+            JOIN Point
+            ON Quantile.PointKey = Point.ID
+            JOIN SamplingPoint
+            ON Point.SamplingPoint = SamplingPoint.ID
+            WHERE SamplingPoint.ID = {self.pointID}
             ORDER BY Quantile.Quantile
         """)
         return query
@@ -712,8 +718,12 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         query.prepare(f"""
             SELECT RMSE1, RMSE2, RMSE3 FROM RMSE 
             JOIN Quantile
-            ON RMSE.Quantile = Quantile.id
-            WHERE RMSE.PointKey = (SELECT id FROM SamplingPoint WHERE SamplingPoint.Name = '{self.point.name}')
+            ON RMSE.Quantile = Quantile.ID
+            JOIN Point
+            ON Quantile.PointKey = Point.ID
+            JOIN SamplingPoint
+            ON Point.SamplingPoint = SamplingPoint.ID
+            WHERE SamplingPoint.ID = {self.pointID}
             AND Quantile.Quantile = 0
         """)
         return query
@@ -725,6 +735,11 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         query = QSqlQuery(self.con)
         query.prepare(f"""
             SELECT Quantile.Quantile FROM Quantile
+            JOIN Point
+            ON Quantile.PointKey = Point.id
+            JOIN SamplingPoint
+            ON Point.SamplingPoint = SamplingPoint.ID
+            WHERE SamplingPoint.ID = {self.pointID}
             ORDER BY Quantile.Quantile  
         """)
         return query
@@ -735,7 +750,12 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         """
         query = QSqlQuery(self.con)
         query.prepare(f"""
-            SELECT Depth.Depth FROM Depth  
+            SELECT Depth.Depth FROM Depth
+            JOIN Point
+            ON Depth.PointKey = Point.ID
+            JOIN SamplingPoint
+            ON Point.SamplingPoint = SamplingPoint.ID
+            WHERE SamplingPoint.ID = {self.pointID}
             ORDER BY Depth.Depth  
         """)
         return query
@@ -763,10 +783,10 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
                 JOIN RMSE
                 ON Depth.id = RMSE.{field} 
                 JOIN Point
-                ON RMSE.PointKey = Point.id 
+                ON RMSE.PointKey = Point.ID 
                 JOIN SamplingPoint
-                ON Point.SamplingPoint = SamplingPoint.id
-                WHERE SamplingPoint.Name = '{self.point.name}'
+                ON Point.SamplingPoint = SamplingPoint.ID
+                WHERE SamplingPoint.ID = {self.pointID}
             """) 
             return query
     
@@ -778,13 +798,13 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         query.prepare(f"""
             SELECT Permeability, ThermConduct, Porosity, HeatCapacity FROM ParametersDistribution
             JOIN Point
-            ON ParametersDistribution.PointKey = Point.id
+            ON ParametersDistribution.PointKey = Point.ID
             JOIN SamplingPoint
-            ON Point.SamplingPoint = SamplingPoint.id
+            ON Point.SamplingPoint = SamplingPoint.ID
             JOIN Layer
-            ON ParametersDistribution.Layer = Layer.id
+            ON ParametersDistribution.Layer = Layer.ID
             WHERE Layer.DepthBed = {layer}
-            AND SamplingPoint.Name = '{self.point.name}'
+            AND SamplingPoint.ID = {self.pointID}
         """)
         return query
     
@@ -796,7 +816,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         """
         query = QSqlQuery(self.con)
         if full_query:
-            query.prepare(f"""
+            a = query.prepare(f"""
                 SELECT RawMeasuresTemp.Date, RawMeasuresTemp.Temp1, RawMeasuresTemp.Temp2, RawMeasuresTemp.Temp3, RawMeasuresTemp.Temp4, RawMeasuresPress.TempBed, RawMeasuresPress.Voltage FROM RawMeasuresTemp, RawMeasuresPress
                 WHERE RawMeasuresTemp.Date = RawMeasuresPress.Date
                 AND RawMeasuresPress.PointKey=RawMeasuresTemp.PointKey = (SELECT id FROM SamplingPoint WHERE SamplingPoint.Name = '{self.point.name}')
@@ -856,7 +876,13 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         """
         Return None if no computation was made: else, return False if only the direct model was computed and True if the MCMC was computed.
         """
-        q = QSqlQuery("SELECT COUNT(*) FROM Quantile")
+        q = QSqlQuery(self.con)
+        q.prepare(f"""SELECT COUNT(*) FROM Quantile
+                JOIN Point
+                ON Quantile.PointKey = Point.id
+                JOIN SamplingPoint
+                ON Point.SamplingPoint = SamplingPoint.ID
+                WHERE SamplingPoint.ID = {self.pointID}""")
         q.exec()
         q.next()
         if q.value(0) ==0:
@@ -900,26 +926,34 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
             query.prepare(f"""
                 SELECT Date.Date, WaterFlow.WaterFlow, Quantile.Quantile FROM WaterFlow
                 JOIN Date
-                ON WaterFlow.Date = Date.id
+                ON WaterFlow.Date = Date.ID
                 JOIN Quantile
-                ON WaterFlow.Quantile = Quantile.id
-                WHERE Quantile.Quantile = {quantile}
-                AND WaterFlow.PointKey = (SELECT Point.id FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.id FROM SamplingPoint WHERE SamplingPoint.name = '{self.point.name}'))
+                ON WaterFlow.Quantile = Quantile.ID
+                JOIN Point
+                ON Quantile.PointKey = Point.ID
+                JOIN SamplingPoint
+                ON Point.SamplingPoint = SamplingPoint.ID
+                WHERE SamplingPoint.ID = {self.pointID}
+                AND Quantile.Quantile = {quantile}
                 ORDER BY Date.Date
             """)
             return query
         elif result_type =="2DMap":
             if option=="Temperature":
                 query.prepare(f"""
-                    SELECT TemperatureAndHeatFlows.Temperature,Quantile.Quantile FROM TemperatureAndHeatFlows
+                    SELECT TemperatureAndHeatFlows.Temperature, Quantile.Quantile FROM TemperatureAndHeatFlows
                     JOIN Date
-                    ON TemperatureAndHeatFlows.Date = Date.id
+                    ON TemperatureAndHeatFlows.Date = Date.ID
                     JOIN Depth
-                    ON TemperatureAndHeatFlows.Depth = Depth.id
+                    ON TemperatureAndHeatFlows.Depth = Depth.ID
                     JOIN Quantile
-                    ON TemperatureAndHeatFlows. Quantile = Quantile.id
-                    WHERE Quantile.Quantile = {quantile}
-                    AND  TemperatureAndHeatFlows.PointKey = (SELECT Point.id FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.id FROM SamplingPoint WHERE SamplingPoint.name = '{self.point.name}'))
+                    ON TemperatureAndHeatFlows.Quantile = Quantile.ID
+                    JOIN Point
+                    ON Quantile.PointKey = Point.ID
+                    JOIN SamplingPoint
+                    ON Point.SamplingPoint = SamplingPoint.ID
+                    WHERE SamplingPoint.ID = {self.pointID}
+                    AND Quantile.Quantile = {quantile}
                     ORDER BY Date.Date, Depth.Depth   
                 """) #Column major: order by date
                 return query
@@ -929,9 +963,15 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
                     JOIN Date
                     ON TemperatureAndHeatFlows.Date = Date.id
                     JOIN Depth
-                    ON eatFlows.Depth = Depth.id
-                    WHERE TemperatureAndHeatFlows.Quantile = (SELECT Quantile.id FROM Quantile WHERE Quantile.Quantile = {quantile})
-                    AND  TemperatureAndHeatFlows.PointKey = (SELECT Point.id FROM Point WHERE Point.SamplingPoint = (SELECT SamplingPoint.id FROM SamplingPoint WHERE SamplingPoint.name = '{self.point.name}'))
+                    ON TemperatureAndHeatFlows.Depth = Depth.id
+                    JOIN Quantile
+                    ON TemperatureAndHeatFlows.Quantile = Quantile.ID
+                    JOIN Point
+                    ON Quantile.PointKey = Point.ID
+                    JOIN SamplingPoint
+                    ON Point.SamplingPoint = SamplingPoint.ID
+                    WHERE SamplingPoint.ID = {self.pointID}
+                    AND Quantile.Quantile = {quantile}
                     ORDER BY Date.Date, Depth.Depth
                 """)
                 return query
