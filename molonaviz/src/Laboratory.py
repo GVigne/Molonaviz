@@ -284,8 +284,8 @@ class Lab:
         insertQuery.prepare("""
             INSERT INTO Shaft (
                 Name,
-                Depth1,
                 Datalogger,
+                Depth1,
                 Depth2,
                 Depth3,
                 Depth4,
