@@ -137,7 +137,7 @@ class Study:
         """
         self.con.transaction()
         insertRawPress = self.build_insert_raw_pressures()
-        insertRawPress.bindValue(":PointKey", pointID)
+        insertRawPress.bindValue(":SamplingPoint", pointID)
         for row in dfpress.itertuples():
             insertRawPress.bindValue(":Date", row[1])
             insertRawPress.bindValue(":TempBed", row[3])
@@ -151,7 +151,7 @@ class Study:
         """
         self.con.transaction()
         insertRawTemp = self.build_insert_raw_temperatures()
-        insertRawTemp.bindValue(":PointKey", pointID)
+        insertRawTemp.bindValue(":SamplingPoint", pointID)
         for row in dftemp.itertuples():
             insertRawTemp.bindValue(":Date", row[1])
             insertRawTemp.bindValue(":Temp1", row[2])
@@ -244,8 +244,8 @@ class Study:
                         Date,
                         TempBed,
                         Voltage,
-                        PointKey)
-        VALUES (:Date, :TempBed, :Voltage, :PointKey)""")
+                        SamplingPoint)
+        VALUES (:Date, :TempBed, :Voltage, :SamplingPoint)""")
         return query
     
     def build_insert_raw_temperatures(self):
@@ -259,8 +259,8 @@ class Study:
                         Temp2,
                         Temp3,
                         Temp4,
-                        PointKey)
-        VALUES (:Date, :Temp1, :Temp2, :Temp3, :Temp4, :PointKey)""")
+                        SamplingPoint)
+        VALUES (:Date, :Temp1, :Temp2, :Temp3, :Temp4, :SamplingPoint)""")
         return query
     
     def build_psensor_id(self, psensorName : str):

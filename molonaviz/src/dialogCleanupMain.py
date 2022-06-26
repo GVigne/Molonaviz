@@ -489,7 +489,7 @@ class DialogCleanupMain(QtWidgets.QDialog, From_DialogCleanUpMain):
         query.prepare(f"""
             SELECT RawMeasuresPress.Date, RawMeasuresPress.Voltage, RawMeasuresPress.TempBed FROM RawMeasuresPress 
             JOIN SamplingPoint
-            ON RawMeasuresPress.PointKey = SamplingPoint.ID
+            ON RawMeasuresPress.SamplingPoint = SamplingPoint.ID
             WHERE SamplingPoint.ID = {self.pointID}
             ORDER BY RawMeasuresPress.Date
         """)

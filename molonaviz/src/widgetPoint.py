@@ -288,10 +288,6 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
 
 
     def compute(self):
-        #Needs to be adapted! Especially self.onMCMCisFinished (when computations are done)
-        
-        # sensorDir = self.study.getSensorDir()
-
         dlg = DialogCompute(self.point.name)
         res = dlg.exec()
         if res == 10: #Direct Model
@@ -827,7 +823,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
             query.prepare(f"""
                 SELECT RawMeasuresTemp.Date, RawMeasuresTemp.Temp1, RawMeasuresTemp.Temp2, RawMeasuresTemp.Temp3, RawMeasuresTemp.Temp4, RawMeasuresPress.TempBed, RawMeasuresPress.Voltage FROM RawMeasuresTemp, RawMeasuresPress
                 WHERE RawMeasuresTemp.Date = RawMeasuresPress.Date
-                AND RawMeasuresPress.PointKey=RawMeasuresTemp.PointKey = (SELECT id FROM SamplingPoint WHERE SamplingPoint.Name = '{self.point.name}')
+                AND RawMeasuresPress.SamplingPoint=RawMeasuresTemp.SamplingPoint = (SELECT id FROM SamplingPoint WHERE SamplingPoint.Name = '{self.point.name}')
                 ORDER BY RawMeasuresTemp.Date
             """)
             return query
@@ -835,14 +831,14 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
             query.prepare(f"""
                 SELECT RawMeasuresTemp.Date, RawMeasuresTemp.Temp1, RawMeasuresTemp.Temp2, RawMeasuresTemp.Temp3, RawMeasuresTemp.Temp4, RawMeasuresPress.TempBed FROM RawMeasuresTemp, RawMeasuresPress
                 WHERE RawMeasuresTemp.Date = RawMeasuresPress.Date
-                AND RawMeasuresPress.PointKey=RawMeasuresTemp.PointKey = (SELECT id FROM SamplingPoint WHERE SamplingPoint.Name = '{self.point.name}')
+                AND RawMeasuresPress.SamplingPoint=RawMeasuresTemp.SamplingPoint = (SELECT id FROM SamplingPoint WHERE SamplingPoint.Name = '{self.point.name}')
                 ORDER BY RawMeasuresTemp.Date
             """)
             return query
         elif field =="Pressure":
             query.prepare(f"""
                 SELECT RawMeasuresPress.Date,RawMeasuresPress.Voltage FROM RawMeasuresPress
-                WHERE RawMeasuresPress.PointKey= (SELECT id FROM SamplingPoint WHERE SamplingPoint.Name = '{self.point.name}')
+                WHERE RawMeasuresPress.SamplingPoint= (SELECT id FROM SamplingPoint WHERE SamplingPoint.Name = '{self.point.name}')
                 ORDER BY RawMeasuresPress.Date
             """)
             return query

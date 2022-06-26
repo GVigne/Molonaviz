@@ -31,7 +31,12 @@ Known bugs:
 -When opening a new point, respect the rule to display subwindows (tabbed, cascade...)
 -The C++ file which writes sensor data to csv take dates in the format YYYY:MM:DD:HH:MM:SS (and sampling time in format HH:MM:SS) but writes on the CSV file dates in format YYYY/MM/DD HH:MM:SS
 
+Warning: Duplicate
+-Compute and WidgetPoint for cleaned measures
+
 TODO:
+- REWORK POINT/SAMPLINGPOINT INTERACTION
+-Tooltips! Especially compute window
 -What should I do with the default script, currently called sample_text.txt? Where to put it? Default value when creating a point -> when creating a Database, it should be in the Script folder
 -Reorganise the folders for all the dialogs
 -Date management when importing raw data
