@@ -30,6 +30,8 @@ Known bugs:
 -Subwindows do not fill up the zone.
 -When opening a new point, respect the rule to display subwindows (tabbed, cascade...)
 -The C++ file which writes sensor data to csv take dates in the format YYYY:MM:DD:HH:MM:SS (and sampling time in format HH:MM:SS) but writes on the CSV file dates in format YYYY/MM/DD HH:MM:SS
+-The pressure matplotib view is now inconsistant: if raw_data then it corresponds to a voltage, and if not raw_data it corresponds to a pressure (m) 
+
 
 Warning: Duplicate
 -Compute and WidgetPoint for cleaned measures

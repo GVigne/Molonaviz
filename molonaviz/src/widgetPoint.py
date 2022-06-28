@@ -289,8 +289,11 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
                 dlg.df_cleaned["date"] = dlg.df_cleaned["date"].apply(inputToDatabaseDate) #Convert the dates to database format
 
                 query_dates = self.build_insert_date()
+                query_dates.bindValue(":PointKey", self.pointID)
+
                 query_measures = self.build_insert_cleaned_measures()
-                query_measures.bindValue(":PointKey", self.samplingPointID)
+                query_measures.bindValue(":PointKey", self.pointID)
+                
                 self.con.transaction()
                 for row in dlg.df_cleaned.itertuples():
                     query_dates.bindValue(":Date", row[1])
@@ -304,6 +307,8 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
                     query_measures.bindValue(":Pressure", row[3])
                     query_measures.exec()
                 self.con.commit()
+
+                self.update_all_models()
 
 
     def compute(self):
@@ -657,10 +662,8 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         """
         dateID = QSqlQuery(self.con)
         dateID.exec(f"""SELECT Date.ID FROM DATE
-                        JOIN CleanedMeasures
-                        ON Date.ID = CleanedMeasures.Date
                         JOIN Point
-                        ON CleanedMeasures.PointKey = Point.ID
+                        ON Date.PointKey = Point.ID
                         WHERE Point.ID={self.pointID}""")
         deleteTableQuery = QSqlQuery(self.con)
         deleteTableQuery.exec(f"DELETE FROM CleanedMeasures WHERE CleanedMeasures.PointKey=(SELECT ID FROM Point WHERE Point.ID={self.pointID})")
@@ -1023,8 +1026,8 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         """
         query = QSqlQuery(self.con)
         query.prepare(f"""
-            INSERT INTO Date (Date)
-            VALUES (:Date)
+            INSERT INTO Date (Date, PointKey)
+            VALUES (:Date, :PointKey)
         """)
         return query
     

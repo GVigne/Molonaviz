@@ -69,7 +69,6 @@ def inputToDatabaseDate(date: str):
     for f in formats:
         try:
             dtObj = datetime.strptime(date, f) 
-            print(f)
             return datetime.strftime(dtObj, "%Y/%m/%d %H:%M:%S") #This is the database date convention
         except Exception as e:
             continue
