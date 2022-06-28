@@ -134,6 +134,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         Display in the table view the parameters corresponding to the given layer, and update histograms.
         """
         select_params = self.build_params_query(layer)
+        select_params.exec()
         self.paramsModel = QSqlQueryModel()
         self.paramsModel.setQuery(select_params)
         self.tableViewParams.setModel(self.paramsModel)
@@ -236,6 +237,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
             select_query = self.build_raw_measures(full_query=True)
         else:
             select_query = self.build_cleaned_measures(full_query=True)
+        select_query.exec()
         self.currentDataModel = QSqlQueryModel()
         self.currentDataModel.setQuery(select_query)
         self.tableViewDataArray.setModel(self.currentDataModel)
@@ -856,22 +858,26 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
             query.prepare(f"""
                 SELECT RawMeasuresTemp.Date, RawMeasuresTemp.Temp1, RawMeasuresTemp.Temp2, RawMeasuresTemp.Temp3, RawMeasuresTemp.Temp4, RawMeasuresPress.TempBed, RawMeasuresPress.Voltage FROM RawMeasuresTemp, RawMeasuresPress
                 WHERE RawMeasuresTemp.Date = RawMeasuresPress.Date
-                AND RawMeasuresPress.SamplingPoint=RawMeasuresTemp.SamplingPoint = (SELECT ID FROM SamplingPoint WHERE SamplingPoint.ID = {self.samplingPointID})
+                AND RawMeasuresPress.SamplingPoint= (SELECT ID FROM SamplingPoint WHERE SamplingPoint.ID = {self.samplingPointID})
+                AND RawMeasuresTemp.SamplingPoint = (SELECT ID FROM SamplingPoint WHERE SamplingPoint.ID = {self.samplingPointID})
                 ORDER BY RawMeasuresTemp.Date
             """)
             return query
         elif field =="Temp":
             query.prepare(f"""
-                SELECT RawMeasuresTemp.Date, RawMeasuresTemp.Temp1, RawMeasuresTemp.Temp2, RawMeasuresTemp.Temp3, RawMeasuresTemp.Temp4, RawMeasuresPress.TempBed FROM RawMeasuresTemp, RawMeasuresPress
-                WHERE RawMeasuresTemp.Date = RawMeasuresPress.Date
-                AND RawMeasuresPress.SamplingPoint=RawMeasuresTemp.SamplingPoint = (SELECT ID FROM SamplingPoint WHERE SamplingPoint.ID = {self.samplingPointID})
-                ORDER BY RawMeasuresTemp.Date
+                 SELECT RawMeasuresTemp.Date, RawMeasuresTemp.Temp1, RawMeasuresTemp.Temp2, RawMeasuresTemp.Temp3, RawMeasuresTemp.Temp4, RawMeasuresPress.TempBed FROM RawMeasuresTemp, RawMeasuresPress
+                 WHERE RawMeasuresTemp.Date = RawMeasuresPress.Date
+                 AND RawMeasuresPress.SamplingPoint = (SELECT ID FROM SamplingPoint WHERE SamplingPoint.ID = {self.samplingPointID})
+                 AND RawMeasuresTemp.SamplingPoint = (SELECT ID FROM SamplingPoint WHERE SamplingPoint.ID = {self.samplingPointID})
+                 ORDER BY RawMeasuresTemp.Date
             """)
             return query
         elif field =="Pressure":
             query.prepare(f"""
                 SELECT RawMeasuresPress.Date,RawMeasuresPress.Voltage FROM RawMeasuresPress
-                WHERE RawMeasuresPress.SamplingPoint= (SELECT ID FROM SamplingPoint WHERE SamplingPoint.ID = {self.samplingPointID})
+                JOIN SamplingPoint
+                ON RawMeasuresPress.SamplingPoint = SamplingPoint.ID
+                WHERE SamplingPoint.ID = {self.samplingPointID}
                 ORDER BY RawMeasuresPress.Date
             """)
             return query

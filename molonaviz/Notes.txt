@@ -48,7 +48,8 @@ TODO:
 -More robust imports of Lab when informations are missing.
 -Creating and opening a study: do not close window if something went wrong (ie wrong study name, empty lab name...) -> Create a FilterComboBox widget?
 -Add a simple dialog which can send QDialog::Accept or QDialog::Reject (confirmation dialog)
-
+-Update requirements
+-Distinction Point/SamplingPoint + seperate backend/frontend
 
 query.prepare(f"""
     INSERT INTO CleanedMeasures (
