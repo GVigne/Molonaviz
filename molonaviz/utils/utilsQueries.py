@@ -68,3 +68,18 @@ def build_point_names(con : QSqlDatabase, studyID: int | str):
                     ON SamplingPoint.Study = Study.ID
                     WHERE Study.ID = '{studyID}'""")
     return query
+
+
+def build_max_depth(con : QSqlDatabase, pointID : int | str):
+    """
+    Build and return a query giving the total depth for the point with the ID pointID.
+    """
+    shaft_depth = QSqlQuery(con)
+    shaft_depth.prepare(f"""
+        SELECT Shaft.Depth4
+        FROM Shaft 
+        JOIN SamplingPoint
+        ON Shaft.ID = SamplingPoint.Shaft
+        WHERE SamplingPoint.ID = {pointID}
+        """)
+    return shaft_depth

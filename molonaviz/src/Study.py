@@ -76,7 +76,7 @@ class Study:
         Create a new Sampling Point in in the database with the relevant information. Return an object of type Point encapsulating these informations.
         Note: although the info file has the name of the point, the pressure sensor and the shaft, the user may have changed it, so pointName, psensorName and shaftName are not necessarily the names listed in infofile.
         """
-        insertPoint = self.build_insert_point()
+        insertPoint = self.build_insert_sampling_point()
 
         insertPoint.bindValue(":Name", pointName)
         insertPoint.bindValue(":Study", self.ID)
@@ -215,7 +215,7 @@ class Study:
         """)
         return query
     
-    def build_insert_point(self):
+    def build_insert_sampling_point(self):
         """
         Build and return a query which creates a Sampling Point.
         """
