@@ -32,6 +32,13 @@ Known bugs:
 -The C++ file which writes sensor data to csv take dates in the format YYYY:MM:DD:HH:MM:SS (and sampling time in format HH:MM:SS) but writes on the CSV file dates in format YYYY/MM/DD HH:MM:SS
 -The pressure matplotib view is now inconsistant: if raw_data then it corresponds to a voltage, and if not raw_data it corresponds to a pressure (m) 
 
+Warning: Discrepancy
+-The values in the Layer table correspond to the bottom of the layer. The values in Depth correspond to the middle of the cells.
+- There is a performance discrepancy when putting results in the dabatase. Here is what is happening:
+    -the computations return arrays where each column correspond to a date and each line a Depth
+    -Overall, there are more dates than there are dates: there can be thousands of dates but probably no more than a hundred depths. Therefore, if we have to query the dates or the depths thousands of time, we prefer to query the depths: less entries = faster tree research
+    -Python is row major, so iterating over a column costs more than iterating over a row as memory isn't contiguous
+ So the issue is that either Python will slow us dows because of the row major convention, or SQL will slow us down by doing queries over a table with many entries.
 
 Warning: Duplicate
 -Compute and WidgetPoint for cleaned measures

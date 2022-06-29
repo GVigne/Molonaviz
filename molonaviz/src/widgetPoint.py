@@ -12,11 +12,14 @@ from PyQt5.QtSql import QSqlQueryModel, QSqlQuery, QSqlDatabase #QSqlDatabase in
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from src.dialogExportCleanedMeasures import DialogExportCleanedMeasures
 from src.Containers import Point
+from src.Compute import Compute
 from src.MoloModel import  PressureDataModel, TemperatureDataModel, SolvedTemperatureModel, HeatFluxesModel, WaterFluxModel,ParamsDistributionModel
 from src.MoloView import PressureView, TemperatureView,UmbrellaView,TempDepthView,TempMapView,AdvectiveFlowView, ConductiveFlowView, TotalFlowView, WaterFluxView, Log10KView, ConductivityView, PorosityView, CapacityView
 from src.dialogCleanupMain import DialogCleanupMain
 from src.dialogConfirm import DialogConfirm
+from src.dialogCompute import DialogCompute
 from utils.utils import inputToDatabaseDate
+from utils.utilsQueries import build_max_depth
 
 From_WidgetPoint = uic.loadUiType(os.path.join(os.path.dirname(__file__), "..", "ui", "widgetPoint.ui"))[0]
 
@@ -32,8 +35,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         self.samplingPointID = samplingPointID #The ID of the point being opened
         self.con = con
         self.pointID = self.getOrCreatePointID()
-        # self.computeEngine = Compute(db, self.samplingPoint)
-
+        self.computeEngine = Compute(self.con, self.pointID)
         
         #This should already be done in the .ui file
         self.checkBoxRawData.setChecked(True)
@@ -312,25 +314,21 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
 
 
     def compute(self):
-        dlg = DialogCompute(self.samplingPoint.name)
+        selectdepth = build_max_depth(self.con, self.samplingPointID)
+        selectdepth.exec()
+        selectdepth.next()
+        dlg = DialogCompute(selectdepth.value(0))
         res = dlg.exec()
-        if res == 10: #Direct Model
-            params, nb_cells, depths = dlg.getInputDirectModel()
-            self.computeEngine.computeDirectModel(params, nb_cells,depths)
-            self.update_all_models()
-
-    
-        if res == 1 : #MCMC
-            print("Not direct")
-            # nb_iter, priors, nb_cells, quantiles = dlg.getInputMCMC()
-            # self.nb_quantiles = len(quantiles)
-            # with open(self.MCMCDir+"/nb_quantiles", "w") as f:
-            #     f.write(str(self.nb_quantiles))
-            #     f.close()
-            # # compute = Compute(self.samplingPoint)
-            # # compute.computeMCMC(nb_iter, priors, nb_cells, sensorDir)
-            # self.computeEngine.MCMCFinished.connect(self.onMCMCFinished)
-            # self.computeEngine.computeMCMC(nb_iter, priors, nb_cells, sensorDir, quantiles)
+        if res == QtWidgets.QDialog.Accepted:
+            self.deleteComputations()
+            if dlg.computationIsMCMC():
+                #MCMC
+                pass
+            else:
+                #Direct Model
+                self.computeEngine.DirectModelFinished.connect(self.update_all_models)
+                params, nb_cells = dlg.getInputDirectModel()
+                self.computeEngine.computeDirectModel(params, nb_cells)
 
     def onMCMCFinished(self):
         #Needs to be adapted!

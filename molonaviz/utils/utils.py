@@ -129,3 +129,9 @@ def databaseDateToDatetime(date : str):
     Given a date in the database format (YYYY/MM/DD HH:MM:SS), return the corresponding datetime object.
     """
     return datetime.strptime(date, "%Y/%m/%d %H:%M:%S")
+
+def datetimeToDatabaseDate(date : datetime):
+    """
+    Given a date in the database format (YYYY/MM/DD HH:MM:SS), return the corresponding datetime object.
+    """
+    return date.strftime("%Y/%m/%d %H:%M:%S")

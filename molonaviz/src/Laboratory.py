@@ -159,7 +159,7 @@ class Lab:
                 insertPsensor.bindValue(":Intercept",intercept)
                 insertPsensor.bindValue(":DuDh",dudh)
                 insertPsensor.bindValue(":DuDt",dudt)
-                insertPsensor.bindValue(":Precision",sigma)
+                insertPsensor.bindValue(":Error",sigma)
                 insertPsensor.bindValue(":ThermoModel",thermo_model)
                 insertPsensor.bindValue(":Labo",self.labId)
                 insertPsensor.exec()
@@ -269,11 +269,11 @@ class Lab:
             Intercept,
             DuDH,
             DuDT,
-            Precision,
+            Error,
             ThermoModel,
             Labo
         )
-        VALUES (:Name, :Datalogger, :Calibration, :Intercept, :DuDh, :DuDt, :Precision, :ThermoModel, :Labo)""")
+        VALUES (:Name, :Datalogger, :Calibration, :Intercept, :DuDh, :DuDt, :Error, :ThermoModel, :Labo)""")
         return insertQuery
     
     def build_insert_shaft(self):
@@ -310,7 +310,7 @@ class Lab:
         Build and return a query which selects all pressure sensors corresponding to this lab.
         """
         selectQuery = QSqlQuery(self.con)
-        selectQuery.prepare(f"""SELECT PressureSensor.Name, PressureSensor.Datalogger, PressureSensor.Calibration, PressureSensor.Intercept, PressureSensor.DuDH, PressureSensor.DuDT, PressureSensor.Precision
+        selectQuery.prepare(f"""SELECT PressureSensor.Name, PressureSensor.Datalogger, PressureSensor.Calibration, PressureSensor.Intercept, PressureSensor.DuDH, PressureSensor.DuDT, PressureSensor.Error
         FROM PressureSensor
         WHERE PressureSensor.Labo = {self.labId}""")
         return selectQuery
