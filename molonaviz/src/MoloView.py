@@ -8,9 +8,7 @@ from matplotlib.figure import Figure
 from matplotlib.ticker import MaxNLocator
 import numpy as np
 from src.MoloModel import MoloModel
-
-def date_to_mdates(x):
-    return x
+from utils.utils import date_to_mdates
 
 class MoloView(FigureCanvasQTAgg):
     """

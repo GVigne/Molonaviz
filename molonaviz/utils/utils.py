@@ -6,6 +6,8 @@ import os
 from datetime import datetime
 import pandas as pd
 import numpy as np
+import matplotlib.dates as mdates
+
 
 def displayCriticalMessage(mainMessage: str, infoMessage: str = ''):
     """
@@ -135,3 +137,9 @@ def datetimeToDatabaseDate(date : datetime):
     Given a date in the database format (YYYY/MM/DD HH:MM:SS), return the corresponding datetime object.
     """
     return date.strftime("%Y/%m/%d %H:%M:%S")
+
+def date_to_mdates(dates : list[str]):
+    """
+    Given a list of dates in database format (str), return the corresponding list of matplotlib dates.
+    """
+    return [mdates.date2num(databaseDateToDatetime(date)) for date in dates]

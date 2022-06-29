@@ -25,12 +25,15 @@ CONCLUSION: Always use datetime objects in the program. In database, always stor
 
 
 Known bugs:
+-Immediately after a computation, they will not appear. Instead, one must close the app and reopen it. This should be fixed when making a difference between backend and frontend.
 -When importing a lab, some messages may appear such as "The thermometers have been added to the database", despite it not being the case
 - build_data_queries first query is super ugly, and so are other queries ( = SELECT ...)
 -Subwindows do not fill up the zone.
 -When opening a new point, respect the rule to display subwindows (tabbed, cascade...)
 -The C++ file which writes sensor data to csv take dates in the format YYYY:MM:DD:HH:MM:SS (and sampling time in format HH:MM:SS) but writes on the CSV file dates in format YYYY/MM/DD HH:MM:SS
 -The pressure matplotib view is now inconsistant: if raw_data then it corresponds to a voltage, and if not raw_data it corresponds to a pressure (m) 
+-Sometimes, cleanup may return a pandas dataframe with NaN in charge diff. This was "patched" so that only non-Nan values are put in the database, it is an ugly patch. Cleanup needs to be redone.
+
 
 Warning: Discrepancy
 -The values in the Layer table correspond to the bottom of the layer. The values in Depth correspond to the middle of the cells.

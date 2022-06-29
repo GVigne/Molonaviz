@@ -3,7 +3,7 @@
 # from compute import Compute
 # from usefulfonctions import *
 
-from operator import le
+from math import isnan
 import os
 import csv
 from PyQt5 import QtWidgets, QtCore, uic
@@ -46,13 +46,24 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         self.splitterHorizLeft.setSizes([QtGui.QGuiApplication.primaryScreen().virtualSize().width(),QtGui.QGuiApplication.primaryScreen().virtualSize().width()])
         self.splitterHorizRight.setSizes([QtGui.QGuiApplication.primaryScreen().virtualSize().width(),QtGui.QGuiApplication.primaryScreen().virtualSize().width()])
 
-        #Create all models: they are empty for now
+        #Create all models and related views: they are empty for now
         self.pressuremodel = PressureDataModel([])
         self.tempmodel = TemperatureDataModel([])
         self.tempmap_model = SolvedTemperatureModel([])
         self.fluxes_model = HeatFluxesModel([])
         self.waterflux_model = WaterFluxModel([])
         self.paramsdistr_model = ParamsDistributionModel([])
+
+        self.advective_view = AdvectiveFlowView(self.fluxes_model)
+        self.conductive_view = ConductiveFlowView(self.fluxes_model)
+        self.totalflux_view = TotalFlowView(self.fluxes_model)
+        self.umbrella_view = UmbrellaView(self.tempmap_model)
+        self.tempmap_view = TempMapView(self.tempmap_model)      
+        self.depth_view = TempDepthView(self.tempmap_model)
+        self.logk_view = Log10KView(self.paramsdistr_model)
+        self.conductivity_view = ConductivityView(self.paramsdistr_model)
+        self.porosity_view = PorosityView(self.paramsdistr_model)
+        self.capacity_view = CapacityView(self.paramsdistr_model)
 
         self.splitterHorizLeft.splitterMoved.connect(self.adjustRightSplitter)
         self.splitterHorizRight.splitterMoved.connect(self.adjustLeftSplitter)
@@ -298,16 +309,17 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
                 
                 self.con.transaction()
                 for row in dlg.df_cleaned.itertuples():
-                    query_dates.bindValue(":Date", row[1])
-                    query_dates.exec()
-                    query_measures.bindValue(":DateID", query_dates.lastInsertId())
-                    query_measures.bindValue(":TempBed", row[2])
-                    query_measures.bindValue(":Temp1", row[4])
-                    query_measures.bindValue(":Temp2", row[5])
-                    query_measures.bindValue(":Temp3", row[6])
-                    query_measures.bindValue(":Temp4", row[7])
-                    query_measures.bindValue(":Pressure", row[3])
-                    query_measures.exec()
+                    if not(isnan(row[2]) or isnan(row[3]) or isnan(row[4]) or isnan(row[5]) or isnan(row[6]) or isnan(row[7])):
+                        query_dates.bindValue(":Date", row[1])
+                        query_dates.exec()
+                        query_measures.bindValue(":DateID", query_dates.lastInsertId())
+                        query_measures.bindValue(":TempBed", row[2])
+                        query_measures.bindValue(":Temp1", row[4])
+                        query_measures.bindValue(":Temp2", row[5])
+                        query_measures.bindValue(":Temp3", row[6])
+                        query_measures.bindValue(":Temp4", row[7])
+                        query_measures.bindValue(":Pressure", row[3])
+                        query_measures.exec()
                 self.con.commit()
 
                 self.update_all_models()
@@ -466,8 +478,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
             self.groupBoxPorosity.setLayout(vbox)
             vbox = QtWidgets.QVBoxLayout()
             vbox.addWidget(QtWidgets.QLabel("No model has been computed yet"),QtCore.Qt.AlignCenter)
-            self.groupBoxCapacity.setLayout(vbox)     
-            
+            self.groupBoxCapacity.setLayout(vbox)        
 
     def plotTemperatureMap(self):
         select_tempmap = self.build_result_queries(result_type="2DMap",option="Temperature") #This is a list of temperatures for all quantiles
