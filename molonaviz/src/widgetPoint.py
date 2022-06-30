@@ -264,6 +264,14 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         self.currentDataModel = QSqlQueryModel()
         self.currentDataModel.setQuery(select_query)
         self.tableViewDataArray.setModel(self.currentDataModel)
+        #Resize the table view so it looks pretty
+        self.tableViewDataArray.resizeColumnsToContents()
+        width = self.tableViewDataArray.verticalHeader().width()
+        for i in range(self.tableViewDataArray.model().rowCount()):
+            width += self.tableViewDataArray.columnWidth(i)
+        width +=20 #Approximate width of the splitter bar
+        self.tableViewDataArray.setFixedWidth(width)
+
 
     def setWidgetInfos(self):
         self.setWindowTitle(self.samplingPoint.name)

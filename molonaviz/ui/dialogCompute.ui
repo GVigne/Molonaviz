@@ -246,7 +246,7 @@
           <item>
            <widget class="QLineEdit" name="lineEditKMax">
             <property name="text">
-             <string>7</string>
+             <string>9</string>
             </property>
             <property name="readOnly">
              <bool>false</bool>
@@ -274,7 +274,7 @@
           <item>
            <widget class="QLineEdit" name="lineEditKMin">
             <property name="text">
-             <string>2</string>
+             <string>3</string>
             </property>
             <property name="readOnly">
              <bool>false</bool>
@@ -300,7 +300,7 @@
         <item row="1" column="0">
          <widget class="QLabel" name="labelMoinsLog10KMCMC">
           <property name="text">
-           <string>Permeability (m/s):</string>
+           <string>-log10(Permeability)</string>
           </property>
          </widget>
         </item>

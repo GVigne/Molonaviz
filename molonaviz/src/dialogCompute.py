@@ -40,6 +40,26 @@ class DialogCompute(QtWidgets.QDialog, From_DialogCompute):
         self.spinBoxNLayersDirect.setValue(1)
         self.updateNBLayers(1)
 
+        #MCMC
+        self.lineEditMaxIterMCMC.setText("5000")
+        self.lineEditKMin.setText("3")
+        self.lineEditKMax.setText("9")
+        self.lineEditMoinsLog10KSigma.setText("0.01")
+
+        self.lineEditPorosityMin.setText("0.01")
+        self.lineEditPorosityMax.setText("0.25")
+        self.lineEditPorositySigma.setText("0.01")
+
+        self.lineEditThermalConductivityMin.setText("1")
+        self.lineEditThermalConductivityMax.setText("5")
+        self.lineEditThermalConductivitySigma.setText("0.05")
+
+        self.lineEditThermalCapacityMin.setText("1000")
+        self.lineEditThermalCapacityMax.setText("1e7")
+        self.lineEditThermalCapacitySigma.setText("100")
+        
+        self.lineEditQuantiles.setText("0.05,0.5,0.95")
+
     def updateNBLayers(self, nb_layers : int):
         """
         This function is called when the user changes the spinbox showing the number of layers: i is the new number of layers.
