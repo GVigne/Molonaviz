@@ -149,7 +149,7 @@ class Compute(QtCore.QObject):
         Save the layers and the last parameters in the database.
         """
         insertlayer = QSqlQuery(self.con)
-        insertlayer.prepare("INSERT INTO Layer (Layer, DepthBed, PointKey) VALUES (:Layer, :DepthBed, :PointKey)")
+        insertlayer.prepare("INSERT INTO Layer (Name, Depth, PointKey) VALUES (:Name, :Depth, :PointKey)")
         insertlayer.bindValue(":PointKey", self.pointID)
 
         insertparams = QSqlQuery(self.con)
@@ -159,8 +159,8 @@ class Compute(QtCore.QObject):
 
         self.con.transaction()
         for layer, depth, perm, n, lamb, rho in data:
-            insertlayer.bindValue(":Layer", layer)
-            insertlayer.bindValue(":DepthBed", depth)
+            insertlayer.bindValue(":Name", layer)
+            insertlayer.bindValue(":Depth", depth)
             insertlayer.exec()
 
             insertparams.bindValue(":Permeability", perm)
@@ -406,7 +406,7 @@ class Compute(QtCore.QObject):
         current_params_index = 0
 
         insertlayer = QSqlQuery(self.con)
-        insertlayer.prepare("INSERT INTO Layer (Layer, DepthBed, PointKey) VALUES (:Layer, :DepthBed, :PointKey)")
+        insertlayer.prepare("INSERT INTO Layer (Name, Depth, PointKey) VALUES (:Name, :Depth, :PointKey)")
         insertlayer.bindValue(":PointKey", self.pointID)
         insertparams = QSqlQuery(self.con)
         insertparams.prepare(f"""INSERT INTO BestParameters (Permeability, ThermConduct, Porosity, Capacity, Layer, PointKey)
@@ -426,8 +426,8 @@ class Compute(QtCore.QObject):
             lambda_s = elem.params.lambda_s
             rhos_cs = elem.params.rhos_cs
 
-            insertlayer.bindValue(":Layer", name)
-            insertlayer.bindValue(":DepthBed", zLow)
+            insertlayer.bindValue(":Name", name)
+            insertlayer.bindValue(":Depth", zLow)
             insertlayer.exec()
 
             insertparams.bindValue(":Permeability", perm)

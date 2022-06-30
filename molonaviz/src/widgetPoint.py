@@ -734,11 +734,11 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         """
         query = QSqlQuery(self.con)
         query.prepare(f"""
-            SELECT Layer.DepthBed FROM Layer 
+            SELECT Layer.Depth FROM Layer 
             JOIN Point
             ON Layer.PointKey = Point.ID
             WHERE Point.ID = {self.pointID} 
-            ORDER BY Layer.DepthBed 
+            ORDER BY Layer.Depth 
         """)
         return query
     
@@ -750,7 +750,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         query.prepare(f"""
             SELECT BestParameters.Permeability, BestParameters.ThermConduct, BestParameters.Porosity FROM BestParameters 
             JOIN Layer ON BestParameters.Layer = Layer.ID 
-            WHERE Layer.DepthBed = {depth}
+            WHERE Layer.Depth = {depth}
         """)
         return query
     
@@ -847,7 +847,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
     
     def build_params_distribution(self, layer : float | str):
         """
-        Given a layer (DepthBed), return the distribution for the 4 types of parameters.
+        Given a layer's depth, return the distribution for the 4 types of parameters.
         """
         query = QSqlQuery(self.con)
         query.prepare(f"""
@@ -856,7 +856,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
             ON ParametersDistribution.PointKey = Point.ID
             JOIN Layer
             ON ParametersDistribution.Layer = Layer.ID
-            WHERE Layer.DepthBed = {layer}
+            WHERE Layer.Depth = {layer}
             AND Point.ID = {self.pointID}
         """)
         return query

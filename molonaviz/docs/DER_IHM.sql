@@ -1,6 +1,3 @@
---
--- File generated with SQLiteStudio v3.3.3 on Wed Jun 29 10:59:05 2022
---
 -- Text encoding used: System
 --
 PRAGMA foreign_keys = off;
@@ -25,7 +22,7 @@ CREATE TABLE Labo (
         );
 
 -- Table: Layer
-CREATE TABLE Layer (ID INTEGER PRIMARY KEY AUTOINCREMENT, Layer VARCHAR, DepthBed REAL, PointKey REFERENCES Point (ID));
+CREATE TABLE Layer (ID INTEGER PRIMARY KEY AUTOINCREMENT, Name VARCHAR, Depth REAL, PointKey REFERENCES Point (ID));
 
 -- Table: ParametersDistribution
 CREATE TABLE ParametersDistribution (ID INTEGER PRIMARY KEY AUTOINCREMENT, Permeability REAL, ThermConduct REAL, Porosity REAL, HeatCapacity REAL, Layer INTEGER REFERENCES Layer (ID), PointKey INTEGER REFERENCES Point (ID));
