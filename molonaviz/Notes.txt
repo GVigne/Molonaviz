@@ -59,6 +59,7 @@ TODO:
 -In the pressure sensors/shafts.csv files: less precision for floats? Right now, we have floats with a precision of more thant 10 digits...
 -Where to put unique constraints?
 -Schemes -> Diagrams?
+-QSqlDatabasePrivate::addDatabase: duplicate connection name 'qt_sql_default_connection', old connection removed. This happens because of utils.utils createDatabaseDirectory function, which creates a QT QDatabase object: we then open the connection, and QT doesn't like having two default connections with same name. Needs investigating.
 -More robust imports of Lab when informations are missing.
 -Creating and opening a study: do not close window if something went wrong (ie wrong study name, empty lab name...) -> Create a FilterComboBox widget?
 -Add a simple dialog which can send QDialog::Accept or QDialog::Reject (confirmation dialog)

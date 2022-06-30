@@ -7,6 +7,8 @@ from datetime import datetime
 import pandas as pd
 import numpy as np
 import matplotlib.dates as mdates
+from PyQt5.QtSql import QSqlDatabase, QSqlQuery
+from shutil import copy2
 
 
 def displayCriticalMessage(mainMessage: str, infoMessage: str = ''):
@@ -29,9 +31,9 @@ def displayWarningMessage(mainMessage: str, infoMessage: str = ''):
     msg.setInformativeText(infoMessage)
     msg.exec() 
 
-def createDatabaseDirectory(directory, databaseName):
+def createDatabaseDirectory(directory, databaseName, sampleTextFile, sqlInitFile):
     """
-    Given a directory and the name of the database, create a folder with the name databaseName and the correct structure.
+    Given a directory and the name of the database, create a folder with the name databaseName and the correct structure. Also create the empty database with correct table structure based on the sqlInitFile.
     Return True if the directory was successfully created, False otherwise
     """
     databaseFolder = os.path.join(directory, databaseName)
@@ -41,8 +43,21 @@ def createDatabaseDirectory(directory, databaseName):
     os.mkdir(os.path.join(databaseFolder, "Notices"))
     os.mkdir(os.path.join(databaseFolder, "Schemes"))
     os.mkdir(os.path.join(databaseFolder, "Scripts"))
+    copy2(sampleTextFile, os.path.join(databaseFolder, "Scripts"))
     f = open(os.path.join(databaseFolder, "Molonari.sqlite"),"x")
     f.close()
+
+    con = QSqlDatabase.addDatabase("QSQLITE")
+    con.setDatabaseName(os.path.join(databaseFolder, "Molonari.sqlite"))
+    con.open()
+    f = open(sqlInitFile, 'r')
+    sqlQueries = f.read()
+    f.close()
+    sqlQueries = sqlQueries.split(";")
+    query = QSqlQuery(con)
+    for q in sqlQueries:
+        query.exec(q)
+    con.close()
     return True
 
 def checkDbFolderIntegrity(dbPath):

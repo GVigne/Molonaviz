@@ -46,6 +46,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.treeViewDataPoints.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
 
         #Connect the actions to the appropriate slots
+        self.pushButtonClear.clicked.connect(self.clearText)
         self.actionImportLabo.triggered.connect(self.importLabo)
         self.actionAboutMolonaViz.triggered.connect(self.aboutUs)
         self.actionOpenUserguideFR.triggered.connect(self.openUserGuideFR)
@@ -72,7 +73,6 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         #Setup the queue used to display application messages.
         self.messageQueue = Queue()
         sys.stdout = InterceptOutput(self.messageQueue)
-        print("MolonaViz - 2022-05-20")
 
         self.con = None #Connection to the database
         self.currentStudy = None
@@ -106,7 +106,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         #Now create or check the integrity of the folder given by databaseDir
         if createNewDatabase:
             #Create all folders and subfolders
-            noerror = createDatabaseDirectory(databaseDir, newDatabaseName)
+            noerror = createDatabaseDirectory(databaseDir, newDatabaseName, os.path.join(os.path.dirname(__file__),"src", "sample_text.txt"), os.path.join(os.path.dirname(__file__),"docs", "DER_IHM.sql"))
             if noerror:
                 databaseDir = os.path.join(databaseDir, newDatabaseName)
             else:
@@ -323,6 +323,9 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         """
         self.textEditApplicationMessages.moveCursor(QtGui.QTextCursor.End)
         self.textEditApplicationMessages.insertPlainText(text)
+
+    def clearText(self):
+        self.textEditApplicationMessages.clear()
 
     def aboutUs(self):
         """
