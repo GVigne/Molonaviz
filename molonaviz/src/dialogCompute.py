@@ -90,36 +90,48 @@ class DialogCompute(QtWidgets.QDialog, From_DialogCompute):
         layers = [f"Layer {i+1}" for i in range(nb_layers)]
         return list(zip(layers, depths, log10permeability, porosity, thermconduct, thermcap)), nb_cells
 
-    # def getInputMCMC(self):
+    def getInputMCMC(self):
+        """
+        Return the values entered by the user for MCMC computation.
+        """ 
+        nb_iter = int(self.lineEditMaxIterMCMC.text())
+        nb_cells = self.spinBoxNCellsDirect.value()
 
-    #     nb_iter = int(self.lineEditMaxIterMCMC.text())
-    #     nb_cells = self.spinBoxNCellsDirect.value()
+        moins10logKmin = -log10(float(self.lineEditKMin.text()))
+        moins10logKmax = -log10(float(self.lineEditKMax.text()))
+        moins10logKsigma = -log10(float(self.lineEditMoinsLog10KSigma.text()))
 
-    #     moins10logKmin = -log10(float(self.lineEditKMin.text()))
-    #     moins10logKmax = -log10(float(self.lineEditKMax.text()))
-    #     moins10logKsigma = -log10(float(self.lineEditMoinsLog10KSigma.text()))
+        nmin = float(self.lineEditPorosityMin.text())
+        nmax = float(self.lineEditPorosityMax.text())
+        nsigma = float(self.lineEditPorositySigma.text())
 
-    #     nmin = float(self.lineEditPorosityMin.text())
-    #     nmax = float(self.lineEditPorosityMax.text())
-    #     nsigma = float(self.lineEditPorositySigma.text())
+        lambda_s_min = float(self.lineEditThermalConductivityMin.text())
+        lambda_s_max = float(self.lineEditThermalConductivityMax.text())
+        lambda_s_sigma = float(self.lineEditThermalConductivitySigma.text())
 
-    #     lambda_s_min = float(self.lineEditThermalConductivityMin.text())
-    #     lambda_s_max = float(self.lineEditThermalConductivityMax.text())
-    #     lambda_s_sigma = float(self.lineEditThermalConductivitySigma.text())
+        rhos_cs_min = float(self.lineEditThermalCapacityMin.text())
+        rhos_cs_max = float(self.lineEditThermalCapacityMax.text())
+        rhos_cs_sigma = float(self.lineEditThermalCapacitySigma.text())
 
-    #     rhos_cs_min = float(self.lineEditThermalCapacityMin.text())
-    #     rhos_cs_max = float(self.lineEditThermalCapacityMax.text())
-    #     rhos_cs_sigma = float(self.lineEditThermalCapacitySigma.text())
+        priors = {
+        "moinslog10K": ((moins10logKmin, moins10logKmax), moins10logKsigma),
+        "n": ((nmin, nmax), nsigma),
+        "lambda_s": ((lambda_s_min, lambda_s_max), lambda_s_sigma),
+        "rhos_cs": ((rhos_cs_min, rhos_cs_max), rhos_cs_sigma) }
 
-    #     priors = {
-    #     "moinslog10K": ((moins10logKmin, moins10logKmax), moins10logKsigma),
-    #     "n": ((nmin, nmax), nsigma),
-    #     "lambda_s": ((lambda_s_min, lambda_s_max), lambda_s_sigma),
-    #     "rhos_cs": ((rhos_cs_min, rhos_cs_max), rhos_cs_sigma) }
+        nb_layers = self.spinBoxNLayersDirect.value()
+        depths = []
+        for i in range (nb_layers):
+            depths.append(float(self.tableWidget.item(i, 0).text())/100)
+        layers = [f"Layer {i+1}" for i in range(nb_layers)]
 
-    #     quantiles = self.lineEditQuantiles.text()
-    #     quantiles = quantiles.split(",")
-    #     quantiles = tuple(quantiles)
-    #     quantiles = [float(quantile) for quantile in quantiles]
+        all_priors = []
+        for i in range(nb_layers):
+            all_priors.append([layers[i], depths[i], priors])
+
+        quantiles = self.lineEditQuantiles.text()
+        quantiles = quantiles.split(",")
+        quantiles = tuple(quantiles)
+        quantiles = [float(quantile) for quantile in quantiles]
         
-    #     return nb_iter, priors, nb_cells, quantiles
+        return nb_iter, all_priors, nb_cells, quantiles

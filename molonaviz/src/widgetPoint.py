@@ -335,7 +335,9 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
             self.deleteComputations()
             if dlg.computationIsMCMC():
                 #MCMC
-                pass
+                self.computeEngine.MCMCFinished.connect(self.update_all_models)
+                nb_iter, all_priors, nb_cells, quantiles = dlg.getInputMCMC()
+                self.computeEngine.computeMCMC(nb_iter, all_priors, nb_cells, quantiles)
             else:
                 #Direct Model
                 self.computeEngine.DirectModelFinished.connect(self.update_all_models)

@@ -45,6 +45,8 @@ Warning: Discrepancy
 
 Warning: Duplicate
 -Compute and WidgetPoint for cleaned measures
+-In Compute, saveLayers and saveLayersAndParams are duplicates
+-saveMCMCResults and saveDirectResults are almost copies, except for the method called (get_temps_solve or get_temps_MCMC)
 
 TODO:
 - REWORK POINT/SAMPLINGPOINT INTERACTION
