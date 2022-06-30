@@ -54,6 +54,9 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         self.waterflux_model = WaterFluxModel([])
         self.paramsdistr_model = ParamsDistributionModel([])
 
+        self.graphpress = PressureView(self.pressuremodel)
+        self.graphtemp = TemperatureView(self.tempmodel)
+        self.waterflux_view = WaterFluxView(self.waterflux_model)
         self.advective_view = AdvectiveFlowView(self.fluxes_model)
         self.conductive_view = ConductiveFlowView(self.fluxes_model)
         self.totalflux_view = TotalFlowView(self.fluxes_model)
@@ -64,6 +67,14 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         self.conductivity_view = ConductivityView(self.paramsdistr_model)
         self.porosity_view = PorosityView(self.paramsdistr_model)
         self.capacity_view = CapacityView(self.paramsdistr_model)
+
+        #Link the views showing the pressure and temperature measures to the correct layout. 
+        toolbar = NavigationToolbar(self.graphpress, self)
+        self.pressVBox.addWidget(self.graphpress)
+        self.pressVBox.addWidget(toolbar)
+        toolbar = NavigationToolbar(self.graphtemp, self)
+        self.tempVBox.addWidget(self.graphtemp)
+        self.tempVBox.addWidget(toolbar)
 
         self.splitterHorizLeft.splitterMoved.connect(self.adjustRightSplitter)
         self.splitterHorizRight.splitterMoved.connect(self.adjustLeftSplitter)
@@ -87,8 +98,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         self.setupComboBoxLayers()
         self.setupCheckboxesQuantiles()
         self.setPressureAndTemperatureModels()
-        self.setDataPlots()
-        self.setResultsPlots()
+        self.updateAllModels()
     
     def getOrCreatePointID(self):
         """
@@ -286,7 +296,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         if res == QtWidgets.QDialog.Accepted:
             self.deleteComputations()
             self.deleteCleanedAndDates()
-            self.update_all_models()
+            self.refreshModels()
 
     def cleanup(self):
         dlg = DialogCleanupMain(self.con,self.samplingPoint, self.samplingPointID)
@@ -322,7 +332,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
                         query_measures.exec()
                 self.con.commit()
 
-                self.update_all_models()
+                self.refreshModels()
 
 
     def compute(self):
@@ -335,64 +345,14 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
             self.deleteComputations()
             if dlg.computationIsMCMC():
                 #MCMC
-                self.computeEngine.MCMCFinished.connect(self.update_all_models)
+                self.computeEngine.MCMCFinished.connect(self.refreshModels)
                 nb_iter, all_priors, nb_cells, quantiles = dlg.getInputMCMC()
                 self.computeEngine.computeMCMC(nb_iter, all_priors, nb_cells, quantiles)
             else:
                 #Direct Model
-                self.computeEngine.DirectModelFinished.connect(self.update_all_models)
+                self.computeEngine.DirectModelFinished.connect(self.refreshModels)
                 params, nb_cells = dlg.getInputDirectModel()
                 self.computeEngine.computeDirectModel(params, nb_cells)
-
-    def onMCMCFinished(self):
-        #Needs to be adapted!
-        return
-
-        self.setDataFrames('MCMC')
-
-        self.comboBoxDepth.clear()
-        for depth in self.dfdepths.values.tolist():
-            self.comboBoxDepth.insertItem(len(self.dfdepths.values.tolist()), str(depth))
-
-        if self.MCMCiscomputed :
-            print('MCMC is computed')
-            self.graphwaterMCMC.update_(self.dfwater)
-            self.graphsolvedtempMCMC.update_(self.dfsolvedtemp, self.dfdepths)
-            self.graphintertempMCMC.update_(self.dfintertemp, self.dfdepths, nb_quantiles=self.nb_quantiles)
-            self.graphfluxesMCMC.update_(self.dfadvec, self.dfconduc, self.dftot, self.dfdepths)
-            self.histos.update_(self.dfallparams)
-            self.parapluiesMCMC.update_(self.dfsolvedtemp, self.dfdepths)
-            self.BestParamsModel.setData(self.dfbestparams)
-            print("Model successfully updated !")
-
-        else :
-
-            #Flux d'eau
-            clearLayout(self.vboxwaterMCMC)
-            self.plotWaterFlowsMCMC(self.dfwater)
-
-            #Flux d'énergie
-            clearLayout(self.vboxfluxesMCMC)
-            self.plotFriseHeatFluxesMCMC(self.dfadvec, self.dfconduc, self.dftot, self.dfdepths)
-
-            #Frise de température
-            clearLayout(self.vboxfrisetempMCMC)
-            self.plotFriseTempMCMC(self.dfsolvedtemp, self.dfdepths)
-            #Parapluies
-            clearLayout(self.vboxsolvedtempMCMC)
-            self.plotParapluiesMCMC(self.dfsolvedtemp, self.dfdepths)
-            #Température à l'interface
-            clearLayout(self.vboxintertempMCMC)
-            self.plotInterfaceTempMCMC(self.dfintertemp, self.dfdepths, self.nb_quantiles)
-
-            #Histogrammes
-            clearLayout(self.vboxhistos)
-            self.histos(self.dfallparams)
-            #Les meilleurs paramètres
-            self.setBestParamsModel(self.dfbestparams)
-
-            self.MCMCiscomputed = True
-            print("Model successfully created !")
 
     def refreshbins(self):
         try:
@@ -411,183 +371,104 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         except Exception:
             #The views don't exist yet: computations have not been made. The button should be inactive
             pass
+    
+    def clearAllLayouts(self):
+        """
+        Clear all vertical layouts in the widget point window except for the "Data array and plots" tab, as these should always contain a view (either raw or cleaned measures).
+        """
+        layouts = [self.waterFluxVBox, self.advectiveFluxVBox, self.totalFluxVBox, self.conductiveFluxVBox, self.topRightVLayout, self.botLeftVLayout, self.botRightVLayout, self.log10KVBox, self.conductivityVBox, self.porosityVBox, self.capacityVBox]
+        for layout in layouts:
+            #Taken from Stack Overflow
+            for i in reversed(range(layout.count())):
+                layout.itemAt(i).widget().setParent(None)
 
-    def setDataPlots(self):
-        #Pressure :
+    def linkLayoutsNoComputations(self):
+        """
+        Fill all vertical layouts with a message saying no model has been computed, except for those "Data array and plots" tab as these should always contain a view (either raw or cleaned measures).
+        """
+        layouts = [self.waterFluxVBox, self.advectiveFluxVBox, self.totalFluxVBox, self.conductiveFluxVBox, self.topRightVLayout, self.botLeftVLayout, self.botRightVLayout, self.log10KVBox, self.conductivityVBox, self.porosityVBox, self.capacityVBox]
+        for layout in layouts:
+            label = QtWidgets.QLabel("No model has been computed yet")
+            layout.addWidget(label, QtCore.Qt.AlignCenter)
+    
+    def linkViewsLayouts(self):
+        """
+        Fill all the vertical layouts with the correct view.
+        """
+        layoutsviews = [[self.waterFluxVBox,self.waterflux_view],
+                        [self.advectiveFluxVBox,self.advective_view],
+                        [self.conductiveFluxVBox, self.conductive_view],
+                        [self.totalFluxVBox, self.totalflux_view],
+                        [self.topRightVLayout, self.depth_view],
+                        [self.botLeftVLayout, self.umbrella_view],
+                        [self.botRightVLayout, self.tempmap_view],
+                        [self.log10KVBox, self.logk_view],
+                        [self.conductivityVBox, self.conductivity_view],
+                        [self.porosityVBox, self.porosity_view],
+                        [self.capacityVBox, self.capacity_view]]
+
+        for layout, view in layoutsviews:
+            toolbar = NavigationToolbar(view, self)
+            layout.addWidget(view)
+            layout.addWidget(toolbar)
+
+    def updateAllModels(self):
+        """
+        Update all the models displaying results by refreshing the queries in the database.
+        """
+        #Always refresh the measures
+        #Pressure measures
         if self.checkBoxRawData.isChecked():
             select_pressure = self.build_raw_measures(field ="Pressure")
         else:
             select_pressure = self.build_cleaned_measures(field ="Pressure")
-        self.pressuremodel = PressureDataModel([select_pressure])
-        self.graphpress = PressureView(self.pressuremodel, time_dependent=True,ylabel="Pression différentielle (m)")
-        self.toolbarPress = NavigationToolbar(self.graphpress, self)
-        vbox = QtWidgets.QVBoxLayout()
-        self.groupBoxPress.setLayout(vbox)
-        vbox.addWidget(self.graphpress)
-        vbox.addWidget(self.toolbarPress)
-        
+        self.pressuremodel.new_queries([select_pressure])
         self.pressuremodel.exec()
-      
-        #Temperatures :
+        #Temperature measures
         if self.checkBoxRawData.isChecked():
             select_temp = self.build_raw_measures(field ="Temp")
         else:
             select_temp = self.build_cleaned_measures(field ="Temp")
-        self.tempmodel = TemperatureDataModel([select_temp])
-        self.graphtemp = TemperatureView(self.tempmodel, time_dependent=True,ylabel="Température en K")
-        self.toolbarTemp = NavigationToolbar(self.graphtemp, self)
-        vbox2 = QtWidgets.QVBoxLayout()
-        self.groupBoxTemp.setLayout(vbox2)
-        vbox2.addWidget(self.graphtemp)
-        vbox2.addWidget(self.toolbarTemp)
-
+        self.tempmodel.new_queries([select_temp])
         self.tempmodel.exec()
-      
-    
-    def setResultsPlots(self):
-        """
-        Display the results in the corresponding tabs.
-        """
+        
+        self.clearAllLayouts()
         if self.computation_type() is not None:
-            self.plotFluxes()
-            self.plotTemperatureMap()
-            self.plotHistos()  
+            #Plot the heat fluxes
+            select_heatfluxes= self.build_result_queries(result_type="2DMap",option="HeatFlows") #This is a list
+            select_depths = self.build_depths()
+            select_dates = self.build_dates()
+            self.fluxes_model.new_queries([select_dates,select_depths]+select_heatfluxes)
+            self.fluxes_model.exec()
+
+            #Plot the water fluxes
+            select_waterflux= self.build_result_queries(result_type="WaterFlux") #This is already a list
+            self.waterflux_model.new_queries(select_waterflux)
+            self.waterflux_model.exec()
+
+            #Plot the temperatures
+            select_tempmap = self.build_result_queries(result_type="2DMap",option="Temperature") #This is a list of temperatures for all quantiles
+            select_depths = self.build_depths()
+            select_dates = self.build_dates()
+            self.tempmap_model.new_queries([select_dates,select_depths]+select_tempmap)
+        
+            sel_depth = self.build_thermo_depth(1)
+            sel_depth.exec()
+            sel_depth.next()
+            options = [sel_depth.value(0), [0]] #First thermometer, direct model
+            self.depth_view.update_options(options)
+            self.tempmap_model.exec()
+
+            #Histogramms
+            select_params = self.build_params_distribution(self.comboBoxSelectLayer.currentText())
+            self.paramsdistr_model.new_queries([select_params])
+            self.paramsdistr_model.exec()
+
+            #Show the views in the corresponding layouts
+            self.linkViewsLayouts()
         else:
-            # vbox = QtWidgets.QVBoxLayout()
-            vbox = QtWidgets.QVBoxLayout()
-            vbox.addWidget(QtWidgets.QLabel("No model has been computed yet"),QtCore.Qt.AlignCenter)
-            self.groupBoxWaterFlux.setLayout(vbox)
-            vbox = QtWidgets.QVBoxLayout()
-            vbox.addWidget(QtWidgets.QLabel("No model has been computed yet"),QtCore.Qt.AlignCenter)
-            self.groupBoxAdvectiveFlux.setLayout(vbox)
-            vbox = QtWidgets.QVBoxLayout()
-            vbox.addWidget(QtWidgets.QLabel("No model has been computed yet"),QtCore.Qt.AlignCenter)
-            self.groupBoxTotalFlux.setLayout(vbox)
-            vbox = QtWidgets.QVBoxLayout()
-            vbox.addWidget(QtWidgets.QLabel("No model has been computed yet"),QtCore.Qt.AlignCenter)
-            self.groupBoxConductiveFlux.setLayout(vbox)
-            self.botRightVLayout.addWidget(QtWidgets.QLabel("No model has been computed yet"),QtCore.Qt.AlignCenter)
-            self.botLeftVLayout.addWidget(QtWidgets.QLabel("No model has been computed yet"),QtCore.Qt.AlignCenter)
-            self.topRightVLayout.addWidget(QtWidgets.QLabel("No model has been computed yet"),QtCore.Qt.AlignCenter)
-            vbox = QtWidgets.QVBoxLayout()
-            vbox.addWidget(QtWidgets.QLabel("No model has been computed yet"),QtCore.Qt.AlignCenter)
-            self.groupBoxLog10K.setLayout(vbox)
-            vbox = QtWidgets.QVBoxLayout()
-            vbox.addWidget(QtWidgets.QLabel("No model has been computed yet"),QtCore.Qt.AlignCenter)
-            self.groupBoxConductivity.setLayout(vbox)
-            vbox = QtWidgets.QVBoxLayout()
-            vbox.addWidget(QtWidgets.QLabel("No model has been computed yet"),QtCore.Qt.AlignCenter)
-            self.groupBoxPorosity.setLayout(vbox)
-            vbox = QtWidgets.QVBoxLayout()
-            vbox.addWidget(QtWidgets.QLabel("No model has been computed yet"),QtCore.Qt.AlignCenter)
-            self.groupBoxCapacity.setLayout(vbox)        
-
-    def plotTemperatureMap(self):
-        select_tempmap = self.build_result_queries(result_type="2DMap",option="Temperature") #This is a list of temperatures for all quantiles
-        select_depths = self.build_depths()
-        select_dates = self.build_dates()
-        self.tempmap_model = SolvedTemperatureModel([select_dates,select_depths]+select_tempmap)
-        self.umbrella_view = UmbrellaView(self.tempmap_model)
-        self.tempmap_view = TempMapView(self.tempmap_model)
-        
-        sel_depth = self.build_thermo_depth(1)
-        sel_depth.exec()
-        sel_depth.next()
-        options = [sel_depth.value(0), [0]] #First thermometer, direct model
-        self.depth_view = TempDepthView(self.tempmap_model, options=options)
-        
-        self.toolbarUmbrella = NavigationToolbar(self.umbrella_view, self) 
-        self.botLeftVLayout.addWidget(self.umbrella_view)
-        self.botLeftVLayout.addWidget(self.toolbarUmbrella)
-
-        self.toolbarTempMap = NavigationToolbar(self.tempmap_view, self)
-        self.botRightVLayout.addWidget(self.tempmap_view)
-        self.botRightVLayout.addWidget(self.toolbarTempMap)
-
-        self.toolbarDepth = NavigationToolbar(self.depth_view, self)
-        self.topRightVLayout.addWidget(self.depth_view)
-        self.topRightVLayout.addWidget(self.toolbarDepth)
-
-        self.tempmap_model.exec()
-
-    def plotFluxes(self):
-        #Plot the heat fluxes
-        select_heatfluxes= self.build_result_queries(result_type="2DMap",option="HeatFlows") #This is a list
-        select_depths = self.build_depths()
-        select_dates = self.build_dates()
-    
-        self.fluxes_model = HeatFluxesModel([select_dates,select_depths]+select_heatfluxes)
-        self.advective_view = AdvectiveFlowView(self.fluxes_model)
-        self.conductive_view = ConductiveFlowView(self.fluxes_model)
-        self.totalflux_view = TotalFlowView(self.fluxes_model)
-
-        self.toolbarAdvective = NavigationToolbar(self.advective_view, self)
-        vbox = QtWidgets.QVBoxLayout()
-        self.groupBoxAdvectiveFlux.setLayout(vbox)
-        vbox.addWidget(self.advective_view)
-        vbox.addWidget(self.toolbarAdvective)
-
-        self.toolbarConductive = NavigationToolbar(self.conductive_view, self)
-        vbox = QtWidgets.QVBoxLayout()
-        self.groupBoxConductiveFlux.setLayout(vbox)
-        vbox.addWidget(self.conductive_view)
-        vbox.addWidget(self.toolbarConductive)
-
-        self.toolbarTotalFlux = NavigationToolbar(self.totalflux_view, self)
-        vbox = QtWidgets.QVBoxLayout()
-        self.groupBoxTotalFlux.setLayout(vbox)
-        vbox.addWidget(self.totalflux_view)
-        vbox.addWidget(self.toolbarTotalFlux)
-
-        self.fluxes_model.exec()
-
-        #Plot the water fluxes
-        select_waterflux= self.build_result_queries(result_type="WaterFlux") #This is already a list
-        self.waterflux_model = WaterFluxModel(select_waterflux)
-        self.waterflux_view = WaterFluxView(self.waterflux_model)
-        
-        self.toolbarWaterFlux = NavigationToolbar(self.waterflux_view, self)
-        vbox = QtWidgets.QVBoxLayout()
-        self.groupBoxWaterFlux.setLayout(vbox)
-        vbox.addWidget(self.waterflux_view)
-        vbox.addWidget(self.toolbarWaterFlux)
-
-        self.waterflux_model.exec()
-    
-    def plotHistos(self):
-        select_params = self.build_params_distribution(self.comboBoxSelectLayer.currentText())
-        self.paramsdistr_model = ParamsDistributionModel([select_params])
-
-        self.logk_view = Log10KView(self.paramsdistr_model)
-        self.conductivity_view = ConductivityView(self.paramsdistr_model)
-        self.porosity_view = PorosityView(self.paramsdistr_model)
-        self.capacity_view = CapacityView(self.paramsdistr_model)
-
-        self.toolbarLog10k = NavigationToolbar(self.logk_view, self)
-        vbox = QtWidgets.QVBoxLayout()
-        self.groupBoxLog10K.setLayout(vbox)
-        vbox.addWidget(self.logk_view)
-        vbox.addWidget(self.toolbarLog10k)
-
-        self.toolbarConductivity = NavigationToolbar(self.conductivity_view, self)
-        vbox = QtWidgets.QVBoxLayout()
-        self.groupBoxConductivity.setLayout(vbox)
-        vbox.addWidget(self.conductivity_view)
-        vbox.addWidget(self.toolbarConductivity)
-
-        self.toolbarPorosity = NavigationToolbar(self.porosity_view, self)
-        vbox = QtWidgets.QVBoxLayout()
-        self.groupBoxPorosity.setLayout(vbox)
-        vbox.addWidget(self.porosity_view)
-        vbox.addWidget(self.toolbarPorosity)
-
-        self.toolbarCapacity = NavigationToolbar(self.capacity_view, self)
-        vbox = QtWidgets.QVBoxLayout()
-        self.groupBoxCapacity.setLayout(vbox)
-        vbox.addWidget(self.capacity_view)
-        vbox.addWidget(self.toolbarCapacity)
-
-        self.paramsdistr_model.exec()
+            self.linkLayoutsNoComputations()
+       
 
     def adjustRightSplitter(self, pos : int, index : int):
         """
@@ -604,45 +485,15 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
     def label_update(self):
         self.labelBins.setText(str(self.horizontalSliderBins.value()))
     
-    def update_all_models(self):
+    def refreshModels(self):
         """
-        Update all existing models. This should only be called after reset, cleanup or compute.
+        Refresh all existing models. This is mostly redundant with updateAllModels: this function should be fused with updateAllModels when making the clear separation backend/frontend.
         """
-
-        self.setInfoTab()
-
         self.comboBoxSelectLayer.clear()
         self.setupComboBoxLayers()
 
         self.setPressureAndTemperatureModels()
-    
-        if self.checkBoxRawData.isChecked():
-            select_pressure = self.build_raw_measures(field ="Pressure")
-            select_temp = self.build_raw_measures(field ="Temp")
-        else:
-            select_pressure = self.build_cleaned_measures(field ="Pressure")
-            select_temp = self.build_cleaned_measures(field ="Temp")
-        self.pressuremodel.new_queries([select_pressure])
-        self.tempmodel.new_queries([select_temp])
-
-        select_tempmap = self.build_result_queries(result_type="2DMap",option="Temperature") #This is a list of temperatures for all quantiles
-        select_depths = self.build_depths()
-        select_dates = self.build_dates()
-        self.tempmap_model.new_queries([select_dates,select_depths]+select_tempmap)
-
-        select_heatfluxes= self.build_result_queries(result_type="2DMap",option="HeatFlows") #This is a list
-        select_depths = self.build_depths()
-        select_dates = self.build_dates()
-        self.fluxes_model.new_queries([select_dates,select_depths]+select_heatfluxes)
-
-        select_waterflux= self.build_result_queries(result_type="WaterFlux") #This is already a list
-        self.waterflux_model.new_queries(select_waterflux)
-
-        self.pressuremodel.exec()
-        self.tempmodel.exec()
-        self.tempmap_model.exec()
-        self.fluxes_model.exec()
-        self.waterflux_model.exec()
+        self.updateAllModels()
     
     def deleteComputations(self):
         """
@@ -658,6 +509,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         deleteTableQuery.exec(f'DELETE FROM Quantiles WHERE Quantiles.PointKey=(SELECT Point.ID FROM Point WHERE Point.ID = {self.pointID})')
         deleteTableQuery.exec(f'DELETE FROM Depth WHERE Depth.PointKey=(SELECT Point.ID FROM Point WHERE Point.ID = {self.pointID})')
         deleteTableQuery.exec(f'DELETE FROM Layer WHERE Layer.PointKey=(SELECT Point.ID FROM Point WHERE Point.ID = {self.pointID})')
+        deleteTableQuery.exec(f'DELETE FROM Quantile WHERE Quantile.PointKey=(SELECT Point.ID FROM Point WHERE Point.ID = {self.pointID})')
         deleteTableQuery.exec(f"""UPDATE Point
                         SET IncertK = NULL,
                             IncertLambda = NULL,
@@ -723,7 +575,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
 
         infos = QSqlQuery(self.con)
         infos.prepare(f"""
-            SELECT SamplingPoint.Name, SamplingPoint.Setup,SamplingPoint.LastTransfer,SamplingPoint.Offset, SamplingPoint.RiverBed FROM SamplingPoint 
+            SELECT SamplingPoint.Name, SamplingPoint.Setup, SamplingPoint.LastTransfer, SamplingPoint.Offset, SamplingPoint.RiverBed FROM SamplingPoint 
             WHERE SamplingPoint.ID = '{self.samplingPointID}' 
         """)
         return paths, infos

@@ -49,6 +49,7 @@ Warning: Duplicate
 -saveMCMCResults and saveDirectResults are almost copies, except for the method called (get_temps_solve or get_temps_MCMC)
 
 TODO:
+-More intelligent layout/views management when no computation was made: we shouldn't be adding a widget with "No computations", as this would require to rebind everytime the views to the layouts.
 - REWORK POINT/SAMPLINGPOINT INTERACTION
 -Tooltips! Especially compute window
 -What should I do with the default script, currently called sample_text.txt? Where to put it? Default value when creating a point -> when creating a Database, it should be in the Script folder

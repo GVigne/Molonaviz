@@ -164,7 +164,7 @@ class PressureView(MoloView1D):
     """
     Concrete class to display the Pressure in "Data arrays and plots" tab.
     """
-    def __init__(self, molomodel: MoloModel, time_dependent=False, title="", ylabel="", xlabel=""):
+    def __init__(self, molomodel: MoloModel, time_dependent=True, title="", ylabel="Pression différentielle (m)", xlabel=""):
         super().__init__(molomodel, time_dependent, title, ylabel, xlabel)
     
     def retrieve_data(self):
@@ -175,7 +175,7 @@ class TemperatureView(MoloView1D):
     """
     Concrete class to display the Pressure in "Data arrays and plots" tab.
     """
-    def __init__(self, molomodel: MoloModel, time_dependent=False, title="", ylabel="", xlabel=""):
+    def __init__(self, molomodel: MoloModel, time_dependent=True, title="", ylabel="Temperature (K)", xlabel=""):
         super().__init__(molomodel, time_dependent, title, ylabel, xlabel)
     
     def retrieve_data(self):
