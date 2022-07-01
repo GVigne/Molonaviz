@@ -161,6 +161,9 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         self.paramsModel = QSqlQueryModel()
         self.paramsModel.setQuery(select_params)
         self.tableViewParams.setModel(self.paramsModel)
+
+        #Resize the table view so it looks pretty
+        self.tableViewParams.resizeColumnsToContents()
         
         try:
             select_params = self.build_params_distribution(layer)
@@ -608,7 +611,7 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         """
         query = QSqlQuery(self.con)
         query.prepare(f"""
-            SELECT BestParameters.Permeability, BestParameters.ThermConduct, BestParameters.Porosity FROM BestParameters 
+            SELECT BestParameters.Permeability, BestParameters.ThermConduct, BestParameters.Porosity, BestParameters.Capacity FROM BestParameters 
             JOIN Layer ON BestParameters.Layer = Layer.ID 
             WHERE Layer.Depth = {depth}
         """)

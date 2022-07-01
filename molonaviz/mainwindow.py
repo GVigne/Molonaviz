@@ -246,6 +246,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         point_name = tryOpenPoint(self.con, self.currentStudy.ID)
         if point_name: #study_name is not an empty string: we should open the corresponding Point.
             self.currentStudy.openPoint(point_name, self.mdiArea)
+            self.switchToSubWindowView()
     
     def openPointFromDock(self):
         """
@@ -259,7 +260,8 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
             pointName = self.treeViewDataPoints.selectedIndexes()[0].parent().data(QtCore.Qt.UserRole)
 
         self.currentStudy.openPoint(pointName, self.mdiArea)
-    
+        self.switchToSubWindowView()
+
     def switchToTabbedView(self):
         """
         Rearrange the subwindows to display them as tabs.
@@ -268,6 +270,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.actionSwitchToTabbedView.setEnabled(False) #Disable this action to show the user it is the display mode currently being used.
         self.actionSwitchToSubWindowView.setEnabled(True)
         self.actionSwitchToCascadeView.setEnabled(True)
+
 
     def switchToSubWindowView(self):
         """
@@ -282,13 +285,12 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
     def switchToCascadeView(self):
         """
         Rearrange the subwindows to display them in a cascade.
-        """
+        """        
         self.mdiArea.setViewMode(QtWidgets.QMdiArea.SubWindowView)
         self.mdiArea.cascadeSubWindows()
         self.actionSwitchToTabbedView.setEnabled(True)
         self.actionSwitchToSubWindowView.setEnabled(True)
         self.actionSwitchToCascadeView.setEnabled(False) #Disable this action to show the user it is the display mode currently being used.
-    
     
     def changeDockPointsStatus(self):
         """
