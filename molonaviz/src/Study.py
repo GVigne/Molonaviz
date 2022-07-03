@@ -2,7 +2,7 @@ from PyQt5.QtSql import QSqlQuery, QSqlDatabase #QSqlDatabase in used only for t
 from PyQt5 import QtWidgets
 from src.Laboratory import Lab
 from src.Containers import MoloQtList, Point
-from utils.utils import inputToDatabaseDate,convertDates
+from utils.utils import convertDates
 from utils.utilsQueries import build_study_id, build_point_id
 import shutil, os
 import pandas as pd

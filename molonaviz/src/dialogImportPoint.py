@@ -212,8 +212,8 @@ class DialogImportPoint(QtWidgets.QDialog, From_DialogImportPoint):
         """
         try:
             df = pd.read_csv(filePath)
-            if df.shape[1] < 3 : # Date + Voltage + Temperature
-                print(f"Too few columns in pressure file {os.path.basename(filePath)}. This file will be ignored.")
+            if df.shape[1] != 3 : # Date + Voltage + Temperature
+                print(f"The number of columns in pressure file {os.path.basename(filePath)} doesn't match. This file will be ignored.")
                 return False
             if df.dtypes[1]!=float64 or df.dtypes[2]!=float64: #Voltage and Temperature must be floats
                 print(f"The Voltage and Temperature columns are not floats in file {os.path.basename(filePath)}. This file will be ignored.")
@@ -230,8 +230,8 @@ class DialogImportPoint(QtWidgets.QDialog, From_DialogImportPoint):
         """
         try:
             df = pd.read_csv(filePath)
-            if df.shape[1] < 5 : #Date + 4 Temperatures
-                print(f"Too few columns in temperature file {os.path.basename(filePath)}. This file will be ignored.")
+            if df.shape[1] != 5 : #Date + 4 Temperatures
+                print(f"The number of columns in temperature file {os.path.basename(filePath)} doesn't match. This file will be ignored.")
                 return False
             if df.dtypes[1]!=float64 or df.dtypes[2]!=float64 or df.dtypes[3]!=float64 or df.dtypes[4]!=float64: #the 4 temperatures must be floats
                 print(f"The Temperature columns are not floats in file {os.path.basename(filePath)}. This file will be ignored.")

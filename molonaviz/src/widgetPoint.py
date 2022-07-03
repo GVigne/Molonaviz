@@ -4,6 +4,7 @@
 # from usefulfonctions import *
 
 from math import isnan
+from numpy import nan
 import os
 import csv
 from PyQt5 import QtWidgets, QtCore, uic
@@ -18,7 +19,7 @@ from src.MoloView import PressureView, TemperatureView,UmbrellaView,TempDepthVie
 from src.dialogCleanupMain import DialogCleanupMain
 from src.dialogConfirm import DialogConfirm
 from src.dialogCompute import DialogCompute
-from utils.utils import inputToDatabaseDate
+from utils.utils import convertDates
 from utils.utilsQueries import build_max_depth
 
 From_WidgetPoint = uic.loadUiType(os.path.join(os.path.dirname(__file__), "..", "ui", "widgetPoint.ui"))[0]
@@ -320,7 +321,10 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
                 self.deleteComputations()
                 self.deleteCleanedAndDates()
 
-                dlg.df_cleaned["date"] = dlg.df_cleaned["date"].apply(inputToDatabaseDate) #Convert the dates to database format
+                dlg.df_cleaned["date"].replace('', nan, inplace = True)
+                dlg.df_cleaned.dropna(subset = ["date"], inplace = True)
+                convertDates(dlg.df_cleaned) #Convert the dates to database format
+                dlg.df_cleaned["date"] = dlg.df_cleaned["date"].dt.strftime("%Y/%m/%d %H:%M:%S")
 
                 query_dates = self.build_insert_date()
                 query_dates.bindValue(":PointKey", self.pointID)
