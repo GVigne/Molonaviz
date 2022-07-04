@@ -191,16 +191,16 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
                 quantile_checkbox = QtWidgets.QCheckBox(text_checkbox)
                 quantile_checkbox.stateChanged.connect(self.refreshTempDepthView)
                 self.topLeftVLayout.addWidget(quantile_checkbox,i,0)
-                self.topLeftVLayout.addWidget(QtWidgets.QLabel(f"RMSE: {select_quantiles.value(0)} °C"),i,1)
+                self.topLeftVLayout.addWidget(QtWidgets.QLabel(f"RMSE: {select_quantiles.value(0):.2f} °C"),i,1)
                 i +=1
 
         select_RMSE_therm = self.build_therm_RMSE()
         select_RMSE_therm.exec()
         select_RMSE_therm.next()
         #Display the RMSE for each thermometer or 0 if it has not been computed yet (ie select_RMSE_therm has only None values)
-        self.labelRMSETherm1.setText(f"RMSE: {select_RMSE_therm.value(0) if select_RMSE_therm.value(0) else 0} °C")
-        self.labelRMSETherm2.setText(f"RMSE: {select_RMSE_therm.value(1) if select_RMSE_therm.value(1) else 0} °C")
-        self.labelRMSETherm3.setText(f"RMSE: {select_RMSE_therm.value(2) if select_RMSE_therm.value(2) else 0} °C")
+        self.labelRMSETherm1.setText(f"RMSE: {select_RMSE_therm.value(0) if select_RMSE_therm.value(0) else 0:.2f} °C")
+        self.labelRMSETherm2.setText(f"RMSE: {select_RMSE_therm.value(1) if select_RMSE_therm.value(1) else 0:.2f} °C")
+        self.labelRMSETherm3.setText(f"RMSE: {select_RMSE_therm.value(2) if select_RMSE_therm.value(2) else 0:.2f} °C")
 
     def exportMeasures(self):
         """
@@ -233,8 +233,8 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         """
         #Needs to be adapted!
         quantiles = []
-        for i in range (self.topLeftVLayout.count()):
-            checkbox = self.topLeftVLayout.itemAt(i).widget()
+        for i in range (self.quantilesLayout.count()):
+            checkbox = self.quantilesLayout.itemAt(i).widget()
             if isinstance(checkbox, QtWidgets.QCheckBox):
                 if checkbox.isChecked():
                     txt = checkbox.text()

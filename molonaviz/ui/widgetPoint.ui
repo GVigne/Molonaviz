@@ -136,7 +136,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="tabInfos">
       <attribute name="title">
@@ -489,12 +489,12 @@
                      </rect>
                     </property>
                     <layout class="QGridLayout" name="gridLayout_6">
-                     <item row="0" column="0">
-                      <layout class="QGridLayout" name="gridLayoutQuantiles">
-                       <item row="0" column="0">
+                     <item row="1" column="0">
+                      <layout class="QVBoxLayout" name="quantilesLayout">
+                       <item>
                         <widget class="QCheckBox" name="checkBoxDirectModel">
                          <property name="text">
-                          <string>Modèle direct</string>
+                          <string>Direct model</string>
                          </property>
                          <property name="checked">
                           <bool>true</bool>

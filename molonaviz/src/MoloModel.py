@@ -1,6 +1,7 @@
 from PyQt5 import QtCore
 from PyQt5.QtCore import QObject
 import numpy as np
+from utils.utils import build_picture
 
 
 class MoloModel(QObject):
@@ -179,11 +180,7 @@ class SolvedTemperatureModel(MoloModel):
                 quantile = query.value(1)
                 while query.next():
                     array_data.append(np.float64(query.value(0)))
-                array_data = np.array(array_data)
-                nb_elems = array_data.shape[0]
-                y = len(self.depths) #100 active cells
-                x = nb_elems//y
-                array_data = array_data.reshape(x,y)#Now this is the color map with y-axis being the depth and x-axis being the time
+                array_data = build_picture(np.array(array_data), nb_cells= len(self.depths))
                 self.data[quantile] = array_data
         except Exception:
             #Empty query or invalid query: then revert any changes done. The model is empty: nothing will be displayed.
@@ -217,7 +214,7 @@ class SolvedTemperatureModel(MoloModel):
             result = {}
             for i in range(nb_dates):
                 date = self.dates[i*step]
-                result[date] = self.data[0][np.where(self.dates==date)[0][0],:]
+                result[date] = self.data[0][:,np.where(self.dates==date)[0][0]]
             return self.depths,result
         except Exception:
             return np.array([]), {}
@@ -227,7 +224,7 @@ class SolvedTemperatureModel(MoloModel):
         Return the temperatures for a given depth and quantile.
         """
         try:
-            return self.data[quantile][:,np.where(self.depths == depth)[0][0]]
+            return self.data[quantile][np.where(self.depths==depth)[0][0],:]
         except Exception:
             return np.array([])
     
@@ -259,21 +256,12 @@ class HeatFluxesModel(MoloModel):
                 self.array_data.append([np.float64(self.queries[2].value(1)),np.float64(self.queries[2].value(2)),np.float64(self.queries[2].value(3))]) #Advective, conductive, total
             self.array_data = np.array(self.array_data)
 
-            self.advective = self.build_picture(self.array_data[:,0],nb_cells =len(self.depths))
-            self.conductive = self.build_picture(self.array_data[:,1],nb_cells =len(self.depths))
-            self.total = self.build_picture(self.array_data[:,2],nb_cells =len(self.depths))
+            self.advective = build_picture(self.array_data[:,0],nb_cells =len(self.depths))
+            self.conductive = build_picture(self.array_data[:,1],nb_cells =len(self.depths))
+            self.total = build_picture(self.array_data[:,2],nb_cells =len(self.depths))
         except Exception:
             #Empty query or invalid query: then revert any changes done. The model is empty: nothing will be displayed.
             self.reset_data()
-
-    def build_picture(self,flow, nb_cells=100):
-        """
-        Given a 1D numpy array, convert it into a rectangular picture. Used to convert data from the database into a 2D map with respect to the number of cells. 
-        """
-        nb_elems = flow.shape[0]
-        y = nb_cells #One hundred cells
-        x = nb_elems//y
-        return flow.reshape(x,y)#Now this is the color map with y-axis being the depth and x-axis being the time
     
     def get_depths(self):
         return np.array(self.depths)

@@ -135,3 +135,12 @@ def date_to_mdates(dates : list[str]):
     Given a list of dates in database format (str), return the corresponding list of matplotlib dates.
     """
     return [mdates.date2num(databaseDateToDatetime(date)) for date in dates]
+
+def build_picture(oneDArray : np.array, nb_cells=100):
+    """
+    Given a 1D numpy array, convert it into a rectangular picture. nb_cells corresponds to the number of elements per column. Used to convert data from the database into a 2D map with respect to the number of cells. 
+    """
+    nb_elems = oneDArray.shape[0] #Total number of elements
+    y = nb_cells #One hundred cells
+    x = nb_elems//y
+    return oneDArray.reshape(x,y).T#Now this is the color map with y-axis being the depth (number of cells) and x-axis being the time

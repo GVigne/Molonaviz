@@ -451,7 +451,6 @@ class DialogCleanupMain(QtWidgets.QDialog, From_DialogCleanUpMain):
             self.df_selected.drop(self.varName()+"_sel",axis=1, inplace=True)
             self.df_selected.dropna(how="all",subset=self.varList[1:],inplace=True)
             self.df_selected.to_csv(os.path.join(self.scriptDir,f'selected_points_{self.point.name}.csv'))
-            
         self.previsualizeCleaning()
 
     def resetCleanVar(self):

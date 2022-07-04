@@ -127,7 +127,7 @@ class MoloView2D(MoloView):
             pass
 
     def plot_data(self):
-        if self.cmap.shape[0] ==len(self.x) and self.cmap.shape[1] == len(self.y):
+        if self.cmap.shape[1] ==len(self.x) and self.cmap.shape[0] == len(self.y):
             #View is not empty and should display something
             image = self.axes.imshow(self.cmap, cmap=cm.Spectral_r, aspect="auto", extent=[self.x[0], self.x[-1], float(self.y[-1]), float(self.y[0])], data="float")
             plt.colorbar(image)
@@ -227,6 +227,17 @@ class TempDepthView(MoloView1D):
         self.x = self.model.get_dates()
         for quantile in self.options[1]:
             self.y[f"Température à la profondeur {thermo_depth:.3f} m - quantile {quantile}"] = self.model.get_temp_by_date(thermo_depth, quantile)
+    
+    def plot_data(self):
+        for index, (label, data) in enumerate(self.y.items()):
+            if len(self.x) == len(data):
+                self.axes.plot(self.x, data, label=label)
+        self.axes.legend(loc='best')
+        self.axes.set_ylabel(self.ylabel)
+
+        self.axes.set_xlabel(self.xlabel)
+        self.axes.set_title(self.title)
+        self.axes.grid(True)
 
 class WaterFluxView(MoloView1D):
     """
