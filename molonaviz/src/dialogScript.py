@@ -1,7 +1,7 @@
 import os
 from PyQt5 import QtWidgets, uic
 
-From_DialogScript = uic.loadUiType(os.path.join(os.path.dirname(__file__),"..", "ui", "dialogscript.ui"))[0]
+From_DialogScript = uic.loadUiType(os.path.join(os.path.dirname(__file__),"..", "ui", "dialogScript.ui"))[0]
 
 class DialogScript(QtWidgets.QDialog, From_DialogScript):
     
