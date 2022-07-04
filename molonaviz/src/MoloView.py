@@ -227,17 +227,6 @@ class TempDepthView(MoloView1D):
         self.x = self.model.get_dates()
         for quantile in self.options[1]:
             self.y[f"Température à la profondeur {thermo_depth:.3f} m - quantile {quantile}"] = self.model.get_temp_by_date(thermo_depth, quantile)
-    
-    def plot_data(self):
-        for index, (label, data) in enumerate(self.y.items()):
-            if len(self.x) == len(data):
-                self.axes.plot(self.x, data, label=label)
-        self.axes.legend(loc='best')
-        self.axes.set_ylabel(self.ylabel)
-
-        self.axes.set_xlabel(self.xlabel)
-        self.axes.set_title(self.title)
-        self.axes.grid(True)
 
 class WaterFluxView(MoloView1D):
     """
