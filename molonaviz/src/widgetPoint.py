@@ -190,8 +190,8 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
                 text_checkbox = f"Quantile {select_quantiles.value(1)}"
                 quantile_checkbox = QtWidgets.QCheckBox(text_checkbox)
                 quantile_checkbox.stateChanged.connect(self.refreshTempDepthView)
-                self.topLeftVLayout.addWidget(quantile_checkbox,i,0)
-                self.topLeftVLayout.addWidget(QtWidgets.QLabel(f"RMSE: {select_quantiles.value(0):.2f} °C"),i,1)
+                self.quantilesLayout.addWidget(quantile_checkbox,i,0)
+                self.quantilesLayout.addWidget(QtWidgets.QLabel(f"RMSE: {select_quantiles.value(0):.2f} °C"),i,1)
                 i +=1
 
         select_RMSE_therm = self.build_therm_RMSE()

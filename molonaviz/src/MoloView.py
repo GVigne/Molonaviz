@@ -241,7 +241,7 @@ class WaterFluxView(MoloView1D):
         if all_flows != {}:
             #The model is not empty so the view should display something
             self.y = {f"Quantile {key}":value for index, (key,value) in enumerate(all_flows.items()) if key!=0}
-            self.y["Direct model"] = all_flows[0] 
+            self.y["Direct model"] = all_flows[0]
 
 class TempMapView(MoloView2D):
     """
@@ -295,7 +295,7 @@ class Log10KView(MoloViewHisto):
     """
     Concrete class to display the distribution of the -Log10K paramter
     """
-    def __init__(self, molomodel: MoloModel, bins=60, color='green', title=" (WIP) Histogramme a posteriori des -log10K"):
+    def __init__(self, molomodel: MoloModel, bins=60, color='green', title="Histogramme a posteriori des -log10K"):
         super().__init__(molomodel, bins, color, title)
     
     def retrieve_data(self):
@@ -305,7 +305,7 @@ class PorosityView(MoloViewHisto):
     """
     Concrete class to display the distribution of the porosity paramter
     """
-    def __init__(self, molomodel: MoloModel, bins=60, color='blue', title=" (WIP) Histogramme a posteriori des n"):
+    def __init__(self, molomodel: MoloModel, bins=60, color='blue', title="Histogramme a posteriori des n"):
         super().__init__(molomodel, bins, color, title)
     
     def retrieve_data(self):
@@ -315,7 +315,7 @@ class ConductivityView(MoloViewHisto):
     """
     Concrete class to display the distribution of the conductivity paramter
     """
-    def __init__(self, molomodel: MoloModel, bins=60, color='orange', title=" (WIP) Histogramme a posteriori des lambda_s"):
+    def __init__(self, molomodel: MoloModel, bins=60, color='orange', title="Histogramme a posteriori des lambda_s"):
         super().__init__(molomodel, bins, color, title)
     
     def retrieve_data(self):
@@ -325,7 +325,7 @@ class CapacityView(MoloViewHisto):
     """
     Concrete class to display the distribution of the capacity paramter
     """
-    def __init__(self, molomodel: MoloModel, bins=60, color='pink', title=" (WIP) Histogramme a posteriori des rho_s * c_s"):
+    def __init__(self, molomodel: MoloModel, bins=60, color='pink', title="Histogramme a posteriori des rho_s * c_s"):
         super().__init__(molomodel, bins, color, title)
     
     def retrieve_data(self):

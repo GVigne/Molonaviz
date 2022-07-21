@@ -66,6 +66,7 @@ TODO:
 -Add a simple dialog which can send QDialog::Accept or QDialog::Reject (confirmation dialog)
 -Update requirements
 -Distinction Point/SamplingPoint + seperate backend/frontend
+-Params distribution: print a message if the only computation made is the direct model (and not the MCMC, so there is no param distribution)
 
 query.prepare(f"""
     INSERT INTO CleanedMeasures (

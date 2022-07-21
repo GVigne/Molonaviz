@@ -171,7 +171,7 @@ class Compute(QtCore.QObject):
             insertparams.exec()
         self.con.commit()
     
-    def saveDirectModelResults(self):
+    def saveDirectModelResults(self, save_dates = True):
         """
         Query the database and save the direct model results.
         """
@@ -182,16 +182,17 @@ class Compute(QtCore.QObject):
         insertquantiles.exec()
         quantileID = insertquantiles.lastInsertId()
 
-        #Depths
         depths = self.col.get_depths_solve()
-        insertDepths = QSqlQuery(self.con)
-        insertDepths.prepare("INSERT INTO Depth (Depth,PointKey) VALUES (:Depth, :PointKey)")
-        insertDepths.bindValue(":PointKey", self.pointID)
-        self.con.transaction()
-        for depth in depths:
-            insertDepths.bindValue(":Depth", float(depth))
-            insertDepths.exec()
-        self.con.commit()
+        #Depths
+        if save_dates:
+            insertDepths = QSqlQuery(self.con)
+            insertDepths.prepare("INSERT INTO Depth (Depth,PointKey) VALUES (:Depth, :PointKey)")
+            insertDepths.bindValue(":PointKey", self.pointID)
+            self.con.transaction()
+            for depth in depths:
+                insertDepths.bindValue(":Depth", float(depth))
+                insertDepths.exec()
+            self.con.commit()
 
         #Temperature and heat flows
         fetchDate = QSqlQuery(self.con)
@@ -301,13 +302,13 @@ class Compute(QtCore.QObject):
         """
         Query the database and save the MCMC results. This is essentially a copy of saveDirectResults, except for the function called to get the results.
         """
-        #Quantile
+        #Quantiles for the MCMC
         quantiles = self.col.get_quantiles()
         depths = self.col.get_depths_mcmc()
         advecFlows = self.col.get_advec_flows_solve()
         conduFlows = self.col.get_conduc_flows_solve()
         times = self.col.get_times_mcmc()
-       
+        
         sensorsID = self.col.get_id_sensors()
         depthsensors = [depths[i-1] for i in sensorsID] #Python indexing starts a 0 but cells are indexed starting at 1
 
@@ -346,7 +347,7 @@ class Compute(QtCore.QObject):
         self.con.commit()
 
         for quantile in quantiles:
-            insertquantiles.bindValue("Quantile",quantile)
+            insertquantiles.bindValue(":Quantile",quantile)
             insertquantiles.exec()
             quantileID = insertquantiles.lastInsertId()
 
@@ -429,26 +430,29 @@ class Compute(QtCore.QObject):
             insertlayer.bindValue(":Name", name)
             insertlayer.bindValue(":Depth", zLow)
             insertlayer.exec()
+            layerID = insertlayer.lastInsertId()
 
             insertparams.bindValue(":Permeability", perm)
             insertparams.bindValue(":ThermConduct", lambda_s)
             insertparams.bindValue(":Porosity", poro)
             insertparams.bindValue(":Capacity", rhos_cs)
-            insertparams.bindValue(":Layer", insertlayer.lastInsertId())
+            insertparams.bindValue(":Layer", layerID)
             insertparams.exec()
             
             all_params_layer = all_params[current_params_index]
             for params in all_params_layer:
-                insertdistribution.bindValue(":Permeability", params[0])
-                insertdistribution.bindValue(":ThermConduct", params[2])
-                insertdistribution.bindValue(":Porosity", params[1])
-                insertdistribution.bindValue(":HeatCapacity", params[3])
-                insertdistribution.bindValue(":Layer", insertlayer.lastInsertId())
+                #Convert everything to float as the parameters are of type np.float
+                insertdistribution.bindValue(":Permeability", float(params[0]))
+                insertdistribution.bindValue(":ThermConduct", float(params[2]))
+                insertdistribution.bindValue(":Porosity", float(params[1]))
+                insertdistribution.bindValue(":HeatCapacity", float(params[3]))
+                insertdistribution.bindValue(":Layer", layerID)
                 insertdistribution.exec()
             current_params_index +=1
         self.con.commit()
 
-
+        #Direct model = quantile 0
+        self.saveDirectModelResults(save_dates = False)
 
     def build_column_infos(self):
         """

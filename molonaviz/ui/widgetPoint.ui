@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1343</width>
-    <height>967</height>
+    <width>1413</width>
+    <height>727</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -136,7 +136,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>3</number>
+      <number>4</number>
      </property>
      <widget class="QWidget" name="tabInfos">
       <attribute name="title">
@@ -198,8 +198,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>1263</width>
-                 <height>507</height>
+                 <width>102</width>
+                 <height>43</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -349,8 +349,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>1293</width>
-             <height>404</height>
+             <width>87</width>
+             <height>67</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_7">
@@ -399,8 +399,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>1293</width>
-             <height>403</height>
+             <width>87</width>
+             <height>67</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_5">
@@ -469,95 +469,67 @@
             <item>
              <layout class="QVBoxLayout" name="topLeftVLayout">
               <item>
-               <widget class="QGroupBox" name="groupBox_6">
-                <property name="title">
-                 <string/>
-                </property>
-                <layout class="QVBoxLayout" name="verticalLayout_11">
-                 <item>
-                  <widget class="QScrollArea" name="scrollArea_3">
-                   <property name="widgetResizable">
-                    <bool>true</bool>
-                   </property>
-                   <widget class="QWidget" name="scrollAreaWidgetContents_3">
-                    <property name="geometry">
-                     <rect>
-                      <x>0</x>
-                      <y>0</y>
-                      <width>1128</width>
-                      <height>573</height>
-                     </rect>
-                    </property>
-                    <layout class="QGridLayout" name="gridLayout_6">
-                     <item row="1" column="0">
-                      <layout class="QVBoxLayout" name="quantilesLayout">
-                       <item>
-                        <widget class="QCheckBox" name="checkBoxDirectModel">
-                         <property name="text">
-                          <string>Direct model</string>
-                         </property>
-                         <property name="checked">
-                          <bool>true</bool>
-                         </property>
-                        </widget>
-                       </item>
-                      </layout>
-                     </item>
-                    </layout>
-                   </widget>
-                  </widget>
-                 </item>
-                 <item>
-                  <layout class="QGridLayout" name="gridLayout_2">
-                   <item row="2" column="0">
-                    <widget class="QRadioButton" name="radioButtonTherm3">
-                     <property name="text">
-                      <string>Thermometer 3</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="1" column="0">
-                    <widget class="QRadioButton" name="radioButtonTherm2">
-                     <property name="text">
-                      <string>Thermometer 2</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="0" column="0">
-                    <widget class="QRadioButton" name="radioButtonTherm1">
-                     <property name="text">
-                      <string>Thermometer 1</string>
-                     </property>
-                     <property name="checked">
-                      <bool>true</bool>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="0" column="1">
-                    <widget class="QLabel" name="labelRMSETherm1">
-                     <property name="text">
-                      <string>RMSE: </string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="1" column="1">
-                    <widget class="QLabel" name="labelRMSETherm2">
-                     <property name="text">
-                      <string>RMSE: </string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="1">
-                    <widget class="QLabel" name="labelRMSETherm3">
-                     <property name="text">
-                      <string>RMSE: </string>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </item>
-                </layout>
-               </widget>
+               <layout class="QGridLayout" name="quantilesLayout">
+                <item row="0" column="0">
+                 <widget class="QCheckBox" name="checkBoxDirectModel">
+                  <property name="text">
+                   <string>Direct model</string>
+                  </property>
+                  <property name="checked">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QGridLayout" name="gridLayout_9">
+                <item row="1" column="1">
+                 <widget class="QLabel" name="labelRMSETherm2">
+                  <property name="text">
+                   <string>RMSE: </string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QLabel" name="labelRMSETherm1">
+                  <property name="text">
+                   <string>RMSE: </string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="0">
+                 <widget class="QRadioButton" name="radioButtonTherm1">
+                  <property name="text">
+                   <string>Thermometer 1</string>
+                  </property>
+                  <property name="checked">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="0">
+                 <widget class="QRadioButton" name="radioButtonTherm3">
+                  <property name="text">
+                   <string>Thermometer 3</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QRadioButton" name="radioButtonTherm2">
+                  <property name="text">
+                   <string>Thermometer 2</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="1">
+                 <widget class="QLabel" name="labelRMSETherm3">
+                  <property name="text">
+                   <string>RMSE: </string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </item>
              </layout>
             </item>
@@ -627,7 +599,7 @@
             <number>200</number>
            </property>
            <property name="value">
-            <number>4</number>
+            <number>60</number>
            </property>
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
@@ -676,8 +648,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>1293</width>
-             <height>384</height>
+             <width>1363</width>
+             <height>264</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_8">
@@ -726,8 +698,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>1293</width>
-             <height>384</height>
+             <width>1363</width>
+             <height>264</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_9">
