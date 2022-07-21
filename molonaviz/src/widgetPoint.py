@@ -616,8 +616,11 @@ class WidgetPoint(QtWidgets.QWidget, From_WidgetPoint):
         query = QSqlQuery(self.con)
         query.prepare(f"""
             SELECT BestParameters.Permeability, BestParameters.ThermConduct, BestParameters.Porosity, BestParameters.Capacity FROM BestParameters 
-            JOIN Layer ON BestParameters.Layer = Layer.ID 
-            WHERE Layer.Depth = {depth}
+            JOIN Layer ON BestParameters.Layer = Layer.ID
+            JOIN Point
+            ON BestParameters.PointKey = Point.ID
+            WHERE Point.ID = {self.pointID}
+            AND Layer.Depth = {depth}
         """)
         return query
     

@@ -140,12 +140,13 @@ class MoloViewHisto(MoloView):
     """
     Abstract class to display histograms
     """
-    def __init__(self, molomodel: MoloModel, bins=60, color ='green', title=""):
+    def __init__(self, molomodel: MoloModel, bins=60, color ='green', title="", xlabel = ""):
         super().__init__(molomodel)
         self.bins = bins
         self.data = []
         self.color = color
         self.title = title
+        self.xlabel = xlabel
     
     def update_bins(self,bins):
         self.bins = bins
@@ -159,6 +160,7 @@ class MoloViewHisto(MoloView):
     def plot_data(self):
         self.axes.hist(self.data, edgecolor='black', bins=self.bins, alpha=.3, density=True, color=self.color)
         self.axes.set_title(self.title)
+        self.axes.set_xlabel(self.xlabel)
 
 class PressureView(MoloView1D):
     """
@@ -295,8 +297,8 @@ class Log10KView(MoloViewHisto):
     """
     Concrete class to display the distribution of the -Log10K paramter
     """
-    def __init__(self, molomodel: MoloModel, bins=60, color='green', title="Histogramme a posteriori des -log10K"):
-        super().__init__(molomodel, bins, color, title)
+    def __init__(self, molomodel: MoloModel, bins=60, color='green', title="A posteriori histogram of the permeability", xlabel = "-log10(K)"):
+        super().__init__(molomodel, bins, color, title, xlabel)
     
     def retrieve_data(self):
         self.data = self.model.get_log10k()
@@ -305,7 +307,7 @@ class PorosityView(MoloViewHisto):
     """
     Concrete class to display the distribution of the porosity paramter
     """
-    def __init__(self, molomodel: MoloModel, bins=60, color='blue', title="Histogramme a posteriori des n"):
+    def __init__(self, molomodel: MoloModel, bins=60, color='blue', title="A posteriori histogram of the porosity"):
         super().__init__(molomodel, bins, color, title)
     
     def retrieve_data(self):
@@ -315,7 +317,7 @@ class ConductivityView(MoloViewHisto):
     """
     Concrete class to display the distribution of the conductivity paramter
     """
-    def __init__(self, molomodel: MoloModel, bins=60, color='orange', title="Histogramme a posteriori des lambda_s"):
+    def __init__(self, molomodel: MoloModel, bins=60, color='orange', title="A posteriori histogram of the thermal conductivity"):
         super().__init__(molomodel, bins, color, title)
     
     def retrieve_data(self):
@@ -325,7 +327,7 @@ class CapacityView(MoloViewHisto):
     """
     Concrete class to display the distribution of the capacity paramter
     """
-    def __init__(self, molomodel: MoloModel, bins=60, color='pink', title="Histogramme a posteriori des rho_s * c_s"):
+    def __init__(self, molomodel: MoloModel, bins=60, color='pink', title="A posteriori histogram of the thermal capacity"):
         super().__init__(molomodel, bins, color, title)
     
     def retrieve_data(self):

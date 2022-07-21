@@ -7,15 +7,15 @@
     <x>0</x>
     <y>0</y>
     <width>1413</width>
-    <height>727</height>
+    <height>1003</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_7">
+  <layout class="QVBoxLayout" name="verticalLayout_7" stretch="0,0">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,0,0,0,0,0,0,1,0,0,1">
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,0,0,0,0,0,0,0,0,0,1">
      <property name="sizeConstraint">
       <enum>QLayout::SetNoConstraint</enum>
      </property>
@@ -126,8 +126,23 @@
          <height>60</height>
         </size>
        </property>
+       <property name="baseSize">
+        <size>
+         <width>200</width>
+         <height>60</height>
+        </size>
+       </property>
+       <property name="verticalScrollBarPolicy">
+        <enum>Qt::ScrollBarAlwaysOff</enum>
+       </property>
+       <property name="horizontalScrollBarPolicy">
+        <enum>Qt::ScrollBarAlwaysOff</enum>
+       </property>
        <attribute name="horizontalHeaderCascadingSectionResizes">
         <bool>false</bool>
+       </attribute>
+       <attribute name="horizontalHeaderDefaultSectionSize">
+        <number>125</number>
        </attribute>
       </widget>
      </item>
@@ -136,7 +151,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>4</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="tabInfos">
       <attribute name="title">
@@ -198,8 +213,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>102</width>
-                 <height>43</height>
+                 <width>1333</width>
+                 <height>543</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -349,8 +364,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>87</width>
-             <height>67</height>
+             <width>1363</width>
+             <height>422</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_7">
@@ -399,8 +414,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>87</width>
-             <height>67</height>
+             <width>1363</width>
+             <height>421</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_5">
@@ -649,7 +664,7 @@
              <x>0</x>
              <y>0</y>
              <width>1363</width>
-             <height>264</height>
+             <height>402</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_8">
@@ -699,7 +714,7 @@
              <x>0</x>
              <y>0</y>
              <width>1363</width>
-             <height>264</height>
+             <height>402</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_9">
