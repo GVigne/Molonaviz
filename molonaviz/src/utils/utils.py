@@ -9,6 +9,8 @@ import numpy as np
 import matplotlib.dates as mdates
 from PyQt5.QtSql import QSqlDatabase, QSqlQuery
 from shutil import copy2
+import glob
+
 
 
 def displayCriticalMessage(mainMessage: str, infoMessage: str = ''):
@@ -65,7 +67,62 @@ def checkDbFolderIntegrity(dbPath):
     Given the path to a database folder, check if it has all the subfolders and the database in it.
     """
     return os.path.isfile(os.path.join(dbPath, "Molonari.sqlite")) and os.path.isdir(os.path.join(dbPath, "Notices")) and os.path.isdir(os.path.join(dbPath, "Schemes")) and os.path.isdir(os.path.join(dbPath, "Scripts"))
-        
+
+class InvalidFile(Exception):
+    pass
+
+def extractDetectorsDF(labDirPath):
+    """
+    Given the path to a laboratory directory, read all files and select the valid ones. The valid files are converted into panda dataframes that will be passed to the backend, and the invalid files should trigger error message.
+    If no .csv file is found, or if the folder is not divided into the correct subfolders (currently temperature_sensors, pressure_sensors and shafts), no error message is raised, as we assume the user wishes to create an empty laboratory (or a lab missing one of these detectors).
+    """
+    #This function probably shouldn't exist at all. The user should enter the detectors information directly in the app, and not in a csv which is imported into the app.
+    
+    tempdir = os.path.join(labDirPath, "temperature_sensors", "*.csv")
+    files = glob.glob(tempdir)
+    files.sort()
+    validThermometers = []
+    for file in files:
+        try:
+            df = pd.read_csv(file, header=None)
+            if df[1].isnull().sum() ==0:
+                validThermometers.append(df)
+            else:
+                raise InvalidFile
+        except Exception as e:
+            print("Couldn't load thermometer ", file)
+    
+    psdir = os.path.join(labDirPath, "pressure_sensors", "*.csv")
+    files = glob.glob(psdir)
+    files.sort()
+    validPSensors = []
+    for file in files:
+        try:
+            df = pd.read_csv(file, header=None)
+            if df[1].isnull().sum() ==0:
+                validPSensors.append(df)
+            else:
+                raise InvalidFile
+        except Exception as e:
+            print("Couldn't load pressure sensor ", file)
+    
+    shaftdir = os.path.join(labDirPath, "shafts", "*.csv")
+    files = glob.glob(shaftdir)
+    files.sort()
+    validShafts = []
+    for file in files:
+        try:
+            df = pd.read_csv(file, header=None)
+            if df[1].isnull().sum() ==0:
+                validShafts.append(df)
+            else:
+                raise InvalidFile
+        except Exception as e:
+            print("Couldn't load shaft ", file)
+    return validThermometers, validPSensors, validShafts
+
+
+
 def convertDates(df : pd.DataFrame, timesIndex = 0):
     """
     Convert dates from a list of strings by testing several different input formats

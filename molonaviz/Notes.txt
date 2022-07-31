@@ -36,7 +36,6 @@ Known bugs:
 -Open a point. A subwindow is put in the MDI area using addSubWindow: it doesn't have a scroll bar and fits on the screen. Now change to cascade (or tile view) and back again to subwindow view (the default view). This time, there is a scrollbar, so it's a big ugly: its probably because when using addSubWindow, a resize happens somewhere in some manner. I tested with setFocus but that didn't work.
 -When changing database, since the con is closed and config.txt removed BEFORE opening the "Select database dialog", if the user quits this dialog, then the action is not canceled as it should be.
 
-
 Warning: Discrepancy
 -The values in the Layer table correspond to the bottom of the layer. The values in Depth correspond to the middle of the cells.
 - There is a performance discrepancy when putting results in the dabatase. Here is what is happening:
@@ -61,6 +60,7 @@ TODO:
 -In Cleanup: translate panda headers in english, and also put capital letters!
 -In the pressure sensors/shafts.csv files: less precision for floats? Right now, we have floats with a precision of more thant 10 digits...
 -Where to put unique constraints?
+-Where to put null constraints? Many foreign keys do not have such constraints, and this can be a big problem. When importing a lab, if a thermometer is invalid, it will not be added to the database. Should the pressure sensors and shafts linked to this thermometer be added with an empty field or simply not added? It'd say not added -> just have to change the database.
 -Schemes -> Diagrams?
 -QSqlDatabasePrivate::addDatabase: duplicate connection name 'qt_sql_default_connection', old connection removed. This happens because of utils.utils createDatabaseDirectory function, which creates a QT QDatabase object: we then open the connection, and QT doesn't like having two default connections with same name. Needs investigating.
 -More robust imports of Lab when informations are missing.

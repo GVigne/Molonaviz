@@ -8,18 +8,20 @@ import sys, os.path
 
 from src.frontend.dialogAboutUs import DialogAboutUs
 from src.frontend.dialogOpenDatabase import DialogOpenDatabase
-# from src.dialogImportLab import DialogImportLab
+from src.frontend.dialogImportLab import DialogImportLab
 # from src.dialogOpenStudy import tryOpenStudy
 # from src.dialogCreateStudy import tryCreateStudy
 # from src.dialogOpenPoint import tryOpenPoint
 # from src.dialogImportPoint import DialogImportPoint
+
+from src.backend.StudyAndLabManager import StudyAndLabManager
 
 # from src.Laboratory import Lab
 # from utils.utils import displayCriticalMessage, createDatabaseDirectory, checkDbFolderIntegrity
 # from utils.utilsQueries import createStudyDatabase
 from src.printThread import InterceptOutput, Receiver
 # from src.MoloTreeViewModels import ThermometerTreeViewModel, PSensorTreeViewModel, ShaftTreeViewModel, PointTreeViewModel
-from src.utils.utils import displayCriticalMessage, createDatabaseDirectory, checkDbFolderIntegrity
+from src.utils.utils import displayCriticalMessage, createDatabaseDirectory, checkDbFolderIntegrity, extractDetectorsDF
 
 
 From_MainWindow = uic.loadUiType(os.path.join(os.path.dirname(__file__),"src", "frontend", "ui","mainwindow.ui"))[0]
@@ -36,7 +38,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         #TODO: models for psensors and others.
         #Connect the actions to the appropriate slots
         self.pushButtonClear.clicked.connect(self.clearText)
-        # self.actionImportLabo.triggered.connect(self.importLabo)
+        self.actionImportLab.triggered.connect(self.importLab)
         self.actionAboutMolonaViz.triggered.connect(self.aboutUs)
         self.actionOpenUserguideFR.triggered.connect(self.openUserGuideFR)
         self.actionQuitMolonaViz.triggered.connect(self.closeEvent)
@@ -66,6 +68,8 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.con = None #Connection to the database
         self.currentStudy = None
         self.openDatabase()
+
+        self.study_lab_manager = StudyAndLabManager(self.con)
 
     def openDatabase(self):
         """
@@ -146,21 +150,18 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
     
         self.openDatabase()
 
-    # def importLabo(self):
-    #     """
-    #     Display a dialog so the user may import a laboratory from a directory. The laboratory is added to the database.
-    #     """
-    #     dlg = DialogImportLab()
-    #     dlg.setWindowModality(QtCore.Qt.ApplicationModal)
-    #     res = dlg.exec()
-    #     if res == QtWidgets.QDialog.Accepted:
-    #         labdir,labname = dlg.getLaboInfo()
-    #         if labdir and labname: #Both strings are not empty
-    #             lab = Lab(self.con,labname, False, pathToDir = labdir)
-    #             if lab.checkIntegrity():
-    #                 lab.addToDatabase()
-    #             else:
-    #                 displayCriticalMessage("Something went wrong when creating the laboratory, and it wasn't added to the database.\nPlease make sure a laboratory with the same name is not already in the database.")
+    def importLab(self):
+        """
+        Display a dialog so the user may import a laboratory from a directory. The laboratory is added to the database.
+        """
+        dlg = DialogImportLab()
+        dlg.setWindowModality(QtCore.Qt.ApplicationModal)
+        res = dlg.exec()
+        if res == QtWidgets.QDialog.Accepted:
+            labdir,labname = dlg.getLaboInfo()
+            if labdir and labname: #Both strings are not empty
+                thermometersDF, psensorsDF, shaftsDF = extractDetectorsDF(labdir)
+                self.study_lab_manager.createNewLab(labname, thermometersDF, psensorsDF, shaftsDF)
     
     # def createStudy(self):
     #     """

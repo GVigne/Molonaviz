@@ -106,7 +106,7 @@
     <property name="title">
      <string>Laboratory</string>
     </property>
-    <addaction name="actionImportLabo"/>
+    <addaction name="actionImportLab"/>
    </widget>
    <widget class="QMenu" name="menuDatabase">
     <property name="title">
@@ -408,7 +408,7 @@
     <string>Open Userguide (FR)</string>
    </property>
   </action>
-  <action name="actionImportLabo">
+  <action name="actionImportLab">
    <property name="text">
     <string>Import Laboratory</string>
    </property>
