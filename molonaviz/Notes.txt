@@ -34,6 +34,8 @@ Known bugs:
 -The pressure matplotib view is now inconsistant: if raw_data then it corresponds to a voltage, and if not raw_data it corresponds to a pressure (m) 
 -Sometimes, cleanup may return a pandas dataframe with NaN in charge diff. This was "patched" so that only non-Nan values are put in the database, it is an ugly patch. Cleanup needs to be redone.
 -Open a point. A subwindow is put in the MDI area using addSubWindow: it doesn't have a scroll bar and fits on the screen. Now change to cascade (or tile view) and back again to subwindow view (the default view). This time, there is a scrollbar, so it's a big ugly: its probably because when using addSubWindow, a resize happens somewhere in some manner. I tested with setFocus but that didn't work.
+-When changing database, since the con is closed and config.txt removed BEFORE opening the "Select database dialog", if the user quits this dialog, then the action is not canceled as it should be.
+
 
 Warning: Discrepancy
 -The values in the Layer table correspond to the bottom of the layer. The values in Depth correspond to the middle of the cells.
@@ -67,34 +69,3 @@ TODO:
 -Update requirements
 -Distinction Point/SamplingPoint + seperate backend/frontend
 -Params distribution: print a message if the only computation made is the direct model (and not the MCMC, so there is no param distribution)
-
-query.prepare(f"""
-    INSERT INTO CleanedMeasures (
-        Date,
-        TempBed,
-        Temp1,
-        Temp2,
-        Temp3,
-        Temp4,
-        Pressure,
-        PointKey)
-    VALUES (:Date, :TempBed, :Temp1, :Temp2, :Temp3, :Temp4, :Pressure, 1)
-""")
-
-con.transaction()
-for i in range(1):
-            q.bindValue(":Date", rng.randint(1,2000))
-            q.bindValue(":TempBed", rng.random())
-            q.bindValue(":Temp1", rng.random())
-            q.bindValue(":Temp2", rng.random())
-            q.bindValue(":Temp3", rng.random())
-            q.bindValue(":Temp4", rng.random())
-            q.bindValue(":Pressure",rng.random())
-            print(q.exec())
-con.commit()
-
-query.prepare(f"""
-    INSERT INTO Date (
-        Date)
-    VALUES (:Date)
-""")
