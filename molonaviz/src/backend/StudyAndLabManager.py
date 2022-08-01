@@ -13,16 +13,55 @@ class StudyAndLabManager:
 
     def createNewLab(self, labName : str, thermometersDF : list[pd.DataFrame], psensorsDF : list[pd.DataFrame], shaftsDF : list[pd.DataFrame]):
         """
-        This function should be called by frontend users.
+        This function should only be called by frontend users.
         Create a new laboratory with the name labName, and populate it with different physical detectors. For each type of detectors (currently there are only 3), frontend users should give a list of panda dataframes with the correct information. These dataframes must be valid (no empty field, fields at the correct position...).
         """
-        if not self.checkIntegrity(labName):
+        if not self.check_integrity(labName):
             displayCriticalMessage("Something went wrong when creating the laboratory, and it wasn't added to the database.\nPlease make sure a laboratory with the same name is not already in the database.")
         else:
-            labID = self.insertNewLab(labName)
-            self.insertDetectors(labID, thermometersDF, psensorsDF, shaftsDF)
+            labID = self.insert_new_lab(labName)
+            self.insert_detectors(labID, thermometersDF, psensorsDF, shaftsDF)
+    
+    def createNewStudy(self, studyName : str, labName : str):
+        """
+        This function should only be called by frontend users
+        Create a new study with the name studyName attached to the laboratory called labName. The names must be valid (ie studyName is unique, and there is a unique laboratory called labName).
+        """
+        selectLabID = self.build_lab_id(labName)
+        selectLabID.exec()
+        selectLabID.next()
+        labID = selectLabID.value(0)
 
-    def checkIntegrity(self, labName : str):
+        insertStudy = self.build_insert_study()
+        insertStudy.bindValue(":Name",studyName)
+        insertStudy.bindValue(":Labo",labID)
+        insertStudy.exec()
+        print(f"The study {studyName} has been added to the database.")
+
+    def isStudyInDatabase(self, studyName : str):
+        """
+        This function should only be called by frontend users.
+        Return True if a study with the name studyName is in the database.
+        """
+        similar_studies = self.build_similar_studies(studyName)
+        similar_studies.exec()
+        if similar_studies.next():
+            return True
+        return False
+        
+    def getLabNames(self):
+        """
+        This function should only be called by frontend users.
+        Return a list of all the names of the laboratories in the database.
+        """
+        labs_query = self.build_select_labs()
+        labs = []
+        labs_query.exec()
+        while labs_query.next():
+            labs.append(labs_query.value(0))
+        return labs
+
+    def check_integrity(self, labName : str):
         """
         Check that this Lab is not in conflict with the database.
         For now, this means checking there is no laboratory with the same name in the database.
@@ -33,7 +72,7 @@ class StudyAndLabManager:
             return False
         return True
 
-    def insertNewLab(self, labName : str):
+    def insert_new_lab(self, labName : str):
         """
         Insert into the database a laboratory with name labName. We assume the insertion is valid and not in conflict with the database. 
         Return the ID of the newly inserted laboratory.
@@ -43,7 +82,7 @@ class StudyAndLabManager:
         print(f"The lab {labName} has been added to the database.")
         return insert_lab.lastInsertId()
     
-    def insertDetectors(self, labID : int|str, thermometersDF : list[pd.DataFrame], psensorsDF : list[pd.DataFrame], shaftsDF : list[pd.DataFrame]):
+    def insert_detectors(self, labID : int|str, thermometersDF : list[pd.DataFrame], psensorsDF : list[pd.DataFrame], shaftsDF : list[pd.DataFrame]):
         """
         Add all given detectors in the database for given lab. For now, these detectors correspond to:
             -temperature sensors
@@ -131,7 +170,30 @@ class StudyAndLabManager:
         selectQuery = QSqlQuery(self.con)
         selectQuery.prepare(f"SELECT Thermometer.ID FROM Thermometer WHERE Thermometer.Name = '{thermoname}' AND Thermometer.Labo = '{labID}'")
         return selectQuery
+    
+    def build_lab_id(self, labName : str):
+        """
+        Build and return a query giving the ID of the laboratory called labName.
+        """
+        query = QSqlQuery(self.con)
+        query.prepare(f"SELECT Labo.ID FROM Labo WHERE Labo.Name ='{labName}'")
+        return query
+    
+    def build_select_labs(self):
+        """
+        Build and return a query giving all available labs in the database.
+        """
+        query = QSqlQuery(self.con)
+        query.prepare("SELECT Labo.Name FROM Labo")
+        return query
 
+    def build_similar_studies(self, studyName : str):
+        """
+        Build and return a query giving all the studies in the database with the name studyName.
+        """
+        query = QSqlQuery(self.con)
+        query.prepare(f"SELECT * FROM Study WHERE Study.Name='{studyName}'")
+        return query
 
     def build_insert_lab(self, labName : str):
         """
@@ -197,3 +259,16 @@ class StudyAndLabManager:
             )
             VALUES (:Name, :Datalogger, :Depth1, :Depth2, :Depth3, :Depth4, :ThermoModel, :Labo)""")
         return insertQuery
+    
+    def build_insert_study(self):
+        """
+        Build and return a query creating a study in the database.
+        """
+        query = QSqlQuery(self.con)
+        query.prepare("""
+            INSERT INTO Study(
+                Name,
+                Labo)
+            VALUES (:Name, :Labo)
+            """)
+        return query

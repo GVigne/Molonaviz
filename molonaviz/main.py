@@ -1,3 +1,4 @@
+from re import L
 from PyQt5 import QtWidgets, QtGui, QtCore, uic
 from PyQt5.QtSql import QSqlDatabase
 
@@ -10,7 +11,7 @@ from src.frontend.dialogAboutUs import DialogAboutUs
 from src.frontend.dialogOpenDatabase import DialogOpenDatabase
 from src.frontend.dialogImportLab import DialogImportLab
 # from src.dialogOpenStudy import tryOpenStudy
-# from src.dialogCreateStudy import tryCreateStudy
+from src.frontend.dialogCreateStudy import DialogCreateStudy
 # from src.dialogOpenPoint import tryOpenPoint
 # from src.dialogImportPoint import DialogImportPoint
 
@@ -18,7 +19,6 @@ from src.backend.StudyAndLabManager import StudyAndLabManager
 
 # from src.Laboratory import Lab
 # from utils.utils import displayCriticalMessage, createDatabaseDirectory, checkDbFolderIntegrity
-# from utils.utilsQueries import createStudyDatabase
 from src.printThread import InterceptOutput, Receiver
 # from src.MoloTreeViewModels import ThermometerTreeViewModel, PSensorTreeViewModel, ShaftTreeViewModel, PointTreeViewModel
 from src.utils.utils import displayCriticalMessage, createDatabaseDirectory, checkDbFolderIntegrity, extractDetectorsDF
@@ -42,7 +42,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.actionAboutMolonaViz.triggered.connect(self.aboutUs)
         self.actionOpenUserguideFR.triggered.connect(self.openUserGuideFR)
         self.actionQuitMolonaViz.triggered.connect(self.closeEvent)
-        # self.actionCreateStudy.triggered.connect(self.createStudy)
+        self.actionCreateStudy.triggered.connect(self.createStudy)
         # self.actionOpenStudy.triggered.connect(self.chooseStudyName)
         # self.actionCloseStudy.triggered.connect(self.closeStudy)
         # self.actionImportPoint.triggered.connect(self.importPoint)
@@ -163,14 +163,24 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
                 thermometersDF, psensorsDF, shaftsDF = extractDetectorsDF(labdir)
                 self.study_lab_manager.createNewLab(labname, thermometersDF, psensorsDF, shaftsDF)
     
-    # def createStudy(self):
-    #     """
-    #     Display a dialog so the user may create a study.The study is added to the database. Then, open this study (by calling self.openStudy)
-    #     """
-    #     study_name, study_lab = tryCreateStudy(self.con)
-    #     if study_name and study_lab:#Theses strings are not empty: create the corresponding study
-    #         createStudyDatabase(self.con,study_name,study_lab)
-    #         self.openStudy(study_name)
+    def createStudy(self):
+        """
+        Display a dialog so the user may create a study.The study is added to the database. Then, open this study (by calling self.openStudy)
+        """
+        labs = self.study_lab_manager.getLabNames()
+        if len(labs) == 0:
+            displayCriticalMessage("No laboratory was found in the database. Please create one first.")
+        else:
+            dlg = DialogCreateStudy(labs)
+            dlg.setWindowModality(QtCore.Qt.ApplicationModal)
+            res = dlg.exec()
+            if res == QtWidgets.QDialog.Accepted:
+                userLab = dlg.selectedLab()
+                userStudyName = dlg.studyName()
+                if self.study_lab_manager.isStudyInDatabase(userStudyName) or not userStudyName: #The study is already in the database, or the study name is empty
+                    displayCriticalMessage("The name of the study may not be empty and must be different from the studies in the database.")
+                else:
+                    self.study_lab_manager.createNewStudy(userStudyName, userLab)
     
     # def chooseStudyName(self):
     #     """
