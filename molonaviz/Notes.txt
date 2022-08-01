@@ -8,6 +8,8 @@ The config.txt file is created when the user wishes the patht to the database be
 
 DER_IHM.sql contains all the queries (in SQL language) required to recreate the database. It has been generated with the export function of Sqlite Studio.
 
+Studies and laboratories must have unique names for now (ie there is a UNIQUE constraint in the database).
+
 MoloTreeViewModel and MoloQtList are meant to work with object having at least the unique field or attribute "name". In Molonaviz, the objects used are "Containers" which only purpose is to store different fields, much like a SQL table. 
 
 In the code, Point refers to SamplingPoint. This is because the Point table is a dummy table, used only for computations: it doesn't have any physical meaning. A SamplingPoint (in the code, a Point) corresponds to a physical implantation of different sensors giving readings.
