@@ -6,6 +6,9 @@ from src.MoloModel import MoloModel #Used only for type hints
 
 
 class ThermometerTreeView(QtGui.QStandardItemModel, MoloView):
+    """
+    Concrete class for the model used for to display the thermometers in a tree view in the main window.
+    """
     def __init__(self, molomodel: MoloModel | None):
         QtGui.QStandardItemModel.__init__(self)
         MoloView.__init__(self, molomodel)
@@ -18,101 +21,46 @@ class ThermometerTreeView(QtGui.QStandardItemModel, MoloView):
             self.appendRow(item)
             item.appendRow(QtGui.QStandardItem(f"Manufacturer name : {thermometer.manuName}"))
             item.appendRow(QtGui.QStandardItem(f"Manufacturer reference : {thermometer.manuRef}"))
-            item.appendRow(QtGui.QStandardItem(f"Error (°C) : {thermometer.error}"))        
+            item.appendRow(QtGui.QStandardItem(f"Error (°C) : {thermometer.error}"))           
 
-# class MoloTreeViewModel(QtGui.QStandardItemModel):
-#     """
-#     Abstract class for the model used for the tree views in the main window.
-#     This tree view displays Containers objects. Each item it shows MUST have a field or attribute called "name" which identifies it in a unique way.
-#     """
-#     def __init__(self):
-#         super().__init__()
-#         self.elements = []
+class PSensorTreeViewModel(QtGui.QStandardItemModel, MoloView):
+    """
+    Concrete class for the model used for to display the pressure sensors in a tree view in the main window.
+    """
+    def __init__(self, molomodel: MoloModel | None):
+        QtGui.QStandardItemModel.__init__(self)
+        MoloView.__init__(self, molomodel)
     
-#     def add_data(self, input_data : Thermometer | PSensor | Shaft | Point):
-#         """
-#         Add a new element to the model.
-#         """
-#         self.elements.append(input_data)
-#         self.display_element(input_data)
-    
-#     def display_element(self,input_data : Thermometer | PSensor | Shaft | Point):
-#         """
-#         Display the new element input_data in a pretty way.
-#         """
-#         pass
-    
-#     def remove_data(self,input_data : Thermometer | PSensor | Shaft | Point):
-#         """
-#         Remove the given item.
-#         """
-#         #Remove the item from self.elements
-#         index = None
-#         for i,v in enumerate(self.elements):
-#             if v.name == input_data.name:
-#                 index = i
-#                 break
-#         self.elements.pop(index)
-#         #Stop displaying it.
-#         index = None
-#         for i in range(self.rowCount()):
-#             if self.item(i).data() ==input_data.name:
-#                 index = i
-#                 break
-#         self.removeRow(i)
+    def on_update(self):
+        self.clear()
+        psensors = self.model.get_all_psensors()
+        for ps in psensors:
+            item = QtGui.QStandardItem(ps.name)
+            self.appendRow(item)
+            item.appendRow(QtGui.QStandardItem(f"Datalogger : {ps.datalogger}"))
+            item.appendRow(QtGui.QStandardItem(f"Calibration date : {ps.calibrationDate}"))
+            item.appendRow(QtGui.QStandardItem(f"Intercept : {ps.intercept:.3f}"))
+            item.appendRow(QtGui.QStandardItem(f"Du/Dh : {ps.dudh:.3f}"))
+            item.appendRow(QtGui.QStandardItem(f"Du/Dt : {ps.dudt:.3f}"))
+            item.appendRow(QtGui.QStandardItem(f"Error : {ps.error:.2f}"))
 
-#     def clear(self):
-#         """
-#         Clear everything in the view. This is an overloaded method.
-#         """
-#         self.elements = []
-#         super().clear()
-        
-
-# class ThermometerTreeViewModel(MoloTreeViewModel):
-#     """
-#     Concrete class for the model used for to display the thermometers in a tree view in the main window.
-#     """
-#     def __init__(self):
-#         super().__init__()
+class ShaftTreeViewModel(QtGui.QStandardItemModel, MoloView):
+    """
+    Concrete class for the model used for to display the shafts in a tree view in the main window.
+    """
+    def __init__(self, molomodel: MoloModel | None):
+        QtGui.QStandardItemModel.__init__(self)
+        MoloView.__init__(self, molomodel)
     
-#     def display_element(self, thermometer : Thermometer):
-#         item = QtGui.QStandardItem(thermometer.name)
-#         self.appendRow(item)
-#         item.appendRow(QtGui.QStandardItem(f"Manufacturer name : {thermometer.manuName}"))
-#         item.appendRow(QtGui.QStandardItem(f"Manufacturer reference : {thermometer.manuRef}"))
-#         item.appendRow(QtGui.QStandardItem(f"Error (°C) : {thermometer.error}"))
-
-# class PSensorTreeViewModel(MoloTreeViewModel):
-#     """
-#     Concrete class for the model used for to display the pressure sensors in a tree view in the main window.
-#     """
-#     def __init__(self):
-#         super().__init__()
-    
-#     def display_element(self, psensor : PSensor):
-#         item = QtGui.QStandardItem(psensor.name)
-#         self.appendRow(item)
-#         item.appendRow(QtGui.QStandardItem(f"Datalogger : {psensor.datalogger}"))
-#         item.appendRow(QtGui.QStandardItem(f"Calibration date : {psensor.calibrationDate}"))
-#         item.appendRow(QtGui.QStandardItem(f"Intercept : {psensor.intercept}"))
-#         item.appendRow(QtGui.QStandardItem(f"Du/Dh : {psensor.dudh}"))
-#         item.appendRow(QtGui.QStandardItem(f"Du/Dt : {psensor.dudt}"))
-#         item.appendRow(QtGui.QStandardItem(f"Error : {psensor.error}"))
-
-# class ShaftTreeViewModel(MoloTreeViewModel):
-#     """
-#     Concrete class for the model used for to display the shafts in a tree view in the main window.
-#     """
-#     def __init__(self):
-#         super().__init__()
-    
-#     def display_element(self, shaft : Shaft):
-#         item = QtGui.QStandardItem(shaft.name)
-#         self.appendRow(item)
-#         item.appendRow(QtGui.QStandardItem(f"Datalogger : {shaft.datalogger}"))
-#         item.appendRow(QtGui.QStandardItem(f"Thermometers type : {shaft.thermoType}"))
-#         item.appendRow(QtGui.QStandardItem(f"Thermometers depths (m) : {shaft.depths}"))
+    def on_update(self):
+        self.clear()
+        shafts = self.model.get_all_shafts()
+        for shaft in shafts:
+            item = QtGui.QStandardItem(shaft.name)
+            self.appendRow(item)
+            item.appendRow(QtGui.QStandardItem(f"Datalogger : {shaft.datalogger}"))
+            item.appendRow(QtGui.QStandardItem(f"Thermometer type : {shaft.thermoType}"))
+            item.appendRow(QtGui.QStandardItem(f"Thermometer depths (m) : {shaft.depths}"))
 
 # class PointTreeViewModel(MoloTreeViewModel):
 #     """

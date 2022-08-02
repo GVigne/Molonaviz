@@ -21,7 +21,7 @@ from src.backend.LabEquipementManager import LabEquipementManager
 # from src.Laboratory import Lab
 # from utils.utils import displayCriticalMessage, createDatabaseDirectory, checkDbFolderIntegrity
 from src.frontend.printThread import InterceptOutput, Receiver
-from src.frontend.MoloTreeView import ThermometerTreeView
+from src.frontend.MoloTreeView import ThermometerTreeView, PSensorTreeViewModel, ShaftTreeViewModel
 from src.utils.utils import displayCriticalMessage, createDatabaseDirectory, checkDbFolderIntegrity, extractDetectorsDF
 
 
@@ -36,9 +36,16 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         QtWidgets.QMainWindow.__init__(self)
         self.setupUi(self)
 
+        #Setup the views
         self.thermoView = ThermometerTreeView(None)
         self.treeViewThermometers.setModel(self.thermoView)
         self.treeViewThermometers.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.psensorView = PSensorTreeViewModel(None)
+        self.treeViewPressureSensors.setModel(self.psensorView)
+        self.treeViewPressureSensors.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.shaftView = ShaftTreeViewModel(None)
+        self.treeViewShafts.setModel(self.shaftView)
+        self.treeViewShafts.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
 
         #TODO: models for psensors and others.
         #Connect the actions to the appropriate slots
@@ -203,6 +210,8 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         """
         self.labManager = LabEquipementManager(self.con, studyName)
         self.thermoView.subscribe_model(self.labManager.getThermoModel())
+        self.psensorView.subscribe_model(self.labManager.getPSensorModel())
+        self.shaftView.subscribe_model(self.labManager.getShaftModel())
         self.labManager.refreshDetectors()
     
     # def openStudy(self, studyName : str):
