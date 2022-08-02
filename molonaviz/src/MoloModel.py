@@ -6,7 +6,7 @@ class MoloModel(QObject):
     """
     Abstract class representing a backend model onto which one or several views may be subscribed.
     A MoloModel is mainly a list of queries which need to be executed. It may also contain data, a processed form of the queries (for example a list, numpy array or panda dataframe of elements orginating from the queries).
-    A MoloModel automatically notifies its views when it executes its queries, meaning there is new data to be fetched.
+    A MoloModel is standalone and seperated from frontend: it is not responsible of its views, and it is the views's role to subscribe to a model.
     """
     dataChanged = QtCore.pyqtSignal()
 

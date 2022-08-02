@@ -4,6 +4,7 @@ from src.MoloModel import MoloModel #Used only for type hints
 class MoloView(QObject):
     """
     Abstract class representing a frontend view, which can be anything used to display data (a tree view, a matlpotlib canvas, a combo box...).
+    It is the view's responsability to subscribe to a model. This can be done with the register and unregister function. For convenience, a high-level function subscribe_model is implemented to replace the model by another one.
     """
     def __init__(self, molomodel : MoloModel | None):
         QObject.__init__(self)

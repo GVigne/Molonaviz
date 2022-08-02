@@ -16,11 +16,12 @@ from src.frontend.dialogCreateStudy import DialogCreateStudy
 # from src.dialogImportPoint import DialogImportPoint
 
 from src.backend.StudyAndLabManager import StudyAndLabManager
+from src.backend.LabEquipementManager import LabEquipementManager
 
 # from src.Laboratory import Lab
 # from utils.utils import displayCriticalMessage, createDatabaseDirectory, checkDbFolderIntegrity
-from src.printThread import InterceptOutput, Receiver
-# from src.MoloTreeViewModels import ThermometerTreeViewModel, PSensorTreeViewModel, ShaftTreeViewModel, PointTreeViewModel
+from src.frontend.printThread import InterceptOutput, Receiver
+from src.frontend.MoloTreeView import ThermometerTreeView
 from src.utils.utils import displayCriticalMessage, createDatabaseDirectory, checkDbFolderIntegrity, extractDetectorsDF
 
 
@@ -34,6 +35,10 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         super(MainWindow, self).__init__()
         QtWidgets.QMainWindow.__init__(self)
         self.setupUi(self)
+
+        self.thermoView = ThermometerTreeView(None)
+        self.treeViewThermometers.setModel(self.thermoView)
+        self.treeViewThermometers.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
 
         #TODO: models for psensors and others.
         #Connect the actions to the appropriate slots
@@ -70,6 +75,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.openDatabase()
 
         self.study_lab_manager = StudyAndLabManager(self.con)
+        self.labManager = None
 
     def openDatabase(self):
         """
@@ -181,6 +187,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
                     displayCriticalMessage("The name of the study may not be empty and must be different from the studies in the database.")
                 else:
                     self.study_lab_manager.createNewStudy(userStudyName, userLab)
+                    self.openStudy(userStudyName)
     
     # def chooseStudyName(self):
     #     """
@@ -189,6 +196,14 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
     #     study_name = tryOpenStudy(self.con)
     #     if study_name: #study_name is not an empty string: we should open the corresponding Study.
     #         self.openStudy(study_name)
+    
+    def openStudy(self, studyName : str):
+        """
+        Given a VALID name of a study, open it.
+        """
+        self.labManager = LabEquipementManager(self.con, studyName)
+        self.thermoView.subscribe_model(self.labManager.getThermoModel())
+        self.labManager.refreshDetectors()
     
     # def openStudy(self, studyName : str):
     #     """
