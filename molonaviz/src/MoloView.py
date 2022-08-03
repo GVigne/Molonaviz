@@ -26,14 +26,14 @@ class MoloView(QObject):
         """
         if self.model is not None:
             self.model.dataChanged.disconnect(self.on_update)
+            self.model = None
     
     def subscribe_model(self, molomodel : MoloModel):
         """
-        Replace the current model by given model and subscribe to it. Then, revert the view to an empty state.
+        Revert the view to an empty state, then subscribe to the new given model.
         WARNING: if this function was not called and no model was given when creating an instance of this class, there is no guarentee the view will work or won't throw exceptions. Before trying to display or update anything, a model MUST be set.
         """
-        self.reset_internal_data()
-        self.unregister()
+        self.reset()
         self.register(molomodel)
         self.model = molomodel
 
@@ -49,9 +49,9 @@ class MoloView(QObject):
         """
         pass
     
-    def reset_internal_data(self):
+    def reset(self):
         """
-        This should only be called when changing model (ie when subscribe_model is called).
+        This should only be called when changing model (ie when subscribe_model is called) or when clearing the model.
         Reset all internal data to a base state representing an empty view.
         """
-        pass
+        self.unregister()

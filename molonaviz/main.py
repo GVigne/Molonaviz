@@ -5,24 +5,25 @@ from PyQt5.QtSql import QSqlDatabase
 from queue import Queue
 import sys, os.path
 
-# from src.Study import Study
+import pandas as pd
 
 from src.frontend.dialogAboutUs import DialogAboutUs
 from src.frontend.dialogOpenDatabase import DialogOpenDatabase
 from src.frontend.dialogImportLab import DialogImportLab
-# from src.dialogOpenStudy import tryOpenStudy
+from src.frontend.dialogOpenStudy import DialogOpenStudy
 from src.frontend.dialogCreateStudy import DialogCreateStudy
 # from src.dialogOpenPoint import tryOpenPoint
-# from src.dialogImportPoint import DialogImportPoint
+from src.frontend.dialogImportPoint import DialogImportPoint
 
 from src.backend.StudyAndLabManager import StudyAndLabManager
 from src.backend.LabEquipementManager import LabEquipementManager
+from src.backend.SamplingPointManager import SamplingPointManager
 
 # from src.Laboratory import Lab
 # from utils.utils import displayCriticalMessage, createDatabaseDirectory, checkDbFolderIntegrity
 from src.frontend.printThread import InterceptOutput, Receiver
-from src.frontend.MoloTreeView import ThermometerTreeView, PSensorTreeViewModel, ShaftTreeViewModel
-from src.utils.utils import displayCriticalMessage, createDatabaseDirectory, checkDbFolderIntegrity, extractDetectorsDF
+from src.frontend.MoloTreeView import ThermometerTreeView, PSensorTreeViewModel, ShaftTreeView, SamplingPointTreeView
+from src.utils.utils import displayCriticalMessage, createDatabaseDirectory, checkDbFolderIntegrity, extractDetectorsDF, convertDates
 
 
 From_MainWindow = uic.loadUiType(os.path.join(os.path.dirname(__file__),"src", "frontend", "ui","mainwindow.ui"))[0]
@@ -43,9 +44,13 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.psensorView = PSensorTreeViewModel(None)
         self.treeViewPressureSensors.setModel(self.psensorView)
         self.treeViewPressureSensors.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        self.shaftView = ShaftTreeViewModel(None)
+        self.shaftView = ShaftTreeView(None)
         self.treeViewShafts.setModel(self.shaftView)
         self.treeViewShafts.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.spointView = SamplingPointTreeView(None)
+        self.treeViewDataPoints.setModel(self.spointView)
+        self.treeViewDataPoints.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+
 
         #TODO: models for psensors and others.
         #Connect the actions to the appropriate slots
@@ -55,9 +60,9 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.actionOpenUserguideFR.triggered.connect(self.openUserGuideFR)
         self.actionQuitMolonaViz.triggered.connect(self.closeEvent)
         self.actionCreateStudy.triggered.connect(self.createStudy)
-        # self.actionOpenStudy.triggered.connect(self.chooseStudyName)
-        # self.actionCloseStudy.triggered.connect(self.closeStudy)
-        # self.actionImportPoint.triggered.connect(self.importPoint)
+        self.actionOpenStudy.triggered.connect(self.chooseStudyName)
+        self.actionCloseStudy.triggered.connect(self.closeStudy)
+        self.actionImportPoint.triggered.connect(self.importPoint)
         # self.actionOpenPoint.triggered.connect(self.openPointFromAction)
         self.actionHideShowPoints.triggered.connect(self.changeDockPointsStatus)
         self.actionHideShowSensors.triggered.connect(self.changeDockSensorsStatus)
@@ -69,9 +74,9 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
 
         # self.treeViewDataPoints.doubleClicked.connect(self.openPointFromDock)
     
-        # #Some actions or menus should not be enabled: disable them
-        # self.actionCloseStudy.setEnabled(False)
-        # self.menuPoint.setEnabled(False)
+        #Some actions or menus should not be enabled: disable them
+        self.actionCloseStudy.setEnabled(False)
+        self.menuPoint.setEnabled(False)
 
         #Setup the queue used to display application messages.
         self.messageQueue = Queue()
@@ -83,6 +88,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
 
         self.study_lab_manager = StudyAndLabManager(self.con)
         self.labManager = None
+        self.spointManager = None
 
     def openDatabase(self):
         """
@@ -196,71 +202,98 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
                     self.study_lab_manager.createNewStudy(userStudyName, userLab)
                     self.openStudy(userStudyName)
     
-    # def chooseStudyName(self):
-    #     """
-    #     Display a dialog so the user may choose a study to open, or display an error message. Then, open a study (by calling self.openStudy).
-    #     """
-    #     study_name = tryOpenStudy(self.con)
-    #     if study_name: #study_name is not an empty string: we should open the corresponding Study.
-    #         self.openStudy(study_name)
+    def chooseStudyName(self):
+        """
+        Display a dialog so the user may choose a study to open, or display an error message. Then, open a study (by calling self.openStudy).
+        """
+        studies = self.study_lab_manager.getStudyNames()
+        if len(studies) ==0:
+            displayCriticalMessage("No study was found in the database. Please create one first.")
+        else:
+            dlg = DialogOpenStudy(studies)
+            dlg.setWindowModality(QtCore.Qt.ApplicationModal)
+            res = dlg.exec()
+            if res == QtWidgets.QDialog.Accepted:
+                userStudyName = dlg.selectedStudy()
+                self.openStudy(userStudyName)
     
     def openStudy(self, studyName : str):
         """
         Given a VALID name of a study, open it.
         """
+        #Open the laboratory associated with the study.
         self.labManager = LabEquipementManager(self.con, studyName)
         self.thermoView.subscribe_model(self.labManager.getThermoModel())
         self.psensorView.subscribe_model(self.labManager.getPSensorModel())
         self.shaftView.subscribe_model(self.labManager.getShaftModel())
         self.labManager.refreshDetectors()
-    
-    # def openStudy(self, studyName : str):
-    #     """
-    #     Given a VALID name of a study, open it.
-    #     """
-    #     #Create the study. This will also create the corresponding Lab, and display the sensors by using the given models.
-    #     self.currentStudy = Study(self.con,studyName, thermoModel=self.thermometersModel, psensorModel=self.psensorModel, shaftModel=self.shaftModel, pointModel=self.pointModel)
 
-    #     self.dockSensors.setWindowTitle(f"Current lab: {self.currentStudy.lab.labName}")
+        #Open sampling point manager.
+        self.spointManager = SamplingPointManager(self.con, studyName)
+        self.spointView.subscribe_model(self.spointManager.getSPointModel())
+        self.spointManager.refreshSPoints()
+
+        #Reminder: getLabNames returns a list.
+        self.dockSensors.setWindowTitle(f"Current lab: {self.study_lab_manager.getLabNames(studyName)[0]}") 
         
-    #     #Enable previously disabled actions, such as the menu used to manage points
-    #     self.actionCreateStudy.setEnabled(False)
-    #     self.actionOpenStudy.setEnabled(False)
-    #     self.actionCloseStudy.setEnabled(True)
-    #     self.menuPoint.setEnabled(True)
-    #     self.actionImportPoint.setEnabled(True)
-    #     self.actionOpenPoint.setEnabled(True)
-    #     self.actionRemovePoint.setEnabled(True)
+        #Enable previously disabled actions, such as the menu used to manage points
+        self.actionCreateStudy.setEnabled(False)
+        self.actionOpenStudy.setEnabled(False)
+        self.actionCloseStudy.setEnabled(True)
+        self.menuPoint.setEnabled(True)
+        self.actionImportPoint.setEnabled(True)
+        self.actionOpenPoint.setEnabled(True)
+        self.actionRemovePoint.setEnabled(True)
     
-    # def closeStudy(self):
-    #     """
-    #     Close the current study and revert the app to the initial state.
-    #     """
-    #     self.currentStudy.close() #Close the study and related windows
-    #     self.currentStudy = None #Forget the study   
+    def closeStudy(self):
+        """
+        Close the current study and revert the app to the initial state.
+        """
+        self.thermoView.reset()
+        self.psensorView.reset()
+        self.shaftView.reset()
+        self.spointView.reset()
+        self.labManager = None
+        self.spointManager = None
 
-    #     self.dockSensors.setWindowTitle(f"Current lab:")     
+        self.dockSensors.setWindowTitle(f"Current lab:")     
 
-    #     #Enable and disable actions so as to go back to go back to the initial state (no study opened)
-    #     self.actionCreateStudy.setEnabled(True)
-    #     self.actionOpenStudy.setEnabled(True)
-    #     self.actionCloseStudy.setEnabled(False)
-    #     self.menuPoint.setEnabled(False)
-    #     self.actionImportPoint.setEnabled(False)
-    #     self.actionOpenPoint.setEnabled(False)
-    #     self.actionRemovePoint.setEnabled(False)
+        #Enable and disable actions so as to go back to go back to the initial state (no study opened)
+        self.actionCreateStudy.setEnabled(True)
+        self.actionOpenStudy.setEnabled(True)
+        self.actionCloseStudy.setEnabled(False)
+        self.menuPoint.setEnabled(False)
+        self.actionImportPoint.setEnabled(False)
+        self.actionOpenPoint.setEnabled(False)
+        self.actionRemovePoint.setEnabled(False)
     
-    # def importPoint(self):
-    #     """
-    #     Display a dialog so that the user may import and add to the database a point.
-    #     This function may only be called if a study is opened, ie if self.currentStudy is not None.
-    #     """
-    #     dlg = DialogImportPoint(self.con, self.currentStudy.ID)
-    #     dlg.setWindowModality(QtCore.Qt.ApplicationModal)
-    #     res = dlg.exec()
-    #     if res == QtWidgets.QDialog.Accepted:
-    #         name, psensor, shaft, infofile, noticefile, configfile, prawfile, trawfile = dlg.getPointInfo()
-    #         self.currentStudy.importNewPoint(name, psensor, shaft, infofile, noticefile, configfile, prawfile, trawfile)
+    def importPoint(self):
+        """
+        Display a dialog so that the user may import and add to the database a point.
+        This function may only be called if a study is opened, ie if self.currentStudy is not None.
+        """
+        dlg = DialogImportPoint(self.labManager, self.spointManager)
+        dlg.setWindowModality(QtCore.Qt.ApplicationModal)
+        res = dlg.exec()
+        if res == QtWidgets.QDialog.Accepted:
+            name, psensor, shaft, infofile, noticefile, configfile, prawfile, trawfile = dlg.getPointInfo()
+            #Cleanup the .csv files
+            infoDF = pd.read_csv(infofile, header=None)
+            #Readings csv
+            dfpress = pd.read_csv(prawfile)
+            dfpress.columns = ["Date", "Voltage", "Temp_Stream"]
+            dfpress.dropna(inplace=True)
+            convertDates(dfpress)
+            dfpress["Date"] = dfpress["Date"].dt.strftime("%Y/%m/%d %H:%M:%S")
+
+            dftemp = pd.read_csv(trawfile)
+            dftemp.columns = ["Date", "Temp1", "Temp2", "Temp3", "Temp4"]
+            dftemp.dropna(inplace=True)
+            convertDates(dftemp)
+            dftemp["Date"] = dftemp["Date"].dt.strftime("%Y/%m/%d %H:%M:%S")
+
+            self.spointManager.createNewSPoint(name, psensor, shaft, noticefile, configfile, infoDF, dfpress, dftemp)
+            self.spointManager.refreshSPoints()
 
     # def openPointFromAction(self):
     #     """

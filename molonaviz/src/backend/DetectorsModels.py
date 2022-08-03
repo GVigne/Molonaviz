@@ -7,7 +7,7 @@ from src.Containers import Thermometer, PSensor, Shaft
 
 class ThermometersModel(MoloModel):
     """
-    A model to display the presure as given by the captors (raw or cleaned data).
+    A model to display the thermometers.
     """
     def __init__(self, queries):
         super().__init__(queries)
@@ -26,7 +26,7 @@ class ThermometersModel(MoloModel):
 
 class PressureSensorsModel(MoloModel):
     """
-    A model to display the presure as given by the captors (raw or cleaned data).
+    A model to display the pressure sensors.
     """
     def __init__(self, queries):
         super().__init__(queries)
@@ -45,7 +45,7 @@ class PressureSensorsModel(MoloModel):
 
 class ShaftsModel(MoloModel):
     """
-    A model to display the presure as given by the captors (raw or cleaned data).
+    A model to display the shafts.
     """
     def __init__(self, queries):
         super().__init__(queries)

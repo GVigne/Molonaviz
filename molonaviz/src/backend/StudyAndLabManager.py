@@ -49,18 +49,30 @@ class StudyAndLabManager:
             return True
         return False
         
-    def getLabNames(self):
+    def getLabNames(self, studyName = None):
         """
         This function should only be called by frontend users.
-        Return a list of all the names of the laboratories in the database.
+        Return a list of all the names of the laboratories in the database, or, if a valid name of a study if given, a list containing only one element: the laboratory name attached to this study.
         """
-        labs_query = self.build_select_labs()
+        labs_query = self.build_select_labs(studyName)
         labs = []
         labs_query.exec()
         while labs_query.next():
             labs.append(labs_query.value(0))
         return labs
-
+    
+    def getStudyNames(self):
+        """
+        This function should only be called by frontend users.
+        Return a list of all the names of the studies in the database.
+        """
+        studies_query = self.build_select_studies()
+        studies = []
+        studies_query.exec()
+        while studies_query.next():
+            studies.append(studies_query.value(0))
+        return studies
+    
     def check_integrity(self, labName : str):
         """
         Check that this Lab is not in conflict with the database.
@@ -179,12 +191,26 @@ class StudyAndLabManager:
         query.prepare(f"SELECT Labo.ID FROM Labo WHERE Labo.Name ='{labName}'")
         return query
     
-    def build_select_labs(self):
+    def build_select_labs(self, studyName = None):
         """
         Build and return a query giving all available labs in the database.
         """
         query = QSqlQuery(self.con)
-        query.prepare("SELECT Labo.Name FROM Labo")
+        if studyName is None:
+            query.prepare("SELECT Labo.Name FROM Labo")
+        else:
+             query.prepare(f"""SELECT Labo.Name FROM Labo 
+                            JOIN Study
+                            ON Labo.ID = Study.Labo
+                            WHERE Study.name = '{studyName}' """)
+        return query
+    
+    def build_select_studies(self):
+        """
+        Build and return a query giving all available studies in the database.
+        """
+        query = QSqlQuery(self.con)
+        query.prepare("SELECT Study.Name FROM Study")
         return query
 
     def build_similar_studies(self, studyName : str):
@@ -209,8 +235,7 @@ class StudyAndLabManager:
         """
         insertQuery = QSqlQuery(self.con)
         insertQuery.prepare(
-        """
-        INSERT INTO Thermometer (
+        """ INSERT INTO Thermometer (
             Name,
             ManuName,
             ManuRef,
@@ -226,8 +251,7 @@ class StudyAndLabManager:
         """
         insertQuery = QSqlQuery(self.con)
         insertQuery.prepare(
-        """ 
-        INSERT INTO PressureSensor (
+        """ INSERT INTO PressureSensor (
             Name,
             Datalogger,
             Calibration,

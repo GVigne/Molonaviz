@@ -40,6 +40,30 @@ class LabEquipementManager:
         """
         return self.shaftModel
     
+    def getPSensorsNames(self):
+        """
+        This function should only be called by frontend users.
+        Return a list of all the pressure sensors names.
+        """
+        select_psensors = self.build_select_psensors()
+        psensors = []
+        select_psensors.exec()
+        while select_psensors.next():
+            psensors.append(select_psensors.value(0))
+        return psensors
+    
+    def getShaftsNames(self):
+        """
+        This function should only be called by frontend users.
+        Return a list of all the sampling points.
+        """
+        select_shafts = self.build_select_shafts()
+        shafts = []
+        select_shafts.exec()
+        while select_shafts.next():
+            shafts.append(select_shafts.value(0))
+        return shafts
+    
     def refreshDetectors(self):
         """
         This function should only be called by frontend users.
@@ -79,6 +103,7 @@ class LabEquipementManager:
     def build_select_psensors(self):
         """
         Build and return a query which selects all pressure sensors corresponding to this lab.
+        The first element must be pressure sensors' names.
         """
         selectQuery = QSqlQuery(self.con)
         selectQuery.prepare(f"""SELECT PressureSensor.Name, PressureSensor.Datalogger, PressureSensor.Calibration, PressureSensor.Intercept, PressureSensor.DuDH, PressureSensor.DuDT, PressureSensor.Error
@@ -89,6 +114,7 @@ class LabEquipementManager:
     def build_select_shafts(self):
         """
         Build and return a query which selects all shafts corresponding to this lab.
+        The first element must be pressure sensors' names.
         """
         selectQuery = QSqlQuery(self.con)
         selectQuery.prepare(f""" SELECT Shaft.Name, Shaft.Datalogger, Shaft.Depth1, Shaft.Depth2, Shaft.Depth3, Shaft.Depth4, Thermometer.Name
