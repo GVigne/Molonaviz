@@ -1,30 +1,30 @@
-# from dialogcleanupmain import DialogCleanupMain
 # from dialogcompute import DialogCompute
 # from compute import Compute
 # from usefulfonctions import *
-
-# from math import isnan
-# from numpy import nan
+# 
 # from src.Compute import Compute
 # from src.MoloModel import  PressureDataModel, TemperatureDataModel, SolvedTemperatureModel, HeatFluxesModel, WaterFluxModel,ParamsDistributionModel
 # from src.dialogCleanupMain import DialogCleanupMain
-# from src.dialogConfirm import DialogConfirm
 # from src.dialogCompute import DialogCompute
 # from utils.utils import convertDates
 # from utils.utilsQueries import build_max_depth
-
-from email.headerregistry import HeaderRegistry
 import os
 import csv
-
+from numpy import nan
 from PyQt5 import QtWidgets, QtCore, uic, QtGui
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 
 from src.Containers import SamplingPoint
 from src.backend.SPointCoordinator import SPointCoordinator
+from src.backend.Compute import Compute
 
 from src.frontend.GraphViews import PressureView, TemperatureView,UmbrellaView,TempDepthView,TempMapView,AdvectiveFlowView, ConductiveFlowView, TotalFlowView, WaterFluxView, Log10KView, ConductivityView, PorosityView, CapacityView
 from src.frontend.dialogExportCleanedMeasures import DialogExportCleanedMeasures
+from src.frontend.dialogConfirm import DialogConfirm
+from src.frontend.dialogCleanupMain import DialogCleanupMain
+from src.frontend.dialogCompute import DialogCompute
+from src.utils.utils import convertDates
+
 
 From_SamplingPointViewer = uic.loadUiType(os.path.join(os.path.dirname(__file__), "ui", "SamplingPointViewer.ui"))[0]
 
@@ -37,6 +37,7 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
 
         self.samplingPoint = samplingPoint
         self.coordinator = spointCoordinator
+        self.computeEngine = Compute(self.coordinator)
 
         self.setupUi(self) 
 
@@ -84,9 +85,9 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         self.radioButtonTherm1.clicked.connect(self.refreshTempDepthView)
         self.radioButtonTherm2.clicked.connect(self.refreshTempDepthView)
         self.radioButtonTherm3.clicked.connect(self.refreshTempDepthView)      
-        # self.pushButtonReset.clicked.connect(self.reset)
-        # self.pushButtonCleanUp.clicked.connect(self.cleanup)
-        # self.pushButtonCompute.clicked.connect(self.compute)
+        self.pushButtonReset.clicked.connect(self.reset)
+        self.pushButtonCleanUp.clicked.connect(self.cleanup)
+        self.pushButtonCompute.clicked.connect(self.compute)
         self.pushButtonExportMeasures.clicked.connect(self.exportMeasures)
         self.checkBoxRawData.stateChanged.connect(self.checkbox)
         self.pushButtonRefreshBins.clicked.connect(self.refreshbins)
@@ -186,7 +187,7 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         """
         Display in the table view the parameters corresponding to the given layer, and update histograms.
         """
-        self.paramsModel = self.coordinator.getParamsModel()
+        self.paramsModel = self.coordinator.getParamsModel(layer)
         self.tableViewParams.setModel(self.paramsModel)
         #Resize the table view so it looks pretty
         self.tableViewParams.resizeColumnsToContents()
@@ -319,6 +320,49 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
             toolbar = NavigationToolbar(view, self)
             layout.addWidget(view)
             layout.addWidget(toolbar)
+    
+    def reset(self):
+        dlg = DialogConfirm("Are you sure you want to delete the cleaned measures and all computations made for this point? This cannot be undone.")
+        res = dlg.exec()
+        if res == QtWidgets.QDialog.Accepted:
+            self.coordinator.deleteProcessedData()
+            self.updateAllViews()
+    
+    def cleanup(self):
+        dlg = DialogCleanupMain(self.coordinator,self.samplingPoint)
+        res = dlg.exec()
+        if res == QtWidgets.QDialog.Accepted:
+            confirm = DialogConfirm("Cleaning up the measures will delete the previous cleanup, as well as any computations made for this point. Are you sure?")
+            confirmRes = confirm.exec()
+            if confirmRes == QtWidgets.QDialog.Accepted:
+                #Clean the database first before putting new data
+                self.coordinator.deleteProcessedData()
+
+                dlg.df_cleaned["date"].replace('', nan, inplace = True)
+                dlg.df_cleaned.dropna(subset = ["date"], inplace = True)
+                convertDates(dlg.df_cleaned) #Convert the dates to database format
+                dlg.df_cleaned["date"] = dlg.df_cleaned["date"].dt.strftime("%Y/%m/%d %H:%M:%S")
+
+                self.coordinator.insertCleanedMeasures(dlg.df_cleaned)
+
+                self.updateAllViews()
+    
+    def compute(self):
+        dlg = DialogCompute(self.coordinator.maxDepth())
+        res = dlg.exec()
+        if res == QtWidgets.QDialog.Accepted:
+            self.coordinator.deleteComputations()
+            if dlg.computationIsMCMC():
+                #MCMC
+                self.computeEngine.MCMCFinished.connect(self.updateAllViews)
+                nb_iter, all_priors, nb_cells, quantiles = dlg.getInputMCMC()
+                self.computeEngine.computeMCMC(nb_iter, all_priors, nb_cells, quantiles)
+            else:
+                #Direct Model
+                self.computeEngine.DirectModelFinished.connect(self.updateAllViews)
+                params, nb_cells = dlg.getInputDirectModel()
+                self.computeEngine.computeDirectModel(params, nb_cells)
+
 
     def adjustRightSplitter(self, pos : int, index : int):
         """

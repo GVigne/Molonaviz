@@ -1,6 +1,7 @@
-from asyncio import selector_events
-from select import select
 from PyQt5.QtSql import QSqlQueryModel, QSqlQuery, QSqlDatabase #QSqlDatabase in used only for type hints
+from math import isnan #This should be moved to frontend: backend shouldn't do any sort of cleanup.
+import pandas as pd
+
 from src.backend.GraphsModels import PressureDataModel, TemperatureDataModel, SolvedTemperatureModel, HeatFluxesModel, WaterFluxModel, ParamsDistributionModel
 
 class SPointCoordinator:
@@ -152,6 +153,15 @@ class SPointCoordinator:
         select_thermo_depth.exec()
         select_thermo_depth.next()
         return select_thermo_depth.value(0)
+
+    def maxDepth(self):
+        """
+        Return the altitude of the deepest point in the river. We can assume that this is the lenght of the shaft.
+        """
+        selectdepth = self.build_max_depth()
+        selectdepth.exec()
+        selectdepth.next()
+        return selectdepth.value(0)
     
     def refreshMeasuresPlots(self, raw_measures):
         """
@@ -200,6 +210,88 @@ class SPointCoordinator:
 
         #Histogramms
         self.refreshParamsDistr(layer)
+    
+    def insertCleanedMeasures(self, dfCleaned : pd.DataFrame):
+        """
+        Insert the cleaned measures into the database.
+        The cleaned measures must be in dataframe with the following structure:
+            -row[1] : Date (in database formaat)
+            -row[2] : Temperature Bed
+            -row[3] : Pressure
+            -row[4] : Temperature 1
+            -row[5] : Temperature 2
+            -row[6] : Temperature 3
+            -row[7] : Temperature 4
+        """
+        query_dates = self.build_insert_date()
+        query_dates.bindValue(":PointKey", self.pointID)
+
+        query_measures = self.build_insert_cleaned_measures()
+        query_measures.bindValue(":PointKey", self.pointID)
+        
+        self.con.transaction()
+        for row in dfCleaned.itertuples():
+            if not(isnan(row[2]) or isnan(row[3]) or isnan(row[4]) or isnan(row[5]) or isnan(row[6]) or isnan(row[7])):
+                query_dates.bindValue(":Date", row[1])
+                query_dates.exec()
+                query_measures.bindValue(":DateID", query_dates.lastInsertId())
+                query_measures.bindValue(":TempBed", row[2])
+                query_measures.bindValue(":Temp1", row[4])
+                query_measures.bindValue(":Temp2", row[5])
+                query_measures.bindValue(":Temp3", row[6])
+                query_measures.bindValue(":Temp4", row[7])
+                query_measures.bindValue(":Pressure", row[3])
+                query_measures.exec()
+        self.con.commit()
+    
+    def deleteProcessedData(self):
+        """
+        Delete all processed data (cleaned measures and computations). This reverts the sampling point to its original state (only raw measures)
+        """
+        self.deleteComputations()
+
+        #Now delete the cleaned measures and then the dates.
+        dateID = QSqlQuery(self.con)
+        dateID.exec(f"""SELECT Date.ID FROM DATE
+                        JOIN Point
+                        ON Date.PointKey = Point.ID
+                        WHERE Point.ID={self.pointID}""")
+        deleteTableQuery = QSqlQuery(self.con)
+        deleteTableQuery.exec(f"DELETE FROM CleanedMeasures WHERE CleanedMeasures.PointKey=(SELECT ID FROM Point WHERE Point.ID={self.pointID})")
+        deleteDate = QSqlQuery(self.con)
+
+        deleteDate.prepare("DELETE FROM Date WHERE Date.ID = :Date")
+        self.con.transaction()
+        while dateID.next():
+            deleteDate.bindValue(":Date", dateID.value(0))
+            deleteDate.exec()
+        self.con.commit()
+        #Note: the Point has not been removed, but it doesn't matter. The findOrCreatePointID function is here for this reason.
+
+    
+    def deleteComputations(self):
+        """
+        Delete every computations made for this point. This function builds and execute the DELETE queries. Be careful, calling it will clear the database for this point!
+        """
+        deleteTableQuery = QSqlQuery(self.con)
+        #Careful: should have joins as WaterFlow.PointKey !=Samplingpoint.name
+        deleteTableQuery.exec(f'DELETE FROM WaterFlow WHERE WaterFlow.PointKey=(SELECT Point.ID FROM Point WHERE Point.ID ={self.pointID})')
+        deleteTableQuery.exec(f'DELETE FROM RMSE WHERE PointKey=(SELECT Point.ID FROM Point WHERE Point.ID ={self.pointID})')
+        deleteTableQuery.exec(f'DELETE FROM TemperatureAndHeatFlows WHERE PointKey=(SELECT Point.ID FROM Point WHERE Point.ID  = {self.pointID})')
+        deleteTableQuery.exec(f'DELETE FROM ParametersDistribution WHERE ParametersDistribution.PointKey=(SELECT Point.ID FROM Point WHERE Point.ID = {self.pointID})')
+        deleteTableQuery.exec(f'DELETE FROM BestParameters WHERE BestParameters.PointKey=(SELECT Point.ID FROM Point WHERE Point.ID = {self.pointID})')
+        deleteTableQuery.exec(f'DELETE FROM Quantiles WHERE Quantiles.PointKey=(SELECT Point.ID FROM Point WHERE Point.ID = {self.pointID})')
+        deleteTableQuery.exec(f'DELETE FROM Depth WHERE Depth.PointKey=(SELECT Point.ID FROM Point WHERE Point.ID = {self.pointID})')
+        deleteTableQuery.exec(f'DELETE FROM Layer WHERE Layer.PointKey=(SELECT Point.ID FROM Point WHERE Point.ID = {self.pointID})')
+        deleteTableQuery.exec(f'DELETE FROM Quantile WHERE Quantile.PointKey=(SELECT Point.ID FROM Point WHERE Point.ID = {self.pointID})')
+        deleteTableQuery.exec(f"""UPDATE Point
+                        SET IncertK = NULL,
+                            IncertLambda = NULL,
+                            DiscretStep = NULL,
+                            IncertRho = NULL,
+                            TempUncertainty = NULL,
+                            IncertPressure = NULL
+                        WHERE ID = {self.pointID}""")
     
     def computation_type(self):
         """
@@ -550,11 +642,47 @@ class SPointCoordinator:
         """)
         return query
     
+    def build_max_depth(self):
+        """
+        Build and return a query giving the total depth for the sampling point with the ID samplingPointID.
+        """
+        shaft_depth = QSqlQuery(self.con)
+        shaft_depth.prepare(f"""
+            SELECT Shaft.Depth4
+            FROM Shaft 
+            JOIN SamplingPoint
+            ON Shaft.ID = SamplingPoint.Shaft
+            WHERE SamplingPoint.ID = {self.samplingPointID}
+            """)
+        return shaft_depth
+    
     def build_insert_point(self):
         """
         Build and return a query creating a Point. For now, most fields are empty.
         """
         query = QSqlQuery(self.con)
         query.prepare(f""" INSERT INTO Point (SamplingPoint)  VALUES (:SamplingPoint)
+        """)
+        return query
+    
+    def build_insert_date(self):
+        """
+        Build and return a query to insert dates in the Date table.
+        """
+        query = QSqlQuery(self.con)
+        query.prepare(f"""
+            INSERT INTO Date (Date, PointKey)
+            VALUES (:Date, :PointKey)
+        """)
+        return query
+    
+    def build_insert_cleaned_measures(self):
+        """
+        Build and return a query to insert cleaned measures in the database.
+        """
+        query = QSqlQuery(self.con)
+        query.prepare(f"""
+            INSERT INTO CleanedMeasures (Date, TempBed, Temp1, Temp2, Temp3, Temp4, Pressure, PointKey)
+            VALUES (:DateID, :TempBed, :Temp1, :Temp2, :Temp3, :Temp4, :Pressure, :PointKey)        
         """)
         return query
