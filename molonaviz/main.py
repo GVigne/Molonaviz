@@ -70,7 +70,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.actionSwitchToCascadeView.triggered.connect(self.switchToCascadeView)
         self.actionChangeDatabase.triggered.connect(self.closeDatabase)
 
-        # self.treeViewDataPoints.doubleClicked.connect(self.openPointFromDock)
+        self.treeViewDataPoints.doubleClicked.connect(self.openPointFromDock)
     
         #Some actions or menus should not be enabled: disable them
         self.actionCloseStudy.setEnabled(False)
@@ -322,19 +322,27 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
 
                 self.switchToSubWindowView()
     
-    # def openPointFromDock(self):
-    #     """
-    #     This happens when the user double cliks a point from the dock. Open it.
-    #     This function may only be called if a study is opened, ie if self.currentStudy is not None.
-    #     """
-    #     #Get the information with the flag "UserRole": this information is the name of the point (as defined in MoloTreeViewModels).
-    #     pointName = self.treeViewDataPoints.selectedIndexes()[0].data(QtCore.Qt.UserRole)
-    #     if pointName is None:
-    #         #The user clicked on one of the sub-items instead (shaft, pressure sensor...). Get the information from the parent widget.
-    #         pointName = self.treeViewDataPoints.selectedIndexes()[0].parent().data(QtCore.Qt.UserRole)
+    def openPointFromDock(self):
+        """
+        This happens when the user double cliks a point from the dock. Open it.
+        This function may only be called if a study is opened, ie if self.currentStudy is not None.
+        """
+        #Get the information with the flag "UserRole": this information is the name of the point (as defined in MoloTreeViewModels).
+        spointName = self.treeViewDataPoints.selectedIndexes()[0].data(QtCore.Qt.UserRole)
+        if spointName is None:
+            #The user clicked on one of the sub-items instead (shaft, pressure sensor...). Get the information from the parent widget.
+            spointName = self.treeViewDataPoints.selectedIndexes()[0].parent().data(QtCore.Qt.UserRole)
 
-    #     self.currentStudy.openPoint(pointName, self.mdiArea)
-    #     self.switchToSubWindowView()
+        studyName = self.spointManager.getStudyName()
+        
+        self.spointCoordinator = SPointCoordinator(self.con, studyName, spointName)
+        samplingPoint = self.spointManager.getSPoint(spointName)
+        self.spointViewer = SamplingPointViewer(self.spointCoordinator, samplingPoint)
+        
+        subwindow = SubWindow(self.spointViewer)
+        self.mdiArea.addSubWindow(subwindow)
+        subwindow.show()
+        self.switchToSubWindowView()
 
     def switchToTabbedView(self):
         """
