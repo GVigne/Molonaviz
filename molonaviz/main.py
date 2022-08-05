@@ -249,10 +249,10 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         """
         Close the current study and revert the app to the initial state.
         """
-        self.thermoView.reset()
-        self.psensorView.reset()
-        self.shaftView.reset()
-        self.spointView.reset()
+        self.thermoView.reset_data()
+        self.psensorView.reset_data()
+        self.shaftView.reset_data()
+        self.spointView.reset_data()
         self.labManager = None
         self.spointManager = None
 

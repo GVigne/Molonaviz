@@ -48,6 +48,7 @@ class GraphView1D(GraphView):
 
     def on_update(self):
         self.axes.clear()
+        self.reset_data()
         self.retrieve_data()
         self.setup_x()
         self.plot_data()
@@ -77,10 +78,9 @@ class GraphView1D(GraphView):
         self.axes.set_title(self.title)
         self.axes.grid(True)
     
-    def reset(self):
+    def reset_data(self):
         self.x = []
         self.y = {}
-        super().reset()
 
 class GraphView2D(GraphView):
     """
@@ -103,6 +103,7 @@ class GraphView2D(GraphView):
     
     def on_update(self):
         self.axes.clear()
+        self.reset_data()
         self.retrieve_data()
         self.setup_x()
         self.plot_data()
@@ -131,11 +132,10 @@ class GraphView2D(GraphView):
             self.axes.set_ylabel(self.ylabel)
             self.axes.set_xlabel(self.xlabel)
     
-    def reset(self):
+    def reset_data(self):
         self.x = []
         self.y = []
         self.cmap = []
-        super().reset()
 
 class GraphViewHisto(GraphView):
     """
@@ -154,6 +154,7 @@ class GraphViewHisto(GraphView):
     
     def on_update(self):
         self.axes.clear()
+        self.reset_data()
         self.retrieve_data()
         self.plot_data()
         self.draw()
@@ -163,9 +164,8 @@ class GraphViewHisto(GraphView):
         self.axes.set_title(self.title)
         self.axes.set_xlabel(self.xlabel)
     
-    def reset(self):
+    def reset_data(self):
         self.data = []
-        super().reset()
 
 class PressureView(GraphView1D):
     """
@@ -235,6 +235,10 @@ class TempDepthView(GraphView1D):
             self.x = self.model.get_dates()
             for quantile in self.options[1]:
                 self.y[f"Température à la profondeur {thermo_depth:.3f} m - quantile {quantile}"] = self.model.get_temp_by_date(thermo_depth, quantile)
+    
+    def reset_data(self):
+        self.options = options=[0,[]]
+        super().reset_data()
 
 class WaterFluxView(GraphView1D):
     """

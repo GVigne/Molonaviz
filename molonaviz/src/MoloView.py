@@ -31,7 +31,8 @@ class MoloView:
         Revert the view to an empty state, then subscribe to the new given model.
         WARNING: if this function was not called and no model was given when creating an instance of this class, there is no guarentee the view will work or won't throw exceptions. Before trying to display or update anything, a model MUST be set.
         """
-        self.reset()
+        self.reset_data()
+        self.unregister()
         self.register(molomodel)
         self.model = molomodel
 
@@ -47,9 +48,9 @@ class MoloView:
         """
         pass
     
-    def reset(self):
+    def reset_data(self):
         """
-        This should only be called when changing model (ie when subscribe_model is called) or when clearing the model.
         Reset all internal data to a base state representing an empty view.
         """
-        self.unregister()
+        pass
+       

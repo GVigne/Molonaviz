@@ -22,9 +22,8 @@ class ThermometerTreeView(QtGui.QStandardItemModel, MoloView):
             item.appendRow(QtGui.QStandardItem(f"Manufacturer reference : {thermometer.manuRef}"))
             item.appendRow(QtGui.QStandardItem(f"Error (°C) : {thermometer.error}")) 
 
-    def reset(self):
+    def reset_data(self):
         self.clear()
-        MoloView.reset(self)          
 
 class PSensorTreeViewModel(QtGui.QStandardItemModel, MoloView):
     """
@@ -47,9 +46,8 @@ class PSensorTreeViewModel(QtGui.QStandardItemModel, MoloView):
             item.appendRow(QtGui.QStandardItem(f"Du/Dt : {ps.dudt:.3f}"))
             item.appendRow(QtGui.QStandardItem(f"Error : {ps.error:.2f}"))
     
-    def reset(self):
+    def reset_data(self):
         self.clear()
-        MoloView.reset(self)
 
 class ShaftTreeView(QtGui.QStandardItemModel, MoloView):
     """
@@ -69,9 +67,8 @@ class ShaftTreeView(QtGui.QStandardItemModel, MoloView):
             item.appendRow(QtGui.QStandardItem(f"Thermometer type : {shaft.thermoType}"))
             item.appendRow(QtGui.QStandardItem(f"Thermometer depths (m) : {shaft.depths}"))
     
-    def reset(self):
+    def reset_data(self):
         self.clear()
-        MoloView.reset(self)
 
 class SamplingPointTreeView(QtGui.QStandardItemModel, MoloView):
     """
@@ -93,7 +90,6 @@ class SamplingPointTreeView(QtGui.QStandardItemModel, MoloView):
             item.appendRow(QtGui.QStandardItem(f"River bed = {spoint.rivBed}"))
             item.appendRow(QtGui.QStandardItem(f"Offset = {spoint.offset}"))
     
-    def reset(self):
+    def reset_data(self):
         self.clear()
-        MoloView.reset(self)
 
