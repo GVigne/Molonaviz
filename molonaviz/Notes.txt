@@ -52,6 +52,13 @@ Warning: Duplicate
 -saveMCMCResults and saveDirectResults are almost copies, except for the method called (get_temps_solve or get_temps_MCMC)
 
 TODO:
+-Remove coordinator.computation_type() -> have own frontend convention to tell if there are computations or not in the database?
+-Remove quantile  = Direct Model convention from frontend (and have an other convention?)
+-Create a custom iterable object from a QSQLquery which does not require to create a list. This is easy: just reimplement __iter__
+-Fix class inheritance (especially that ugly figure = None in Moloview needed for matplotlib's canvas __init__)
+-Reduce the number of dialogs. Many dialogs are just confirmation and/or a combo box with different fields.
+-Turn the info model into a true MoloModel
+-Be more consisten for dates: shouldn't backend and frontend both communicate in database date format?
 -More intelligent layout/views management when no computation was made: we shouldn't be adding a widget with "No computations", as this would require to rebind everytime the views to the layouts.
 - REWORK POINT/SAMPLINGPOINT INTERACTION
 -Tooltips! Especially compute window

@@ -12,12 +12,15 @@ from src.frontend.dialogOpenDatabase import DialogOpenDatabase
 from src.frontend.dialogImportLab import DialogImportLab
 from src.frontend.dialogOpenStudy import DialogOpenStudy
 from src.frontend.dialogCreateStudy import DialogCreateStudy
-# from src.dialogOpenPoint import tryOpenPoint
+from src.frontend.dialogOpenSPoint import DialogOpenSPoint
 from src.frontend.dialogImportPoint import DialogImportPoint
+from src.frontend.subWindow import SubWindow
+from src.frontend.SamplingPointViewer import SamplingPointViewer
 
 from src.backend.StudyAndLabManager import StudyAndLabManager
 from src.backend.LabEquipementManager import LabEquipementManager
 from src.backend.SamplingPointManager import SamplingPointManager
+from src.backend.SPointCoordinator import SPointCoordinator
 
 # from src.Laboratory import Lab
 # from utils.utils import displayCriticalMessage, createDatabaseDirectory, checkDbFolderIntegrity
@@ -63,7 +66,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.actionOpenStudy.triggered.connect(self.chooseStudyName)
         self.actionCloseStudy.triggered.connect(self.closeStudy)
         self.actionImportPoint.triggered.connect(self.importPoint)
-        # self.actionOpenPoint.triggered.connect(self.openPointFromAction)
+        self.actionOpenPoint.triggered.connect(self.openPointFromAction)
         self.actionHideShowPoints.triggered.connect(self.changeDockPointsStatus)
         self.actionHideShowSensors.triggered.connect(self.changeDockSensorsStatus)
         self.actionHideShowAppMessages.triggered.connect(self.changeDockAppMessagesStatus)
@@ -89,6 +92,8 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.study_lab_manager = StudyAndLabManager(self.con)
         self.labManager = None
         self.spointManager = None
+        self.spointCoordinator = None
+        self.spointViewer = None
 
     def openDatabase(self):
         """
@@ -295,15 +300,32 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
             self.spointManager.createNewSPoint(name, psensor, shaft, noticefile, configfile, infoDF, dfpress, dftemp)
             self.spointManager.refreshSPoints()
 
-    # def openPointFromAction(self):
-    #     """
-    #     This happens when the user clicks the "Open Point" action. Display a dialog so the user may choose a point to open, or display an error message. Then, open the corresponding point.
-    #     This function may only be called if a study is opened, ie if self.currentStudy is not None. 
-    #     """
-    #     point_name = tryOpenPoint(self.con, self.currentStudy.ID)
-    #     if point_name: #study_name is not an empty string: we should open the corresponding Point.
-    #         self.currentStudy.openPoint(point_name, self.mdiArea)
-    #         self.switchToSubWindowView()
+    def openPointFromAction(self):
+        """
+        This happens when the user clicks the "Open Point" action. Display a dialog so the user may choose a point to open, or display an error message. Then, open the corresponding point.
+        This function may only be called if a study is opened. 
+        """
+        spointsNames = self.spointManager.getSPointsNames()
+
+        if len(spointsNames) ==0:
+            displayCriticalMessage("No point was found in this study. Please import one first.")
+        else:
+            dlg = DialogOpenSPoint(spointsNames)
+            dlg.setWindowModality(QtCore.Qt.ApplicationModal)
+            res = dlg.exec()
+            if res == QtWidgets.QDialog.Accepted:
+                spointName = dlg.selectedPoint()
+                studyName = self.spointManager.getStudyName()
+                
+                self.spointCoordinator = SPointCoordinator(self.con, studyName, spointName)
+                samplingPoint = self.spointManager.getSPoint(spointName)
+                self.spointViewer = SamplingPointViewer(self.spointCoordinator, samplingPoint)
+                
+                subwindow = SubWindow(self.spointViewer)
+                self.mdiArea.addSubWindow(subwindow)
+                subwindow.show()
+
+                self.switchToSubWindowView()
     
     # def openPointFromDock(self):
     #     """
@@ -327,7 +349,6 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.actionSwitchToTabbedView.setEnabled(False) #Disable this action to show the user it is the display mode currently being used.
         self.actionSwitchToSubWindowView.setEnabled(True)
         self.actionSwitchToCascadeView.setEnabled(True)
-
 
     def switchToSubWindowView(self):
         """
@@ -410,6 +431,8 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         userguidepath=os.path.join(os.path.dirname(__file__),"docs","UserguideFR.pdf")
         QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(userguidepath))
 
+from src.frontend.GraphViews import GraphView
+from src.MoloModel import MoloModel
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)

@@ -20,24 +20,12 @@ class LabEquipementManager:
         self.labID = selectLabID.value(0)    
     
     def getThermoModel(self):
-        """
-        This function should only be called by frontend users.
-        Return the thermometer model.
-        """
         return self.thermoModel
     
     def getPSensorModel(self):
-        """
-        This function should only be called by frontend users.
-        Return the pressure sensor model.
-        """
         return self.psensorModel
     
     def getShaftModel(self):
-        """
-        This function should only be called by frontend users.
-        Return the shaft model.
-        """
         return self.shaftModel
     
     def getPSensorsNames(self):

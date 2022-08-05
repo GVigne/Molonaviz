@@ -15,8 +15,8 @@ class SamplingPointModel(MoloModel):
     
     def update_data(self):
         while self.queries[0].next():
-            newTherm = SamplingPoint(self.queries[0].value(0), self.queries[0].value(1),self.queries[0].value(2),self.queries[0].value(3), self.queries[0].value(4))
-            self.data.append(newTherm)
+            newSPoint = SamplingPoint(self.queries[0].value(0), self.queries[0].value(1),self.queries[0].value(2),self.queries[0].value(3), self.queries[0].value(4))
+            self.data.append(newSPoint)
     
     def get_all_sampling_points(self):
         return self.data
@@ -39,12 +39,13 @@ class SamplingPointManager:
         select_study_id.exec()
         select_study_id.next()
         self.studyID = select_study_id.value(0)
+        self.studyName = studyName
     
+    def getStudyName(self):
+        return self.studyName
+   
+
     def getSPointModel(self):
-        """
-        This function should only be called by frontend users.
-        Return the sampling point model.
-        """
         return self.spointModel
     
     def getSPointsNames(self):
@@ -58,6 +59,16 @@ class SamplingPointManager:
         while select_spoints.next():
             spoints.append(select_spoints.value(0))
         return spoints
+    
+    def getSPoint(self, spointName):
+        """
+        Return a SamplingPoint object representing the sampling point with name spointName.
+        """
+        select_spoints = self.build_select_spoints(spointName)
+        select_spoints.exec()
+        select_spoints.next()
+        return SamplingPoint(select_spoints.value(0), select_spoints.value(1),select_spoints.value(2), select_spoints.value(3), select_spoints.value(4))
+
     
     def refreshSPoints(self):
         """
@@ -150,21 +161,33 @@ class SamplingPointManager:
         query.prepare(f"SELECT Study.ID FROM Study WHERE Study.Name ='{studyName}'")
         return query
 
-    def build_select_spoints(self):
+    def build_select_spoints(self, spointName = None):
         """
-        Build and return a query giving all the informations about the points in this study.
+        Build and return a query giving all the informations about the points in this study. If spointName is not None, return instead the information for this sampling point.
         """
         query = QSqlQuery(self.con)
-        query.prepare(f"""SELECT SamplingPoint.Name, PressureSensor.Name, Shaft.Name, SamplingPoint.RiverBed, SamplingPoint.Offset
-                    FROM SamplingPoint
-                    JOIN PressureSensor
-                    ON SamplingPoint.PressureSensor = PressureSensor.ID
-                    JOIN Shaft
-                    ON SamplingPoint.Shaft = Shaft.ID
-                    JOIN Study
-                    ON SamplingPoint.Study = Study.ID
-                    WHERE Study.ID = {self.studyID}
-        """)
+        if spointName is None:
+            query.prepare(f"""SELECT SamplingPoint.Name, PressureSensor.Name, Shaft.Name, SamplingPoint.RiverBed, SamplingPoint.Offset
+                        FROM SamplingPoint
+                        JOIN PressureSensor
+                        ON SamplingPoint.PressureSensor = PressureSensor.ID
+                        JOIN Shaft
+                        ON SamplingPoint.Shaft = Shaft.ID
+                        JOIN Study
+                        ON SamplingPoint.Study = Study.ID
+                        WHERE Study.ID = {self.studyID}
+            """)
+        else:
+            query.prepare(f"""SELECT SamplingPoint.Name, PressureSensor.Name, Shaft.Name, SamplingPoint.RiverBed, SamplingPoint.Offset
+                        FROM SamplingPoint
+                        JOIN PressureSensor
+                        ON SamplingPoint.PressureSensor = PressureSensor.ID
+                        JOIN Shaft
+                        ON SamplingPoint.Shaft = Shaft.ID
+                        JOIN Study
+                        ON SamplingPoint.Study = Study.ID
+                        WHERE Study.ID = {self.studyID} AND SamplingPoint.Name = '{spointName}'
+            """)
         return query
     
     def build_psensor_id(self, psensorName : str):
