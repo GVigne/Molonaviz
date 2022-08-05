@@ -27,7 +27,6 @@ CONCLUSION: Always use datetime objects in the program. In database, always stor
 
 
 Known bugs:
--Immediately after a computation, they will not appear. Instead, one must close the app and reopen it. This should be fixed when making a difference between backend and frontend.
 -When importing a lab, some messages may appear such as "The thermometers have been added to the database", despite it not being the case
 - build_data_queries first query is super ugly, and so are other queries ( = SELECT ...)
 -Subwindows do not fill up the zone.
@@ -52,6 +51,7 @@ Warning: Duplicate
 -saveMCMCResults and saveDirectResults are almost copies, except for the method called (get_temps_solve or get_temps_MCMC)
 
 TODO:
+-Prevent user from clicking on Compute if there are no cleaned measures.
 -Check Segfault when a point is opened -> do a .close() method?
 -Add a high level study class to handle frontend high order operations and reduce code in main
 -In InsertCleanedMeasures, remove isnan
@@ -61,16 +61,13 @@ TODO:
 -Fix class inheritance (especially that ugly figure = None in Moloview needed for matplotlib's canvas __init__)
 -Reduce the number of dialogs. Many dialogs are just confirmation and/or a combo box with different fields.
 -Turn the info model into a true MoloModel
--Be more consisten for dates: shouldn't backend and frontend both communicate in database date format?
--More intelligent layout/views management when no computation was made: we shouldn't be adding a widget with "No computations", as this would require to rebind everytime the views to the layouts.
+-Be more consistent for dates: shouldn't backend and frontend both communicate in database date format?
 - REWORK POINT/SAMPLINGPOINT INTERACTION
 -Tooltips! Especially compute window
 -What should I do with the default script, currently called sample_text.txt? Where to put it? Default value when creating a point -> when creating a Database, it should be in the Script folder
--Reorganise the folders for all the dialogs
 -Date management when importing raw data
 -Make the database insensitive to the name of the points/studies (ie 2 points, pressure sensors... may have the same name)
 -In Cleanup: translate panda headers in english, and also put capital letters!
--In the pressure sensors/shafts.csv files: less precision for floats? Right now, we have floats with a precision of more thant 10 digits...
 -Where to put unique constraints?
 -Where to put null constraints? Many foreign keys do not have such constraints, and this can be a big problem. When importing a lab, if a thermometer is invalid, it will not be added to the database. Should the pressure sensors and shafts linked to this thermometer be added with an empty field or simply not added? It'd say not added -> just have to change the database.
 -Schemes -> Diagrams?
