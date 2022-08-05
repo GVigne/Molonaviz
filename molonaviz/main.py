@@ -61,7 +61,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.actionImportLab.triggered.connect(self.importLab)
         self.actionAboutMolonaViz.triggered.connect(self.aboutUs)
         self.actionOpenUserguideFR.triggered.connect(self.openUserGuideFR)
-        self.actionQuitMolonaViz.triggered.connect(self.closeEvent)
+        self.actionQuitMolonaViz.triggered.connect(self.close)
         self.actionCreateStudy.triggered.connect(self.createStudy)
         self.actionOpenStudy.triggered.connect(self.chooseStudyName)
         self.actionCloseStudy.triggered.connect(self.closeStudy)
