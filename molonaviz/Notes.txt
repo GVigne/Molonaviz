@@ -52,6 +52,9 @@ Warning: Duplicate
 -saveMCMCResults and saveDirectResults are almost copies, except for the method called (get_temps_solve or get_temps_MCMC)
 
 TODO:
+-Check Segfault when a point is opened -> do a .close() method?
+-Add a high level study class to handle frontend high order operations and reduce code in main
+-In InsertCleanedMeasures, remove isnan
 -Remove coordinator.computation_type() -> have own frontend convention to tell if there are computations or not in the database?
 -Remove quantile  = Direct Model convention from frontend (and have an other convention?)
 -Create a custom iterable object from a QSQLquery which does not require to create a list. This is easy: just reimplement __iter__

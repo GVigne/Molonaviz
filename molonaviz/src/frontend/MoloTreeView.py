@@ -1,4 +1,3 @@
-
 from PyQt5 import QtGui, QtCore
 
 from src.MoloView import MoloView

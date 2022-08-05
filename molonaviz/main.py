@@ -1,10 +1,7 @@
-from re import L
 from PyQt5 import QtWidgets, QtGui, QtCore, uic
 from PyQt5.QtSql import QSqlDatabase
-
 from queue import Queue
 import sys, os.path
-
 import pandas as pd
 
 from src.frontend.dialogAboutUs import DialogAboutUs
@@ -22,8 +19,6 @@ from src.backend.LabEquipementManager import LabEquipementManager
 from src.backend.SamplingPointManager import SamplingPointManager
 from src.backend.SPointCoordinator import SPointCoordinator
 
-# from src.Laboratory import Lab
-# from utils.utils import displayCriticalMessage, createDatabaseDirectory, checkDbFolderIntegrity
 from src.frontend.printThread import InterceptOutput, Receiver
 from src.frontend.MoloTreeView import ThermometerTreeView, PSensorTreeViewModel, ShaftTreeView, SamplingPointTreeView
 from src.utils.utils import displayCriticalMessage, createDatabaseDirectory, checkDbFolderIntegrity, extractDetectorsDF, convertDates

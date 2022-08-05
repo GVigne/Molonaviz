@@ -2,8 +2,6 @@
 This file regroups different Containers, which are used to communicate between backend and frontend. The backend creates such objects and passes them to the frontend which displays them prettily.
 Containers are just fancy classes which mimick a dictionnary or a named tuple. Their only goal is to have a list of attributes which can be easily read. They have no methods. 
 """
-from PyQt5.QtCore import QObject, pyqtSignal
-
 class Thermometer:
     def __init__(self, name : str, manuName : str, manuRef : str, error : float | str):
         self.name = name

@@ -1,4 +1,3 @@
-from PyQt5.QtCore import QObject
 from src.MoloModel import MoloModel #Used only for type hints
 
 class MoloView:

@@ -1,13 +1,3 @@
-# from dialogcompute import DialogCompute
-# from compute import Compute
-# from usefulfonctions import *
-# 
-# from src.Compute import Compute
-# from src.MoloModel import  PressureDataModel, TemperatureDataModel, SolvedTemperatureModel, HeatFluxesModel, WaterFluxModel,ParamsDistributionModel
-# from src.dialogCleanupMain import DialogCleanupMain
-# from src.dialogCompute import DialogCompute
-# from utils.utils import convertDates
-# from utils.utilsQueries import build_max_depth
 import os
 import csv
 from numpy import nan
