@@ -171,7 +171,7 @@ class PressureView(GraphView1D):
     """
     Concrete class to display the Pressure in "Data arrays and plots" tab.
     """
-    def __init__(self, molomodel: MoloModel | None, time_dependent=True, title="", ylabel="Pression différentielle (m)", xlabel=""):
+    def __init__(self, molomodel: MoloModel | None, time_dependent=True, title="", ylabel="Differential pressure (m)", xlabel=""):
         super().__init__(molomodel, time_dependent, title, ylabel, xlabel)
     
     def retrieve_data(self):
@@ -221,7 +221,7 @@ class TempDepthView(GraphView1D):
         - the first one is a depth corresponding to a thermometer
         - a list of values representing the quantiles. If this list is empty, then nothing will be displayed
     """
-    def __init__(self, molomodel: MoloModel | None, time_dependent=True, title="", ylabel="Température en K", xlabel="",options=[0,[]]):
+    def __init__(self, molomodel: MoloModel | None, time_dependent=True, title="", ylabel="Temperature (K)", xlabel="",options=[0,[]]):
         super().__init__(molomodel, time_dependent, title, ylabel, xlabel)
         self.options = options
     
