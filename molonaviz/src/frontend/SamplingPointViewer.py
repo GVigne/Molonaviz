@@ -74,7 +74,8 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         self.comboBoxSelectLayer.textActivated.connect(self.changeDisplayedParams)
         self.radioButtonTherm1.clicked.connect(self.refreshTempDepthView)
         self.radioButtonTherm2.clicked.connect(self.refreshTempDepthView)
-        self.radioButtonTherm3.clicked.connect(self.refreshTempDepthView)      
+        self.radioButtonTherm3.clicked.connect(self.refreshTempDepthView)
+        self.checkBoxDirectModel.stateChanged.connect(self.refreshTempDepthView)      
         self.pushButtonReset.clicked.connect(self.reset)
         self.pushButtonCleanUp.clicked.connect(self.cleanup)
         self.pushButtonCompute.clicked.connect(self.compute)
@@ -185,10 +186,10 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
     
     def setupCheckboxesQuantiles(self):
         """
-        Display as many checkboxes as there are quantiles in the database, along with the associated RMSE.
+        Update the quantiles layout to display as many checkboxes as there are quantiles in the database, along with the associated RMSE.
+        Also update the thermometer RMSE.
         """
-        self.checkBoxDirectModel.stateChanged.connect(self.refreshTempDepthView)
-
+        self.removeAllCheckboxes()
         globalRMSE, thermRMSE = self.coordinator.allRMSE()
         i = 1
         for index, (quantile, rmse) in enumerate(globalRMSE.items()):
@@ -206,6 +207,25 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         self.labelRMSETherm2.setText(f"RMSE: {thermRMSE[1] if thermRMSE[1] else 0:.2f} °C")
         self.labelRMSETherm3.setText(f"RMSE: {thermRMSE[2] if thermRMSE[2] else 0:.2f} °C")
     
+
+    def removeAllCheckboxes(self):
+        """
+        Remove every checkbox in the quantile layout except the one for direct model.
+        As a reminder, the checkboxes have this structure:
+            Direct model #Shouldn't be removed
+            Quantile _  | RMSE: _ #Both widgets should be removed
+            ...
+            Thermometer _ | RMSE: _ #Shouldn't be removed
+            ...
+
+        """
+        #Taken from Stack Overflow https://stackoverflow.com/questions/4528347/clear-all-widgets-in-a-layout-in-pyqt
+        for i in reversed(range(self.quantilesLayout.count())):
+            wdg = self.quantilesLayout.itemAt(i).widget()
+            if isinstance(wdg, QtWidgets.QCheckBox) and wdg.text() =="Direct model":
+                continue
+            self.quantilesLayout.itemAt(i).widget().setParent(None)
+
     def refreshTempDepthView(self):
         """
         This method is called when a checkbox showing a quantile or a radio buttion is changed. New curves should be plotted in the Temperature per Depth View.
@@ -230,7 +250,7 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
             depth_id = 2
         elif self.radioButtonTherm3.isChecked():
             depth_id = 3
-
+        
         thermo_depth = self.coordinator.thermoDepth(depth_id)
         self.depth_view.update_options([thermo_depth,quantiles])
         self.depth_view.on_update() #Refresh the view
@@ -256,18 +276,16 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         """
         self.comboBoxSelectLayer.clear()
         self.setupComboBoxLayers()
-
         self.setPressureAndTemperatureTables()
+        self.setupCheckboxesQuantiles()
 
         self.clearAllLayouts()
+
         if self.coordinator.computation_type() is not None:
             self.linkViewsLayouts()
+            self.refreshTempDepthView()
         else:
              self.linkLayoutsNoComputations()
-
-        thermo_depth = self.coordinator.thermoDepth(1)
-        options = [thermo_depth, [0]] #First thermometer, direct model
-        self.depth_view.update_options(options)
 
         self.coordinator.refreshAllModels(self.checkBoxRawData.isChecked(), self.comboBoxSelectLayer.currentText())
 
@@ -277,7 +295,7 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         """
         layouts = [self.waterFluxVBox, self.advectiveFluxVBox, self.totalFluxVBox, self.conductiveFluxVBox, self.topRightVLayout, self.botLeftVLayout, self.botRightVLayout, self.log10KVBox, self.conductivityVBox, self.porosityVBox, self.capacityVBox]
         for layout in layouts:
-            #Taken from Stack Overflow
+            #Taken from Stack Overflow https://stackoverflow.com/questions/4528347/clear-all-widgets-in-a-layout-in-pyqt
             for i in reversed(range(layout.count())):
                 layout.itemAt(i).widget().setParent(None)
     

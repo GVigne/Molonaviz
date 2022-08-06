@@ -344,13 +344,13 @@ class SPointCoordinator:
         paths = QSqlQuery(self.con)
         paths.prepare(f"""
             SELECT SamplingPoint.Scheme, SamplingPoint.Notice FROM SamplingPoint 
-            WHERE SamplingPoint.ID = '{self.samplingPointID}' 
+            WHERE SamplingPoint.ID = {self.samplingPointID}
         """)
 
         infos = QSqlQuery(self.con)
         infos.prepare(f"""
             SELECT SamplingPoint.Name, SamplingPoint.Setup, SamplingPoint.LastTransfer, SamplingPoint.Offset, SamplingPoint.RiverBed FROM SamplingPoint 
-            WHERE SamplingPoint.ID = '{self.samplingPointID}' 
+            WHERE SamplingPoint.ID = {self.samplingPointID}
         """)
         return paths, infos
     
@@ -458,19 +458,23 @@ class SPointCoordinator:
         if full_query:
             query.prepare(f"""
                 SELECT RawMeasuresTemp.Date, RawMeasuresTemp.Temp1, RawMeasuresTemp.Temp2, RawMeasuresTemp.Temp3, RawMeasuresTemp.Temp4, RawMeasuresPress.TempBed, RawMeasuresPress.Voltage FROM RawMeasuresTemp, RawMeasuresPress
+                JOIN SamplingPoint AS SP_press ON RawMeasuresPress.SamplingPoint = SP_press.ID
+                JOIN SamplingPoint AS SP_temp ON RawMeasuresTemp.SamplingPoint = SP_temp.ID
                 WHERE RawMeasuresTemp.Date = RawMeasuresPress.Date
-                AND RawMeasuresPress.SamplingPoint= (SELECT ID FROM SamplingPoint WHERE SamplingPoint.ID = {self.samplingPointID})
-                AND RawMeasuresTemp.SamplingPoint = (SELECT ID FROM SamplingPoint WHERE SamplingPoint.ID = {self.samplingPointID})
+                AND SP_press.ID = {self.samplingPointID}
+                AND SP_temp.ID = {self.samplingPointID}
                 ORDER BY RawMeasuresTemp.Date
             """)
             return query
         elif field =="Temp":
             query.prepare(f"""
-                 SELECT RawMeasuresTemp.Date, RawMeasuresTemp.Temp1, RawMeasuresTemp.Temp2, RawMeasuresTemp.Temp3, RawMeasuresTemp.Temp4, RawMeasuresPress.TempBed FROM RawMeasuresTemp, RawMeasuresPress
+                SELECT RawMeasuresTemp.Date, RawMeasuresTemp.Temp1, RawMeasuresTemp.Temp2, RawMeasuresTemp.Temp3, RawMeasuresTemp.Temp4, RawMeasuresPress.TempBed FROM RawMeasuresTemp, RawMeasuresPress
+                JOIN SamplingPoint AS SP_press ON RawMeasuresPress.SamplingPoint = SP_press.ID
+                 JOIN SamplingPoint AS SP_temp ON RawMeasuresTemp.SamplingPoint = SP_temp.ID
                  WHERE RawMeasuresTemp.Date = RawMeasuresPress.Date
-                 AND RawMeasuresPress.SamplingPoint = (SELECT ID FROM SamplingPoint WHERE SamplingPoint.ID = {self.samplingPointID})
-                 AND RawMeasuresTemp.SamplingPoint = (SELECT ID FROM SamplingPoint WHERE SamplingPoint.ID = {self.samplingPointID})
-                 ORDER BY RawMeasuresTemp.Date
+                 AND SP_press.ID = {self.samplingPointID}
+                AND SP_temp.ID = {self.samplingPointID}
+                ORDER BY RawMeasuresTemp.Date
             """)
             return query
         elif field =="Pressure":

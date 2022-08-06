@@ -220,14 +220,25 @@ class TempDepthView(GraphView1D):
     An important attribut for this class is option, which reflects what the user wants to display: either quantiles or depths for the thermometer. Option is a list of two elements:
         - the first one is a depth corresponding to a thermometer
         - a list of values representing the quantiles. If this list is empty, then nothing will be displayed
+    The basis state is [None, []], as no quantile can be displayed, and the view can't know at which depth is the thermometer.
     """
-    def __init__(self, molomodel: MoloModel | None, time_dependent=True, title="", ylabel="Temperature (K)", xlabel="",options=[0,[]]):
+    def __init__(self, molomodel: MoloModel | None, time_dependent=True, title="", ylabel="Temperature (K)", xlabel="",options=[None,[]]):
         super().__init__(molomodel, time_dependent, title, ylabel, xlabel)
         self.options = options
     
     def update_options(self,options):
         self.options = options
         self.y = {} #Refresh the plots
+    
+    def on_update(self):
+        """
+        This is one of the few classes where we don't want to reset data when the model has been updated, as there is some form of memory with the options parameter.
+        """
+        self.axes.clear()
+        self.retrieve_data()
+        self.setup_x()
+        self.plot_data()
+        self.draw()
 
     def retrieve_data(self):
         if self.options[0] is not None: #A computation has been done.
@@ -237,7 +248,7 @@ class TempDepthView(GraphView1D):
                 self.y[f"Température à la profondeur {thermo_depth:.3f} m - quantile {quantile}"] = self.model.get_temp_by_date(thermo_depth, quantile)
     
     def reset_data(self):
-        self.options = options=[0,[]]
+        self.options = options=[None,[]]
         super().reset_data()
 
 class WaterFluxView(GraphView1D):
