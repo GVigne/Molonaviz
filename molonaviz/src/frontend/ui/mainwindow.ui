@@ -51,16 +51,16 @@
     <addaction name="separator"/>
     <addaction name="actionCloseStudy"/>
    </widget>
-   <widget class="QMenu" name="menuPoint">
+   <widget class="QMenu" name="menuSPoint">
     <property name="enabled">
      <bool>false</bool>
     </property>
     <property name="title">
      <string>Point</string>
     </property>
-    <addaction name="actionImportPoint"/>
-    <addaction name="actionOpenPoint"/>
-    <addaction name="actionRemovePoint"/>
+    <addaction name="actionImportSPoint"/>
+    <addaction name="actionOpenSPoint"/>
+    <addaction name="actionRemoveSPoint"/>
    </widget>
    <widget class="QMenu" name="menuWindows">
     <property name="title">
@@ -70,7 +70,7 @@
     <addaction name="actionSwitchToSubWindowView"/>
     <addaction name="actionSwitchToCascadeView"/>
     <addaction name="separator"/>
-    <addaction name="actionHideShowPoints"/>
+    <addaction name="actionHideShowSPoints"/>
     <addaction name="actionHideShowSensors"/>
     <addaction name="actionHideShowAppMessages"/>
    </widget>
@@ -117,13 +117,13 @@
    <addaction name="menuMolonaViz"/>
    <addaction name="menuDatabase"/>
    <addaction name="menuStudy"/>
-   <addaction name="menuPoint"/>
+   <addaction name="menuSPoint"/>
    <addaction name="menuLabo"/>
    <addaction name="menuWindows"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <widget class="QDockWidget" name="dockDataPoints">
+  <widget class="QDockWidget" name="dockDataSPoints">
    <property name="features">
     <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
    </property>
@@ -136,7 +136,7 @@
    <widget class="QWidget" name="dockWidgetContents">
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="QTreeView" name="treeViewDataPoints">
+      <widget class="QTreeView" name="treeViewDataSPoints">
        <property name="contextMenuPolicy">
         <enum>Qt::DefaultContextMenu</enum>
        </property>
@@ -311,19 +311,19 @@
     <string>CreateStudy2</string>
    </property>
   </action>
-  <action name="actionImportPoint">
+  <action name="actionImportSPoint">
    <property name="text">
-    <string>Import Point</string>
+    <string>Import Sampling Point</string>
    </property>
   </action>
-  <action name="actionOpenPoint">
+  <action name="actionOpenSPoint">
    <property name="text">
-    <string>Open Point</string>
+    <string>Open Sampling Point</string>
    </property>
   </action>
-  <action name="actionRemovePoint">
+  <action name="actionRemoveSPoint">
    <property name="text">
-    <string>Remove Point</string>
+    <string>Remove Sampling Point</string>
    </property>
   </action>
   <action name="actionSwitchToTabbedView">
@@ -352,7 +352,7 @@
     <string>Quit MolonaViz</string>
    </property>
   </action>
-  <action name="actionHideShowPoints">
+  <action name="actionHideShowSPoints">
    <property name="checkable">
     <bool>true</bool>
    </property>

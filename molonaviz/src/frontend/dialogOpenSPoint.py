@@ -17,7 +17,7 @@ class DialogOpenSPoint(QtWidgets.QDialog,From_DialogOpenSPoint):
         for point in pointsNames:
             self.comboBoxShowPoints.addItem(point)
     
-    def selectedPoint(self):
+    def selectedSPoint(self):
         """
         Return the currently selected point.
         """

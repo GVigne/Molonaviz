@@ -53,8 +53,6 @@ TODO:
 -Fix segfault when quitting the app while computations are being made.
 -Problem with threads? when launching multiple computations one after the other -> the app freezes.
 -Prevent user from clicking on Compute if there are no cleaned measures.
--Check Segfault when a point is opened -> do a .close() method?
--Add a high level study class to handle frontend high order operations and reduce code in main
 -In InsertCleanedMeasures, remove isnan
 -Remove coordinator.computation_type() -> have own frontend convention to tell if there are computations or not in the database?
 -Remove quantile  = Direct Model convention from frontend (and have an other convention?)
@@ -63,7 +61,6 @@ TODO:
 -Reduce the number of dialogs. Many dialogs are just confirmation and/or a combo box with different fields.
 -Turn the info model into a true MoloModel
 -Be more consistent for dates: shouldn't backend and frontend both communicate in database date format?
-- REWORK POINT/SAMPLINGPOINT INTERACTION
 -Tooltips! Especially compute window
 -What should I do with the default script, currently called sample_text.txt? Where to put it? Default value when creating a point -> when creating a Database, it should be in the Script folder
 -Date management when importing raw data
@@ -71,11 +68,7 @@ TODO:
 -In Cleanup: translate panda headers in english, and also put capital letters!
 -Where to put unique constraints?
 -Where to put null constraints? Many foreign keys do not have such constraints, and this can be a big problem. When importing a lab, if a thermometer is invalid, it will not be added to the database. Should the pressure sensors and shafts linked to this thermometer be added with an empty field or simply not added? It'd say not added -> just have to change the database.
--Schemes -> Diagrams?
 -QSqlDatabasePrivate::addDatabase: duplicate connection name 'qt_sql_default_connection', old connection removed. This happens because of utils.utils createDatabaseDirectory function, which creates a QT QDatabase object: we then open the connection, and QT doesn't like having two default connections with same name. Needs investigating.
 -More robust imports of Lab when informations are missing.
 -Creating and opening a study: do not close window if something went wrong (ie wrong study name, empty lab name...) -> Create a FilterComboBox widget?
--Add a simple dialog which can send QDialog::Accept or QDialog::Reject (confirmation dialog)
--Update requirements
--Distinction Point/SamplingPoint + seperate backend/frontend
 -Params distribution: print a message if the only computation made is the direct model (and not the MCMC, so there is no param distribution)

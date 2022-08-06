@@ -5,7 +5,7 @@ From_DialogConfirm = uic.loadUiType(os.path.join(os.path.dirname(__file__), "ui"
 
 class DialogConfirm(QtWidgets.QDialog,From_DialogConfirm):
     """
-    Just a simple Confirm/Cancel window
+    Just a simple Confirm/Cancel window.
     """
     def __init__(self, message : str):
         """

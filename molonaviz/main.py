@@ -10,7 +10,7 @@ from src.frontend.dialogImportLab import DialogImportLab
 from src.frontend.dialogOpenStudy import DialogOpenStudy
 from src.frontend.dialogCreateStudy import DialogCreateStudy
 from src.frontend.dialogOpenSPoint import DialogOpenSPoint
-from src.frontend.dialogImportPoint import DialogImportPoint
+from src.frontend.dialogImportSPoint import DialogImportSPoint
 from src.frontend.subWindow import SubWindow
 from src.frontend.StudyHandler import StudyHandler
 from src.frontend.LabHandler import LabHandler
@@ -44,8 +44,8 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.treeViewShafts.setModel(self.shaftView)
         self.treeViewShafts.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.spointView = SamplingPointTreeView(None)
-        self.treeViewDataPoints.setModel(self.spointView)
-        self.treeViewDataPoints.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.treeViewDataSPoints.setModel(self.spointView)
+        self.treeViewDataSPoints.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
 
 
         #TODO: models for psensors and others.
@@ -58,9 +58,9 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.actionCreateStudy.triggered.connect(self.createStudy)
         self.actionOpenStudy.triggered.connect(self.chooseStudyName)
         self.actionCloseStudy.triggered.connect(self.closeStudy)
-        self.actionImportPoint.triggered.connect(self.importPoint)
-        self.actionOpenPoint.triggered.connect(self.openPointFromAction)
-        self.actionHideShowPoints.triggered.connect(self.changeDockPointsStatus)
+        self.actionImportSPoint.triggered.connect(self.importSPoint)
+        self.actionOpenSPoint.triggered.connect(self.openSPointFromAction)
+        self.actionHideShowSPoints.triggered.connect(self.changeDockSPointsStatus)
         self.actionHideShowSensors.triggered.connect(self.changeDockSensorsStatus)
         self.actionHideShowAppMessages.triggered.connect(self.changeDockAppMessagesStatus)
         self.actionSwitchToTabbedView.triggered.connect(self.switchToTabbedView)
@@ -68,11 +68,11 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.actionSwitchToCascadeView.triggered.connect(self.switchToCascadeView)
         self.actionChangeDatabase.triggered.connect(self.closeDatabase)
 
-        self.treeViewDataPoints.doubleClicked.connect(self.openPointFromDock)
+        self.treeViewDataSPoints.doubleClicked.connect(self.openSPointFromDock)
     
         #Some actions or menus should not be enabled: disable them
         self.actionCloseStudy.setEnabled(False)
-        self.menuPoint.setEnabled(False)
+        self.menuSPoint.setEnabled(False)
 
         #Setup the queue used to display application messages.
         self.messageQueue = Queue()
@@ -174,10 +174,10 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.actionCreateStudy.setEnabled(True)
         self.actionOpenStudy.setEnabled(True)
         self.actionCloseStudy.setEnabled(False)
-        self.menuPoint.setEnabled(False)
-        self.actionImportPoint.setEnabled(False)
-        self.actionOpenPoint.setEnabled(False)
-        self.actionRemovePoint.setEnabled(False)
+        self.menuSPoint.setEnabled(False)
+        self.actionImportSPoint.setEnabled(False)
+        self.actionOpenSPoint.setEnabled(False)
+        self.actionRemoveSPoint.setEnabled(False)
         self.switchToSubWindowView()
 
         if os.path.isfile(os.path.join(os.path.dirname(__file__),'config.txt')):
@@ -260,10 +260,10 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.actionCreateStudy.setEnabled(False)
         self.actionOpenStudy.setEnabled(False)
         self.actionCloseStudy.setEnabled(True)
-        self.menuPoint.setEnabled(True)
-        self.actionImportPoint.setEnabled(True)
-        self.actionOpenPoint.setEnabled(True)
-        self.actionRemovePoint.setEnabled(True)
+        self.menuSPoint.setEnabled(True)
+        self.actionImportSPoint.setEnabled(True)
+        self.actionOpenSPoint.setEnabled(True)
+        self.actionRemoveSPoint.setEnabled(True)
     
     def closeStudy(self):
         """
@@ -277,24 +277,24 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.actionCreateStudy.setEnabled(True)
         self.actionOpenStudy.setEnabled(True)
         self.actionCloseStudy.setEnabled(False)
-        self.menuPoint.setEnabled(False)
-        self.actionImportPoint.setEnabled(False)
-        self.actionOpenPoint.setEnabled(False)
-        self.actionRemovePoint.setEnabled(False)
+        self.menuSPoint.setEnabled(False)
+        self.actionImportSPoint.setEnabled(False)
+        self.actionOpenSPoint.setEnabled(False)
+        self.actionRemoveSPoint.setEnabled(False)
     
-    def importPoint(self):
+    def importSPoint(self):
         """
         Display a dialog so that the user may import and add to the database a point.
         This function may only be called if a study and its lab are opened, ie if self.currentStudy is not None and self.currentLab is not None.
         """
-        dlg = DialogImportPoint(self.currentStudy, self.currentLab)
+        dlg = DialogImportSPoint(self.currentStudy, self.currentLab)
         dlg.setWindowModality(QtCore.Qt.ApplicationModal)
         res = dlg.exec()
         if res == QtWidgets.QDialog.Accepted:
-            name, psensor, shaft, infofile, noticefile, configfile, prawfile, trawfile = dlg.getPointInfo()
+            name, psensor, shaft, infofile, noticefile, configfile, prawfile, trawfile = dlg.getSPointInfo()
             self.currentStudy.importSPoint(name, psensor, shaft, infofile, noticefile, configfile, prawfile, trawfile)
 
-    def openPointFromAction(self):
+    def openSPointFromAction(self):
         """
         This happens when the user clicks the "Open Point" action. Display a dialog so the user may choose a point to open, or display an error message. Then, open the corresponding point.
         This function may only be called if a study is opened. 
@@ -308,7 +308,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
             dlg.setWindowModality(QtCore.Qt.ApplicationModal)
             res = dlg.exec()
             if res == QtWidgets.QDialog.Accepted:
-                spointName = dlg.selectedPoint()
+                spointName = dlg.selectedSPoint()
                 widgetviewer = self.currentStudy.openSPoint(spointName)
                 
                 subwindow = SubWindow(widgetviewer)
@@ -317,16 +317,16 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
 
                 self.switchToSubWindowView()
     
-    def openPointFromDock(self):
+    def openSPointFromDock(self):
         """
         This happens when the user double cliks a point from the dock. Open it.
         This function may only be called if a study is opened, ie if self.currentStudy is not None.
         """
         #Get the information with the flag "UserRole": this information is the name of the point (as defined in MoloTreeViewModels).
-        spointName = self.treeViewDataPoints.selectedIndexes()[0].data(QtCore.Qt.UserRole)
+        spointName = self.treeViewDataSPoints.selectedIndexes()[0].data(QtCore.Qt.UserRole)
         if spointName is None:
             #The user clicked on one of the sub-items instead (shaft, pressure sensor...). Get the information from the parent widget.
-            spointName = self.treeViewDataPoints.selectedIndexes()[0].parent().data(QtCore.Qt.UserRole)
+            spointName = self.treeViewDataSPoints.selectedIndexes()[0].parent().data(QtCore.Qt.UserRole)
 
         widgetviewer = self.currentStudy.openSPoint(spointName)
         subwindow = SubWindow(widgetviewer)
@@ -364,14 +364,14 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.actionSwitchToSubWindowView.setEnabled(True)
         self.actionSwitchToCascadeView.setEnabled(False) #Disable this action to show the user it is the display mode currently being used.
     
-    def changeDockPointsStatus(self):
+    def changeDockSPointsStatus(self):
         """
         Hide or show the dock displaying the sampling points.
         """
-        if self.actionHideShowPoints.isChecked():
-            self.dockDataPoints.show()
+        if self.actionHideShowSPoints.isChecked():
+            self.dockDataSPoints.show()
         else :
-            self.dockDataPoints.hide()
+            self.dockDataSPoints.hide()
     
     def changeDockSensorsStatus(self):
         """

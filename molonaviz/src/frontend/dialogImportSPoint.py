@@ -8,14 +8,14 @@ from src.utils.utils import displayCriticalMessage
 from src.frontend.StudyHandler import StudyHandler
 from src.frontend.LabHandler import LabHandler
 
-From_DialogImportPoint = uic.loadUiType(os.path.join(os.path.dirname(__file__), "ui","dialogImportPoint.ui"))[0]
+From_DialogImportSPoint = uic.loadUiType(os.path.join(os.path.dirname(__file__), "ui","dialogImportSPoint.ui"))[0]
 
-class DialogImportPoint(QtWidgets.QDialog, From_DialogImportPoint):
+class DialogImportSPoint(QtWidgets.QDialog, From_DialogImportSPoint):
     """
     Enable the user to pick the paths to the files needed for the creation of a sampling point in the database. Also check if the overall structure of the files is correct.
     """
     def __init__(self, studyHandler : StudyHandler, labHandler : LabHandler):
-        super(DialogImportPoint, self).__init__()
+        super(DialogImportSPoint, self).__init__()
         QtWidgets.QDialog.__init__(self)
         
         self.setupUi(self)
@@ -230,7 +230,7 @@ class DialogImportPoint(QtWidgets.QDialog, From_DialogImportPoint):
             return False
         return True
     
-    def getPointInfo(self):
+    def getSPointInfo(self):
         """
         Retrieve all data from the dialog: the name of the point and the sensors, as well as the paths to the files.
         """
