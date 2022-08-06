@@ -8,13 +8,13 @@ class LabEquipementManager:
 
     To bind frontend views to this classes' models, getters are implemented which return the models.
     """
-    def __init__(self, con : QSqlDatabase, studyName : str):
+    def __init__(self, con : QSqlDatabase, labName : str):
         self.con = con
         self.thermoModel = ThermometersModel([])
         self.psensorModel = PressureSensorsModel([])
         self.shaftModel = ShaftsModel([])
 
-        selectLabID = self.build_select_lab_id(studyName)
+        selectLabID = self.build_select_lab_id(labName)
         selectLabID.exec()
         selectLabID.next()
         self.labID = selectLabID.value(0)    
@@ -66,15 +66,13 @@ class LabEquipementManager:
         select_shafts = self.build_select_shafts()
         self.shaftModel.newQueries([select_shafts])
     
-    def build_select_lab_id(self, studyName : str):
+    def build_select_lab_id(self, laboName : str):
         """
-        Build and return a query giving the ID of the laboratory corresponding to the given study.
+        Build and return a query giving the ID of the laboratory with name laboName.
         """
         query = QSqlQuery(self.con)
         query.prepare(f"""SELECT Labo.ID FROM Labo
-                        JOIN Study
-                        ON Labo.ID = Study.Labo
-                        WHERE Study.Name = '{studyName}'
+                        WHERE Labo.Name = '{laboName}'
         """)
         return query
 

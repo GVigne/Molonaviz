@@ -12,16 +12,14 @@ from src.frontend.dialogCreateStudy import DialogCreateStudy
 from src.frontend.dialogOpenSPoint import DialogOpenSPoint
 from src.frontend.dialogImportPoint import DialogImportPoint
 from src.frontend.subWindow import SubWindow
-from src.frontend.SamplingPointViewer import SamplingPointViewer
+from src.frontend.StudyHandler import StudyHandler
+from src.frontend.LabHandler import LabHandler
 
 from src.backend.StudyAndLabManager import StudyAndLabManager
-from src.backend.LabEquipementManager import LabEquipementManager
-from src.backend.SamplingPointManager import SamplingPointManager
-from src.backend.SPointCoordinator import SPointCoordinator
 
 from src.frontend.printThread import InterceptOutput, Receiver
 from src.frontend.MoloTreeView import ThermometerTreeView, PSensorTreeViewModel, ShaftTreeView, SamplingPointTreeView
-from src.utils.utils import displayCriticalMessage, createDatabaseDirectory, checkDbFolderIntegrity, extractDetectorsDF, convertDates
+from src.utils.utils import displayCriticalMessage, createDatabaseDirectory, checkDbFolderIntegrity, extractDetectorsDF
 
 
 From_MainWindow = uic.loadUiType(os.path.join(os.path.dirname(__file__),"src", "frontend", "ui","mainwindow.ui"))[0]
@@ -81,15 +79,12 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         sys.stdout = InterceptOutput(self.messageQueue)
 
         self.con = None #Connection to the database
-        self.currentStudy = None
         self.openDatabase()
 
         self.study_lab_manager = StudyAndLabManager(self.con)
-        self.labManager = None
-        self.spointManager = None
-        self.spointCoordinator = None
-        self.spointViewer = None
-
+        self.currentStudy = None
+        self.currentLab = None
+        
     def openDatabase(self):
         """
         If the user has never opened the database of if the config file is not valid (as a reminder, config is a text document containing the path to the database), display a dialog so the user may choose th e database directory.
@@ -145,16 +140,37 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
                 #Write (or overwrite) the path to the database file
                 f.write(databaseDir)
     
+    def closeChildren(self):
+        """
+        Close related children: this reverts Molonaviz to its initial state. This should be called when closing the database, or a study. For now, this means
+            -close the current study
+            -close the current lab
+            -clear all models
+            -close all subwindows
+        This should NOT close the connection to the database.
+        """
+        self.mdiArea.closeAllSubWindows()
+        if self.currentStudy is not None:
+            self.currentStudy.close()
+        self.currentStudy = None
+        if self.currentLab is not None:
+            self.currentLab.close()
+        self.currentLab = None
+
+        self.thermoView.subscribe_model(None)
+        self.psensorView.subscribe_model(None)
+        self.shaftView.subscribe_model(None)
+        self.spointView.subscribe_model(None)
+
+
     def closeDatabase(self):
         """
         Close the database and revert Molonaviz to its initial state.
         """
+        self.closeChildren()
         self.con.close()
         self.con = None
-        if self.currentStudy:
-            self.currentStudy.close()
-        self.currentStudy = None
-
+        
         self.actionCreateStudy.setEnabled(True)
         self.actionOpenStudy.setEnabled(True)
         self.actionCloseStudy.setEnabled(False)
@@ -221,20 +237,24 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         """
         Given a VALID name of a study, open it.
         """
+        self.currentStudy = StudyHandler(self.con, studyName)
         #Open the laboratory associated with the study.
-        self.labManager = LabEquipementManager(self.con, studyName)
-        self.thermoView.subscribe_model(self.labManager.getThermoModel())
-        self.psensorView.subscribe_model(self.labManager.getPSensorModel())
-        self.shaftView.subscribe_model(self.labManager.getShaftModel())
-        self.labManager.refreshDetectors()
+        if self.currentLab is not None:
+            self.currentLab.close()
+            self.currentLab = None
+        labName = self.study_lab_manager.getLabNames(studyName)[0] #Reminder: getLabNames returns a list.
+        self.currentLab = LabHandler(self.con, labName)
+
+        self.thermoView.subscribe_model(self.currentLab.getThermoModel())
+        self.psensorView.subscribe_model(self.currentLab.getPSensorModel())
+        self.shaftView.subscribe_model(self.currentLab.getShaftModel())
+        self.currentLab.refreshDetectors()
 
         #Open sampling point manager.
-        self.spointManager = SamplingPointManager(self.con, studyName)
-        self.spointView.subscribe_model(self.spointManager.getSPointModel())
-        self.spointManager.refreshSPoints()
+        self.spointView.subscribe_model(self.currentStudy.getSPointModel())
+        self.currentStudy.refreshSPoints()
 
-        #Reminder: getLabNames returns a list.
-        self.dockSensors.setWindowTitle(f"Current lab: {self.study_lab_manager.getLabNames(studyName)[0]}") 
+        self.dockSensors.setWindowTitle(f"Current lab: {labName}") 
         
         #Enable previously disabled actions, such as the menu used to manage points
         self.actionCreateStudy.setEnabled(False)
@@ -249,12 +269,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         """
         Close the current study and revert the app to the initial state.
         """
-        self.thermoView.reset_data()
-        self.psensorView.reset_data()
-        self.shaftView.reset_data()
-        self.spointView.reset_data()
-        self.labManager = None
-        self.spointManager = None
+        self.closeChildren()
 
         self.dockSensors.setWindowTitle(f"Current lab:")     
 
@@ -270,37 +285,21 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
     def importPoint(self):
         """
         Display a dialog so that the user may import and add to the database a point.
-        This function may only be called if a study is opened, ie if self.currentStudy is not None.
+        This function may only be called if a study and its lab are opened, ie if self.currentStudy is not None and self.currentLab is not None.
         """
-        dlg = DialogImportPoint(self.labManager, self.spointManager)
+        dlg = DialogImportPoint(self.currentStudy, self.currentLab)
         dlg.setWindowModality(QtCore.Qt.ApplicationModal)
         res = dlg.exec()
         if res == QtWidgets.QDialog.Accepted:
             name, psensor, shaft, infofile, noticefile, configfile, prawfile, trawfile = dlg.getPointInfo()
-            #Cleanup the .csv files
-            infoDF = pd.read_csv(infofile, header=None)
-            #Readings csv
-            dfpress = pd.read_csv(prawfile)
-            dfpress.columns = ["Date", "Voltage", "Temp_Stream"]
-            dfpress.dropna(inplace=True)
-            convertDates(dfpress)
-            dfpress["Date"] = dfpress["Date"].dt.strftime("%Y/%m/%d %H:%M:%S")
-
-            dftemp = pd.read_csv(trawfile)
-            dftemp.columns = ["Date", "Temp1", "Temp2", "Temp3", "Temp4"]
-            dftemp.dropna(inplace=True)
-            convertDates(dftemp)
-            dftemp["Date"] = dftemp["Date"].dt.strftime("%Y/%m/%d %H:%M:%S")
-
-            self.spointManager.createNewSPoint(name, psensor, shaft, noticefile, configfile, infoDF, dfpress, dftemp)
-            self.spointManager.refreshSPoints()
+            self.currentStudy.importSPoint(name, psensor, shaft, infofile, noticefile, configfile, prawfile, trawfile)
 
     def openPointFromAction(self):
         """
         This happens when the user clicks the "Open Point" action. Display a dialog so the user may choose a point to open, or display an error message. Then, open the corresponding point.
         This function may only be called if a study is opened. 
         """
-        spointsNames = self.spointManager.getSPointsNames()
+        spointsNames = self.currentStudy.getSPointsNames()
 
         if len(spointsNames) ==0:
             displayCriticalMessage("No point was found in this study. Please import one first.")
@@ -310,13 +309,9 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
             res = dlg.exec()
             if res == QtWidgets.QDialog.Accepted:
                 spointName = dlg.selectedPoint()
-                studyName = self.spointManager.getStudyName()
+                widgetviewer = self.currentStudy.openSPoint(spointName)
                 
-                self.spointCoordinator = SPointCoordinator(self.con, studyName, spointName)
-                samplingPoint = self.spointManager.getSPoint(spointName)
-                self.spointViewer = SamplingPointViewer(self.spointCoordinator, samplingPoint)
-                
-                subwindow = SubWindow(self.spointViewer)
+                subwindow = SubWindow(widgetviewer)
                 self.mdiArea.addSubWindow(subwindow)
                 subwindow.show()
 
@@ -333,15 +328,11 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
             #The user clicked on one of the sub-items instead (shaft, pressure sensor...). Get the information from the parent widget.
             spointName = self.treeViewDataPoints.selectedIndexes()[0].parent().data(QtCore.Qt.UserRole)
 
-        studyName = self.spointManager.getStudyName()
-        
-        self.spointCoordinator = SPointCoordinator(self.con, studyName, spointName)
-        samplingPoint = self.spointManager.getSPoint(spointName)
-        self.spointViewer = SamplingPointViewer(self.spointCoordinator, samplingPoint)
-        
-        subwindow = SubWindow(self.spointViewer)
+        widgetviewer = self.currentStudy.openSPoint(spointName)
+        subwindow = SubWindow(widgetviewer)
         self.mdiArea.addSubWindow(subwindow)
         subwindow.show()
+
         self.switchToSubWindowView()
 
     def switchToTabbedView(self):
@@ -422,7 +413,9 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         Close the database when user quits the app.
         """
         try:
+            self.closeChildren()
             self.con.close()
+            self.con = None
         except Exception as e:
             pass
         super().close()

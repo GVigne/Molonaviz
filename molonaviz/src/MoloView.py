@@ -12,11 +12,12 @@ class MoloView:
             self.register(molomodel)
         self.model = molomodel
     
-    def register(self, model : MoloModel):
+    def register(self, model : MoloModel | None):
         """
         Subscribe this view to the given MoloModel.
         """
-        model.dataChanged.connect(self.on_update)
+        if model is not None:
+            model.dataChanged.connect(self.on_update)
 
     def unregister(self):
         """

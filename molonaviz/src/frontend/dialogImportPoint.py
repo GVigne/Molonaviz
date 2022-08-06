@@ -5,8 +5,8 @@ import pandas as pd
 from numpy import float64
 from src.utils.utils import displayCriticalMessage
 
-from src.backend.LabEquipementManager import LabEquipementManager
-from src.backend.SamplingPointManager import SamplingPointManager
+from src.frontend.StudyHandler import StudyHandler
+from src.frontend.LabHandler import LabHandler
 
 From_DialogImportPoint = uic.loadUiType(os.path.join(os.path.dirname(__file__), "ui","dialogImportPoint.ui"))[0]
 
@@ -14,13 +14,13 @@ class DialogImportPoint(QtWidgets.QDialog, From_DialogImportPoint):
     """
     Enable the user to pick the paths to the files needed for the creation of a sampling point in the database. Also check if the overall structure of the files is correct.
     """
-    def __init__(self, labManager : LabEquipementManager, spointManager : SamplingPointManager):
+    def __init__(self, studyHandler : StudyHandler, labHandler : LabHandler):
         super(DialogImportPoint, self).__init__()
         QtWidgets.QDialog.__init__(self)
         
         self.setupUi(self)
-        self.labManager = labManager
-        self.spointManager = spointManager
+        self.studyHandler = studyHandler
+        self.labHandler = labHandler
 
         self.radioButtonAuto.clicked.connect(self.changeEntryType)
         self.radioButtonManual.clicked.connect(self.changeEntryType)
@@ -40,9 +40,9 @@ class DialogImportPoint(QtWidgets.QDialog, From_DialogImportPoint):
         This is an overloaded function, called when the user presses the "OK" button.
         This function runs integrity checks on the database before allowing the dialog to be closed. Theses checks make sure the name of the point, the pressure sensor and the shaft respect database integrity: the point must not already be in the study and the sensors must exist.
         """
-        points = self.spointManager.getSPointsNames()
-        psensors = self.labManager.getPSensorsNames()
-        shafts = self.labManager.getShaftsNames()
+        points = self.studyHandler.getSPointsNames()
+        psensors = self.labHandler.getPSensorsNames()
+        shafts = self.labHandler.getShaftsNames()
 
         if not self.lineEditPointName.text() or not self.lineEditPSensorName.text() or not self.lineEditShaftName.text():
             displayCriticalMessage("The name of the point, the pressure sensor and the shaft cannot be empty.")
