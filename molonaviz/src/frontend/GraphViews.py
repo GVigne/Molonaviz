@@ -19,12 +19,13 @@ class GraphView(FigureCanvasQTAgg, MoloView):
     Abstract class to implement a graph view, inheriting both from the MoloView and the matplotlib canvas.
     """
     def __init__(self, molomodel : MoloModel | None, width=5, height=5, dpi=100): 
+        MoloView.__init__(self, molomodel)
+
         self.fig = Figure(figsize=(width, height), dpi=dpi)
         FigureCanvasQTAgg.__init__(self, self.fig)
         self.fig.tight_layout(h_pad=5, pad=5)
         self.axes = self.fig.add_subplot(111)
 
-        MoloView.__init__(self, molomodel)
 
 class GraphView1D(GraphView):
     """

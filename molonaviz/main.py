@@ -427,9 +427,6 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         userguidepath=os.path.join(os.path.dirname(__file__),"docs","UserguideFR.pdf")
         QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(userguidepath))
 
-from src.frontend.GraphViews import GraphView
-from src.MoloModel import MoloModel
-
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     app.setWindowIcon(QtGui.QIcon(os.path.join(os.path.dirname(__file__),"imgs","MolonavizIcon.png")))
