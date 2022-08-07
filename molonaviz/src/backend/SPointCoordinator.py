@@ -2,6 +2,7 @@ from PyQt5.QtSql import QSqlQueryModel, QSqlQuery, QSqlDatabase #QSqlDatabase in
 from math import isnan #This should be moved to frontend: backend shouldn't do any sort of cleanup.
 import pandas as pd
 
+from src.InnerMessages import ComputationsState
 from src.backend.GraphsModels import PressureDataModel, TemperatureDataModel, SolvedTemperatureModel, HeatFluxesModel, WaterFluxModel, ParamsDistributionModel
 
 class SPointCoordinator:
@@ -293,23 +294,34 @@ class SPointCoordinator:
                             IncertPressure = NULL
                         WHERE ID = {self.pointID}""")
     
-    def computation_type(self):
+    def computationType(self):
         """
-        Return None if no computation was made: else, return False if only the direct model was computed and True if the MCMC was computed.
+        Return a symbolic name representing the state of the database.
         """
-        q = QSqlQuery(self.con)
-        q.prepare(f"""SELECT COUNT(*) FROM Quantile
+        quant = QSqlQuery(self.con)
+        quant.prepare(f"""SELECT COUNT(*) FROM Quantile
                 JOIN Point
                 ON Quantile.PointKey = Point.ID
                 WHERE Point.ID = {self.pointID}""")
-        q.exec()
-        q.next()
-        if q.value(0) ==0:
-            return None
-        elif q.value(0) ==1:
-            return False
+        quant.exec()
+        quant.next()
+        comp = QSqlQuery(self.con)
+        comp.prepare(f"""SELECT COUNT(*) FROM CleanedMeasures
+                JOIN Point
+                ON CleanedMeasures.PointKey = Point.ID
+                WHERE Point.ID = {self.pointID}
+                """)
+        comp.exec()
+        comp.next()
+        if quant.value(0) ==0:
+            if comp.value(0) ==0:
+                return ComputationsState.RAW_MEASURES
+            else:
+                return ComputationsState.CLEANED_MEASURES
+        elif quant.value(0) ==1:
+            return ComputationsState.DIRECT_MODEL
         else: 
-            return True
+            return ComputationsState.MCMC
     
     def build_sampling_point_id(self, studyName : int | str, spointName : str):
         """
@@ -530,12 +542,10 @@ class SPointCoordinator:
         """
         Return a list of queries according to the user's wish. The list will either be of length 1 (the model was not computed before), or more than one: in this case, there are as many queries as there are quantiles: the first query corresponds to the default model (quantile 0)
         """
-        computation_type = self.computation_type()
-        if computation_type is None:
-            return []
-        elif not computation_type:
+        computation_type = self.computationType()
+        if computation_type == ComputationsState.DIRECT_MODEL:
             return [self.define_result_queries(result_type=result_type,option=option, quantile=0)]
-        else:
+        elif computation_type == ComputationsState.MCMC:
             #This could be enhanced by going in the database and seeing which quantiles are available. For now, these available quantiles will be hard-coded
             select_quantiles = self.build_quantiles()
             select_quantiles.exec()
@@ -547,6 +557,8 @@ class SPointCoordinator:
                 else:
                     result.append(self.define_result_queries(result_type=result_type,option=option, quantile=select_quantiles.value(0)))
             return result
+        else: #RAW_MEASURES or CLEANED_MEASURES
+            return []
     
     def define_result_queries(self,result_type ="",option="",quantile = 0):
         """

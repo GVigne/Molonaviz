@@ -6,7 +6,7 @@ class MoloView:
     It is the view's responsability to subscribe to a model. This can be done with the register and unregister function. For convenience, a high-level function subscribe_model is implemented to replace the model by another one.
     Views must also be able to handle empty iterables or objects given by the models.
     """
-    def __init__(self, molomodel : MoloModel | None = None):#, figure = None):
+    def __init__(self, molomodel : MoloModel | None = None):
         #Subscribe to the model
         if molomodel is not None:
             self.register(molomodel)

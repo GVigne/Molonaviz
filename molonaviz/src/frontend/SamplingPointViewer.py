@@ -5,6 +5,7 @@ from PyQt5 import QtWidgets, QtCore, uic, QtGui
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 
 from src.Containers import SamplingPoint
+from src.InnerMessages import ComputationsState
 from src.backend.SPointCoordinator import SPointCoordinator
 from src.backend.Compute import Compute
 
@@ -58,13 +59,7 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         self.porosity_view = PorosityView(paramsDistrModel)
         self.capacity_view = CapacityView(paramsDistrModel)
 
-        #Link the views showing the pressure and temperature measures to the correct layout. 
-        toolbar = NavigationToolbar(self.graphpress, self)
-        self.pressVBox.addWidget(self.graphpress)
-        self.pressVBox.addWidget(toolbar)
-        toolbar = NavigationToolbar(self.graphtemp, self)
-        self.tempVBox.addWidget(self.graphtemp)
-        self.tempVBox.addWidget(toolbar)
+        self.layoutsRules = self.initialiseLayoutsRules()
 
         #This allows to create 4 graphs in a square with one vertical and one horizontal splitter.  
         self.splitterHorizLeft.splitterMoved.connect(self.adjustRightSplitter)
@@ -90,6 +85,29 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         self.setupCheckboxesQuantiles()
         self.setPressureAndTemperatureTables()
         self.updateAllViews()
+    
+    def initialiseLayoutsRules(self):
+        """
+        Build a dictionnary containing the rules to which the layouts must abide:
+            -keys are the layouts of this window
+            -values are a tuple. The first element corresponds to a view, the second is a message (string).
+        This way, a layout can know which view it must show, or, if it shouldn't show the view, what type of message it should show.
+        """
+        default_message = "No model has been computed yet"
+        layoutsRules = {self.pressVBox : (self.graphpress, "Measures haven't been cleaned yet"),
+                            self.tempVBox : (self.graphtemp, "Measures haven't been cleaned yet"),
+                            self.waterFluxVBox : (self.waterflux_view, default_message),
+                            self.advectiveFluxVBox : (self.advective_view, default_message),
+                            self.conductiveFluxVBox : (self.conductive_view, default_message),
+                            self.totalFluxVBox : (self.totalflux_view, default_message),
+                            self.topRightVLayout : (self.depth_view, default_message),
+                            self.botLeftVLayout : (self.umbrella_view, default_message),
+                            self.botRightVLayout : (self.tempmap_view, default_message),
+                            self.log10KVBox : (self.logk_view, default_message),
+                            self.conductivityVBox : (self.conductivity_view, default_message),
+                            self.porosityVBox : (self.porosity_view, default_message),
+                            self.capacityVBox : (self.capacity_view, default_message)}
+        return layoutsRules
     
     def exportMeasures(self):
         """
@@ -121,6 +139,7 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         """
         self.setPressureAndTemperatureTables()
         self.coordinator.refreshMeasuresPlots(self.checkBoxRawData.isChecked())
+        self.linkAllViewsLayouts()
 
     def refreshbins(self):
         bins = self.horizontalSliderBins.value()
@@ -278,56 +297,57 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         self.setupComboBoxLayers()
         self.setPressureAndTemperatureTables()
         self.setupCheckboxesQuantiles()
+        self.refreshTempDepthView()
 
-        self.clearAllLayouts()
-
-        if self.coordinator.computation_type() is not None:
-            self.linkViewsLayouts()
-            self.refreshTempDepthView()
-        else:
-             self.linkLayoutsNoComputations()
+        self.linkAllViewsLayouts()
 
         self.coordinator.refreshAllModels(self.checkBoxRawData.isChecked(), self.comboBoxSelectLayer.currentText())
+    
+    def linkAllViewsLayouts(self):
+        """
+        Fill all layouts with either:
+            -the appropriate view, which must be displaying data
+            -a message defined in self.layoutsRules
+        This is to handle nicely the drawing areas and not have ugly blank spaces.
 
-    def clearAllLayouts(self):
+        This function takes into account checkBoxRawData's status and the computation type given by the backend
         """
-        Clear all vertical layouts in the widget point window except for the "Data array and plots" tab, as these should always contain a view (either raw or cleaned measures).
-        """
-        layouts = [self.waterFluxVBox, self.advectiveFluxVBox, self.totalFluxVBox, self.conductiveFluxVBox, self.topRightVLayout, self.botLeftVLayout, self.botRightVLayout, self.log10KVBox, self.conductivityVBox, self.porosityVBox, self.capacityVBox]
-        for layout in layouts:
+        MCMC_layouts = [self.log10KVBox, self.conductivityVBox, self.porosityVBox, self.capacityVBox]
+        direct_model_layouts = [self.waterFluxVBox, self.advectiveFluxVBox, self.totalFluxVBox, self.conductiveFluxVBox, self.topRightVLayout, self.botLeftVLayout, self.botRightVLayout]
+        cleaned_measures_layouts = [self.pressVBox, self.tempVBox]
+        all_layouts =  cleaned_measures_layouts + direct_model_layouts + MCMC_layouts
+        computation_type = self.coordinator.computationType()
+
+        if (computation_type == ComputationsState.RAW_MEASURES) and (not self.checkBoxRawData.isChecked()):
+            #User wants cleaned data for there is no such data.
+            empty_layouts = all_layouts
+            filled_layouts = []
+        elif computation_type == ComputationsState.RAW_MEASURES or computation_type == ComputationsState.CLEANED_MEASURES:
+            empty_layouts = direct_model_layouts + MCMC_layouts
+            filled_layouts = cleaned_measures_layouts
+        elif computation_type == ComputationsState.DIRECT_MODEL:
+            empty_layouts = MCMC_layouts
+            filled_layouts = cleaned_measures_layouts + direct_model_layouts
+        elif computation_type == ComputationsState.MCMC:
+            empty_layouts =[]
+            filled_layouts = all_layouts
+        
+        #Clear all layouts
+        for layout in all_layouts:
             #Taken from Stack Overflow https://stackoverflow.com/questions/4528347/clear-all-widgets-in-a-layout-in-pyqt
             for i in reversed(range(layout.count())):
                 layout.itemAt(i).widget().setParent(None)
-    
-    def linkLayoutsNoComputations(self):
-        """
-        Fill all vertical layouts with a message saying no model has been computed, except for those "Data array and plots" tab as these should always contain a view (either raw or cleaned measures).
-        """
-        layouts = [self.waterFluxVBox, self.advectiveFluxVBox, self.totalFluxVBox, self.conductiveFluxVBox, self.topRightVLayout, self.botLeftVLayout, self.botRightVLayout, self.log10KVBox, self.conductivityVBox, self.porosityVBox, self.capacityVBox]
-        for layout in layouts:
-            label = QtWidgets.QLabel("No model has been computed yet")
-            layout.addWidget(label, QtCore.Qt.AlignCenter)
-    
-    def linkViewsLayouts(self):
-        """
-        Fill all the vertical layouts with the correct view.
-        """
-        layoutsviews = [[self.waterFluxVBox,self.waterflux_view],
-                        [self.advectiveFluxVBox,self.advective_view],
-                        [self.conductiveFluxVBox, self.conductive_view],
-                        [self.totalFluxVBox, self.totalflux_view],
-                        [self.topRightVLayout, self.depth_view],
-                        [self.botLeftVLayout, self.umbrella_view],
-                        [self.botRightVLayout, self.tempmap_view],
-                        [self.log10KVBox, self.logk_view],
-                        [self.conductivityVBox, self.conductivity_view],
-                        [self.porosityVBox, self.porosity_view],
-                        [self.capacityVBox, self.capacity_view]]
-
-        for layout, view in layoutsviews:
+        
+        #Display custom message for layouts not displaying data
+        for layout in empty_layouts:
+            label = QtWidgets.QLabel(self.layoutsRules[layout][1])
+            layout.addWidget(label, QtCore.Qt.AlignCenter)    
+        #Fill layouts displaying data with proper view
+        for layout in filled_layouts:
+            view = self.layoutsRules[layout][0]
             toolbar = NavigationToolbar(view, self)
             layout.addWidget(view)
-            layout.addWidget(toolbar)
+            layout.addWidget(toolbar) 
     
     def reset(self):
         dlg = DialogConfirm("Are you sure you want to delete the cleaned measures and all computations made for this point? This cannot be undone.")
