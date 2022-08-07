@@ -79,6 +79,9 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         self.pushButtonRefreshBins.clicked.connect(self.refreshbins)
         self.horizontalSliderBins.valueChanged.connect(self.label_update)
 
+        #Enable or disable computations buttons
+        self.handleComputationsButtons()
+
         #Prepare all the tabs.
         self.setWidgetInfos()
         self.setInfoTab()
@@ -109,6 +112,17 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
                             self.capacityVBox : (self.capacity_view, default_message)}
         return layoutsRules
     
+    def handleComputationsButtons(self):
+        """
+        Disable or enable the compute button if no computations were made.
+        This is a security measure so user doesn't launch computations while measures haven't been cleaned.
+        """
+        comp_type = self.coordinator.computationType()
+        if comp_type == ComputationsState.RAW_MEASURES:
+            self.pushButtonCompute.setEnabled(False)
+        else:
+            self.pushButtonCompute.setEnabled(True)
+
     def exportMeasures(self):
         """
         Export two .csv files corresponding to the cleaned measures to the location given by the user.
@@ -355,6 +369,7 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         if res == QtWidgets.QDialog.Accepted:
             self.coordinator.deleteProcessedData()
             self.updateAllViews()
+            self.handleComputationsButtons()
     
     def cleanup(self):
         dlg = DialogCleanupMain(self.coordinator,self.samplingPoint)
@@ -374,6 +389,7 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
                 self.coordinator.insertCleanedMeasures(dlg.df_cleaned)
 
                 self.updateAllViews()
+                self.handleComputationsButtons()
     
     def compute(self):
         dlg = DialogCompute(self.coordinator.maxDepth())
@@ -390,6 +406,7 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
                 self.computeEngine.DirectModelFinished.connect(self.updateAllViews)
                 params, nb_cells = dlg.getInputDirectModel()
                 self.computeEngine.computeDirectModel(params, nb_cells)
+                self.handleComputationsButtons()
 
 
     def adjustRightSplitter(self, pos : int, index : int):

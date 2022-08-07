@@ -26,7 +26,6 @@ class GraphView(FigureCanvasQTAgg, MoloView):
         self.fig.tight_layout(h_pad=5, pad=5)
         self.axes = self.fig.add_subplot(111)
 
-
 class GraphView1D(GraphView):
     """
     Abstract class to represent 1D views (such the pressure and temperature plots).
@@ -222,6 +221,7 @@ class TempDepthView(GraphView1D):
         - the first one is a depth corresponding to a thermometer
         - a list of values representing the quantiles. If this list is empty, then nothing will be displayed
     The basis state is [None, []], as no quantile can be displayed, and the view can't know at which depth is the thermometer.
+    options is NOT considered to be part of internal data, and will not be modified when calling reset_data.
     """
     def __init__(self, molomodel: MoloModel | None, time_dependent=True, title="", ylabel="Temperature (K)", xlabel="",options=[None,[]]):
         super().__init__(molomodel, time_dependent, title, ylabel, xlabel)
@@ -229,18 +229,8 @@ class TempDepthView(GraphView1D):
     
     def update_options(self,options):
         self.options = options
-        self.y = {} #Refresh the plots
+        super().reset_data() #Refresh the plots
     
-    def on_update(self):
-        """
-        This is one of the few classes where we don't want to reset data when the model has been updated, as there is some form of memory with the options parameter.
-        """
-        self.axes.clear()
-        self.retrieve_data()
-        self.setup_x()
-        self.plot_data()
-        self.draw()
-
     def retrieve_data(self):
         if self.options[0] is not None: #A computation has been done.
             thermo_depth = self.options[0]
@@ -248,10 +238,6 @@ class TempDepthView(GraphView1D):
             for quantile in self.options[1]:
                 self.y[f"Température à la profondeur {thermo_depth:.3f} m - quantile {quantile}"] = self.model.get_temp_by_date(thermo_depth, quantile)
     
-    def reset_data(self):
-        self.options = options=[None,[]]
-        super().reset_data()
-
 class WaterFluxView(GraphView1D):
     """
     Concrete class for the water flux as a function of time.
