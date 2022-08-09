@@ -1,6 +1,6 @@
 import numpy as np
 from src.MoloModel import MoloModel
-from src.utils.utils import build_picture
+from src.utils.utils import build_picture, databaseDateToDatetime
 
 """
 This file regroups different models used to display graphs in the window showing the sampling point results. 
@@ -31,7 +31,7 @@ class PressureDataModel(MoloModel):
     
     def get_dates(self):
         try:
-            return self.array_data[:,0]
+            return databaseDateToDatetime(self.array_data[:,0])
         except Exception:
             return np.array([])
     
@@ -63,7 +63,7 @@ class TemperatureDataModel(MoloModel):
     
     def get_dates(self):
         try:
-            return self.array_data[:,0]
+            return databaseDateToDatetime(self.array_data[:,0])
         except Exception:
             return np.array([])
     
@@ -107,7 +107,7 @@ class WaterFluxModel(MoloModel):
         return {key:np.array(value) for index, (key,value) in enumerate(self.flows.items())}
     
     def get_dates(self):
-        return np.array(self.dates)
+        return databaseDateToDatetime(np.array(self.dates))
     
     def reset_data(self):
         self.flows = {}
@@ -159,7 +159,7 @@ class SolvedTemperatureModel(MoloModel):
         return np.array(self.depths)
     
     def get_dates(self):
-        return np.array(self.dates)
+        return databaseDateToDatetime(np.array(self.dates))
     
     def get_depth_by_temp(self,nb_dates):
         """
@@ -226,7 +226,7 @@ class HeatFluxesModel(MoloModel):
         return np.array(self.depths)
     
     def get_dates(self):
-        return np.array(self.dates)
+        return databaseDateToDatetime(np.array(self.dates))
     
     def get_advective_flow(self):
         if len(self.advective) ==0:

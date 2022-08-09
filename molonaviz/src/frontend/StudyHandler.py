@@ -47,19 +47,19 @@ class StudyHandler:
         """
         #Cleanup the .csv files
         infoDF = pd.read_csv(infofile, header=None)
+        infoDF[1][3] = pd.to_datetime(infoDF[1][3]) 
+        infoDF[1][4] = pd.to_datetime(infoDF[1][4]) #Convert dates to datetime (or here Timestamp) objects
         #Readings csv
         dfpress = pd.read_csv(prawfile)
         dfpress.columns = ["Date", "Voltage", "Temp_Stream"]
         dfpress.dropna(inplace=True)
-        convertDates(dfpress)
-        dfpress["Date"] = dfpress["Date"].dt.strftime("%Y/%m/%d %H:%M:%S")
-
+        convertDates(dfpress) #Convert dates to datetime (or here Timestamp) objects
+        
         dftemp = pd.read_csv(trawfile)
         dftemp.columns = ["Date", "Temp1", "Temp2", "Temp3", "Temp4"]
         dftemp.dropna(inplace=True)
-        convertDates(dftemp)
-        dftemp["Date"] = dftemp["Date"].dt.strftime("%Y/%m/%d %H:%M:%S")
-
+        convertDates(dftemp) #Convert dates to datetime (or here Timestamp) objects
+       
         #Give the dataframes to the backend
         self.spointManager.createNewSPoint(name, psensor, shaft, noticefile, configfile, infoDF, dfpress, dftemp)
         self.spointManager.refreshSPoints()

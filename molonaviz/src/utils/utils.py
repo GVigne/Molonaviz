@@ -1,6 +1,7 @@
 """
 Some useful functions which can be used throughout the code.
 """
+from cmath import isfinite
 from PyQt5 import QtWidgets
 import os
 from datetime import datetime
@@ -178,7 +179,10 @@ def convertDates(df : pd.DataFrame, timesIndex = 0):
 def databaseDateToDatetime(date : str):
     """
     Given a date in the database format (YYYY/MM/DD HH:MM:SS), return the corresponding datetime object.
+    If a list is given instead, return the list of datetime objects.
     """
+    if isinstance(date, list) or isinstance(date, np.ndarray):
+        return [databaseDateToDatetime(d) for d in date]
     return datetime.strptime(date, "%Y/%m/%d %H:%M:%S")
 
 def datetimeToDatabaseDate(date : datetime):
@@ -189,9 +193,9 @@ def datetimeToDatabaseDate(date : datetime):
 
 def date_to_mdates(dates : list[str]):
     """
-    Given a list of dates in database format (str), return the corresponding list of matplotlib dates.
+    Given a list of datetime objects, return the corresponding list of matplotlib dates.
     """
-    return [mdates.date2num(databaseDateToDatetime(date)) for date in dates]
+    return [mdates.date2num(date) for date in dates]
 
 def build_picture(oneDArray : np.array, nb_cells=100):
     """

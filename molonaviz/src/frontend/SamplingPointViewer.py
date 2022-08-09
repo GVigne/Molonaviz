@@ -383,9 +383,8 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
 
                 dlg.df_cleaned["date"].replace('', nan, inplace = True)
                 dlg.df_cleaned.dropna(subset = ["date"], inplace = True)
-                convertDates(dlg.df_cleaned) #Convert the dates to database format
-                dlg.df_cleaned["date"] = dlg.df_cleaned["date"].dt.strftime("%Y/%m/%d %H:%M:%S")
-
+                convertDates(dlg.df_cleaned) #Convert dates to datetime (or here Timestamp) objects
+            
                 self.coordinator.insertCleanedMeasures(dlg.df_cleaned)
 
                 self.updateAllViews()

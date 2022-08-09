@@ -216,7 +216,7 @@ class SPointCoordinator:
         """
         Insert the cleaned measures into the database.
         The cleaned measures must be in dataframe with the following structure:
-            -row[1] : Date (in database formaat)
+            -row[1] : Date (in database format)
             -row[2] : Temperature Bed
             -row[3] : Pressure
             -row[4] : Temperature 1
@@ -224,6 +224,9 @@ class SPointCoordinator:
             -row[6] : Temperature 3
             -row[7] : Temperature 4
         """
+        #Convert datetime objects (here Timestamp objects) into a string with correct date format.
+        dfCleaned["date"] = dfCleaned["date"].dt.strftime("%Y/%m/%d %H:%M:%S") #Convert
+
         query_dates = self.build_insert_date()
         query_dates.bindValue(":PointKey", self.pointID)
 

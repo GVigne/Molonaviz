@@ -19,6 +19,10 @@ Better laboratory import and point import -> generate CSV in another window
 /!\ /!\ /!\ Requires python 3.10 for type hints /!\ /!\ /!\
 /!\ /!\ /!\ Not compatible with Python older than 3. exec was a reserveed keyword, so all QT code requiring to execute something (app.exec, dialog.exec, Query.exec...) used an underscore. The functions exec and exec were the same. In Python >3 exec is no longer reserved, and in PyQT6, exec disappears entirely. So, use exec and not exec /!\ /!\ /!\
 
+Date conventions: the frontend should always handle and give to the backend datatime objects (or Timestamps)
+DF convention : either the columns have a fixed name, of they are identified by row/column. Right now, backend is a bit strange for that reason.
+
+
 For dates:
     -For raw measures, the format can be anything (I as a programmer still need to know what the convention is).
     -Convert it into YYYY/MM/DD HH:MM:SS This is how it is stored in the database.
@@ -35,6 +39,8 @@ Known bugs:
 -Sometimes, cleanup may return a pandas dataframe with NaN in charge diff. This was "patched" so that only non-Nan values are put in the database, it is an ugly patch. Cleanup needs to be redone.
 -Open a point. A subwindow is put in the MDI area using addSubWindow: it doesn't have a scroll bar and fits on the screen. Now change to cascade (or tile view) and back again to subwindow view (the default view). This time, there is a scrollbar, so it's a big ugly: its probably because when using addSubWindow, a resize happens somewhere in some manner. I tested with setFocus but that didn't work.
 -When changing database, since the con is closed and config.txt removed BEFORE opening the "Select database dialog", if the user quits this dialog, then the action is not canceled as it should be.
+-Compute sometimes fail after computations, with error saying directmodel must first be launched before getting data.
+
 
 Warning: Discrepancy
 -The values in the Layer table correspond to the bottom of the layer. The values in Depth correspond to the middle of the cells.
@@ -52,13 +58,11 @@ Warning: Duplicate
 TODO:
 -Fix segfault when quitting the app while computations are being made.
 -Problem with threads? when launching multiple computations one after the other -> the app freezes.
--Prevent user from clicking on Compute if there are no cleaned measures.
 -In InsertCleanedMeasures, remove isnan
 -Remove quantile  = Direct Model convention from frontend (and have an other convention?)
 -Create a custom iterable object from a QSQLquery which does not require to create a list. This is easy: just reimplement __iter__
 -Reduce the number of dialogs. Many dialogs are just confirmation and/or a combo box with different fields.
 -Turn the info model into a true MoloModel
--Be more consistent for dates: shouldn't backend and frontend both communicate in database date format?
 -Tooltips! Especially compute window
 -What should I do with the default script, currently called sample_text.txt? Where to put it? Default value when creating a point -> when creating a Database, it should be in the Script folder
 -Date management when importing raw data

@@ -89,7 +89,11 @@ class SamplingPointManager:
             -two dataframes representing the raw temperatre and pressure measures. Theses dataframes must have the correct structure and must not contain empty fields (they are already processed).
         """
         pointID = self.insert_new_point(pointName, psensorName, shaftName, noticefile, configfile, infoDF) 
-    
+
+        #Convert datetime objects (here Timestamp objects) into a string with correct date format.
+        trawDF["Date"] = trawDF["Date"].dt.strftime("%Y/%m/%d %H:%M:%S")
+        prawDF["Date"] = prawDF["Date"].dt.strftime("%Y/%m/%d %H:%M:%S")
+
         #Pressure records
         self.con.transaction()
         insertRawPress = self.build_insert_raw_pressures()
@@ -119,6 +123,10 @@ class SamplingPointManager:
         Create a new Sampling Point in the database with the relevant information. 
         Return the ID of the created point.
         """
+        #Convert date objects (or here Timestamp objets) to string with correct date format
+        infoDF[1][3] = infoDF[1][3].strftime("%Y/%m/%d %H:%M:%S")
+        infoDF[1][4] = infoDF[1][4].strftime("%Y/%m/%d %H:%M:%S")
+
         insertPoint = self.build_insert_sampling_point()
 
         insertPoint.bindValue(":Name", pointName)
