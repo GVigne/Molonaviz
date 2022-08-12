@@ -59,7 +59,6 @@ TODO:
 -Fix segfault when quitting the app while computations are being made.
 -Problem with threads? when launching multiple computations one after the other -> the app freezes.
 -In InsertCleanedMeasures, remove isnan
--Remove quantile  = Direct Model convention from frontend (and have an other convention?)
 -Create a custom iterable object from a QSQLquery which does not require to create a list. This is easy: just reimplement __iter__
 -Reduce the number of dialogs. Many dialogs are just confirmation and/or a combo box with different fields.
 -Turn the info model into a true MoloModel

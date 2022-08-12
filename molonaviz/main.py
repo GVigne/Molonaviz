@@ -113,7 +113,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         #Now create or check the integrity of the folder given by databaseDir
         if createNewDatabase:
             #Create all folders and subfolders
-            noerror = createDatabaseDirectory(databaseDir, newDatabaseName, os.path.join(os.path.dirname(__file__),"src", "sample_text.txt"), os.path.join(os.path.dirname(__file__),"docs", "DER_IHM.sql"))
+            noerror = createDatabaseDirectory(databaseDir, newDatabaseName, os.path.join(os.path.dirname(__file__),"src", "sample_text.txt"), os.path.join(os.path.dirname(__file__),"docs", "ERD_structure.sql"))
             if noerror:
                 databaseDir = os.path.join(databaseDir, newDatabaseName)
             else:

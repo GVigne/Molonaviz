@@ -262,7 +262,6 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         """
         This method is called when a checkbox showing a quantile or a radio buttion is changed. New curves should be plotted in the Temperature per Depth View.
         """
-        #Needs to be adapted!
         quantiles = []
         for i in range (self.quantilesLayout.count()):
             checkbox = self.quantilesLayout.itemAt(i).widget()
@@ -275,14 +274,15 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
                     else:
                         #txt is "Quantile ... "
                         quantiles.append(float(txt[8:]))
-        depth_id = 0
+
         if self.radioButtonTherm1.isChecked():
             depth_id = 1
         elif self.radioButtonTherm2.isChecked():
             depth_id = 2
         elif self.radioButtonTherm3.isChecked():
             depth_id = 3
-        
+        #Hackish way to make sure depth_id is 1, 2 or 3: the app will crash if it's not one of these (depth_id not defined)
+        #This shouldn't happen though, as it would violate the radio button's behaviour 
         thermo_depth = self.coordinator.thermoDepth(depth_id)
         self.depth_view.update_options([thermo_depth,quantiles])
         self.depth_view.on_update() #Refresh the view
