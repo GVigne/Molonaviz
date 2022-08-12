@@ -131,20 +131,25 @@ class SPointCoordinator:
     def allRMSE(self):
         """
         Return
-        -a dictionnary where the keys are the quantile (with the convention 0 = Direct model) and values are associated RMSE.
+        -the RMSE for the direct model
+        -a dictionnary where the keys are the quantile and values are associated RMSE. This can be empty is the MCMC has not been computed yet.
         -a list corresponding to the RMSE of the three thermometers
         """
         select_globalRMSE = self.build_global_RMSE_query()
         select_globalRMSE.exec()
-        gloablRmse = {}
+        globalRmse = {}
+        directModelRMSE = None
         while select_globalRMSE.next():
-            gloablRmse[select_globalRMSE.value(0)] = select_globalRMSE.value(1)
+            if select_globalRMSE.value(0) !=0:
+                globalRmse[select_globalRMSE.value(0)] = select_globalRMSE.value(1)
+            else:
+                directModelRMSE = select_globalRMSE.value(1)
         
         select_thermRMSE = self.build_therm_RMSE()
         select_thermRMSE.exec()
         select_thermRMSE.next()
 
-        return gloablRmse, [select_thermRMSE.value(i) for i in range(3)]
+        return directModelRMSE, globalRmse, [select_thermRMSE.value(i) for i in range(3)]
     
     def thermoDepth(self, depth_id : int):
         """

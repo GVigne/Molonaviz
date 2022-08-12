@@ -75,7 +75,7 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         self.pushButtonCleanUp.clicked.connect(self.cleanup)
         self.pushButtonCompute.clicked.connect(self.compute)
         self.pushButtonExportMeasures.clicked.connect(self.exportMeasures)
-        self.checkBoxRawData.stateChanged.connect(self.checkbox)
+        self.checkBoxRawData.stateChanged.connect(self.changeMeasuresState)
         self.pushButtonRefreshBins.clicked.connect(self.refreshbins)
         self.horizontalSliderBins.valueChanged.connect(self.label_update)
 
@@ -147,9 +147,9 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
             tempfile.close()
             print("The cleaned measures have been exported successfully.")
     
-    def checkbox(self):
+    def changeMeasuresState(self):
         """
-        Refresh type of data displayed (raw or processed) when the checkbox changes state.
+        Refresh type of data displayed (raw or processed) when the checkbox "Show Raw Measures" changes state.
         """
         self.setPressureAndTemperatureTables()
         self.coordinator.refreshMeasuresPlots(self.checkBoxRawData.isChecked())
@@ -223,17 +223,17 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         Also update the thermometer RMSE.
         """
         self.removeAllCheckboxes()
-        globalRMSE, thermRMSE = self.coordinator.allRMSE()
+        directRMSE, globalRMSE, thermRMSE = self.coordinator.allRMSE()
+
+        self.quantilesLayout.addWidget(QtWidgets.QLabel(f"RMSE: {directRMSE:.2f} °C"),0,1)
         i = 1
         for index, (quantile, rmse) in enumerate(globalRMSE.items()):
-            if quantile !=0:
-                #Value 0 is already hardcoded in the .ui file
-                text_checkbox = f"Quantile {quantile}"
-                quantile_checkbox = QtWidgets.QCheckBox(text_checkbox)
-                quantile_checkbox.stateChanged.connect(self.refreshTempDepthView)
-                self.quantilesLayout.addWidget(quantile_checkbox,i,0)
-                self.quantilesLayout.addWidget(QtWidgets.QLabel(f"RMSE: {rmse:.2f} °C"),i,1)
-                i +=1
+            text_checkbox = f"Quantile {quantile}"
+            quantile_checkbox = QtWidgets.QCheckBox(text_checkbox)
+            quantile_checkbox.stateChanged.connect(self.refreshTempDepthView)
+            self.quantilesLayout.addWidget(quantile_checkbox,i,0)
+            self.quantilesLayout.addWidget(QtWidgets.QLabel(f"RMSE: {rmse:.2f} °C"),i,1)
+            i +=1
 
         #Display the RMSE for each thermometer or 0 if it has not been computed yet (ie select_RMSE_therm has only None values)
         self.labelRMSETherm1.setText(f"RMSE: {thermRMSE[0] if thermRMSE[0] else 0:.2f} °C")
@@ -250,7 +250,6 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
             ...
             Thermometer _ | RMSE: _ #Shouldn't be removed
             ...
-
         """
         #Taken from Stack Overflow https://stackoverflow.com/questions/4528347/clear-all-widgets-in-a-layout-in-pyqt
         for i in reversed(range(self.quantilesLayout.count())):
