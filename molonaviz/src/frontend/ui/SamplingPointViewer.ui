@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1413</width>
-    <height>1003</height>
+    <height>1000</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -213,8 +213,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>102</width>
-                 <height>43</height>
+                 <width>1333</width>
+                 <height>540</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -364,8 +364,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>98</width>
-             <height>67</height>
+             <width>1363</width>
+             <height>420</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_7">
@@ -414,8 +414,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>98</width>
-             <height>67</height>
+             <width>1363</width>
+             <height>420</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_5">
@@ -663,8 +663,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>98</width>
-             <height>67</height>
+             <width>1363</width>
+             <height>401</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_8">
@@ -713,8 +713,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>98</width>
-             <height>67</height>
+             <width>1363</width>
+             <height>400</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_9">

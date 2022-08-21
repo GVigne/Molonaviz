@@ -72,6 +72,7 @@ class StudyHandler:
         self.spointCoordinator = SPointCoordinator(self.con, self.studyName, spointName)
         samplingPoint = self.spointManager.getSPoint(spointName)
         self.spointViewer = SamplingPointViewer(self.spointCoordinator, samplingPoint)
+        self.spointViewer.setWindowTitle(self.studyName)
         return self.spointViewer
 
     def close(self):
