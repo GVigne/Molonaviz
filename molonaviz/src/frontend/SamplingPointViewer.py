@@ -12,9 +12,8 @@ from src.backend.Compute import Compute
 from src.frontend.GraphViews import PressureView, TemperatureView,UmbrellaView,TempDepthView,TempMapView,AdvectiveFlowView, ConductiveFlowView, TotalFlowView, WaterFluxView, Log10KView, ConductivityView, PorosityView, CapacityView
 from src.frontend.dialogExportCleanedMeasures import DialogExportCleanedMeasures
 from src.frontend.dialogConfirm import DialogConfirm
-from src.frontend.dialogCleanupMain import DialogCleanupMain
+from src.frontend.dialogCleanup import DialogCleanup
 from src.frontend.dialogCompute import DialogCompute
-from src.utils.utils import convertDates
 
 
 From_SamplingPointViewer = uic.loadUiType(os.path.join(os.path.dirname(__file__), "ui", "SamplingPointViewer.ui"))[0]
@@ -225,14 +224,14 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         self.removeAllCheckboxes()
         directRMSE, globalRMSE, thermRMSE = self.coordinator.allRMSE()
 
-        self.quantilesLayout.addWidget(QtWidgets.QLabel(f"RMSE: {directRMSE:.2f} °C"),0,1)
+        self.quantilesLayout.addWidget(QtWidgets.QLabel(f"RMSE: {directRMSE if directRMSE is not None else 0:.2f} °C"),0,1)
         i = 1
         for index, (quantile, rmse) in enumerate(globalRMSE.items()):
             text_checkbox = f"Quantile {quantile}"
             quantile_checkbox = QtWidgets.QCheckBox(text_checkbox)
             quantile_checkbox.stateChanged.connect(self.refreshTempDepthView)
             self.quantilesLayout.addWidget(quantile_checkbox,i,0)
-            self.quantilesLayout.addWidget(QtWidgets.QLabel(f"RMSE: {rmse:.2f} °C"),i,1)
+            self.quantilesLayout.addWidget(QtWidgets.QLabel(f"RMSE: {rmse:.2f} °C "),i,1)
             i +=1
 
         #Display the RMSE for each thermometer or 0 if it has not been computed yet (ie select_RMSE_therm has only None values)
@@ -371,7 +370,7 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
             self.handleComputationsButtons()
     
     def cleanup(self):
-        dlg = DialogCleanupMain(self.coordinator,self.samplingPoint)
+        dlg = DialogCleanup(self.coordinator,self.samplingPoint)
         res = dlg.exec()
         if res == QtWidgets.QDialog.Accepted:
             confirm = DialogConfirm("Cleaning up the measures will delete the previous cleanup, as well as any computations made for this point. Are you sure?")
@@ -379,12 +378,8 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
             if confirmRes == QtWidgets.QDialog.Accepted:
                 #Clean the database first before putting new data
                 self.coordinator.deleteProcessedData()
-
-                dlg.df_cleaned["date"].replace('', nan, inplace = True)
-                dlg.df_cleaned.dropna(subset = ["date"], inplace = True)
-                convertDates(dlg.df_cleaned) #Convert dates to datetime (or here Timestamp) objects
-            
-                self.coordinator.insertCleanedMeasures(dlg.df_cleaned)
+                df_cleaned = dlg.getCleanedMeasures()
+                self.coordinator.insertCleanedMeasures(df_cleaned)
 
                 self.updateAllViews()
                 self.handleComputationsButtons()

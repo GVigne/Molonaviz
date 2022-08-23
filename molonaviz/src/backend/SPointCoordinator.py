@@ -4,6 +4,7 @@ import pandas as pd
 
 from src.InnerMessages import ComputationsState
 from src.backend.GraphsModels import PressureDataModel, TemperatureDataModel, SolvedTemperatureModel, HeatFluxesModel, WaterFluxModel, ParamsDistributionModel
+from src.utils.utils import databaseDateToDatetime
 
 class SPointCoordinator:
     """
@@ -105,6 +106,18 @@ class SPointCoordinator:
         self.tableModel.setQuery(select_query)
         return self.tableModel 
     
+    def allRawMeasures(self):
+        """
+        Return the cleaned measures in an iterable format. The result is a list of lists. The inner lists hold the following information in the following order:
+            -date (in datetime format), Temp1, Temp2, Temp3, Temp, TempBed, Voltage
+        """
+        select_data = self.build_raw_measures(full_query=True)
+        select_data.exec()
+        result = []
+        while select_data.next():
+            result.append([databaseDateToDatetime(select_data.value(0))]+ [select_data.value(i) for i in range(1,7)])
+        return result
+
     def allCleanedMeasures(self):
         """
         Return the cleaned measures in an iterable format. The result is a list of tuple:
@@ -112,6 +125,7 @@ class SPointCoordinator:
         -the second element is a list holding pressure readings (date, pressure, temperature)
         """
         select_data = self.build_cleaned_measures(full_query=True)
+        select_data.exec()
         result = []
         while select_data.next():
             result.append(([select_data.value(i) for i in range(5)],[select_data.value(0), select_data.value(6),select_data.value(5)]))
@@ -221,16 +235,16 @@ class SPointCoordinator:
         """
         Insert the cleaned measures into the database.
         The cleaned measures must be in dataframe with the following structure:
-            -row[1] : Date (in database format)
-            -row[2] : Temperature Bed
-            -row[3] : Pressure
-            -row[4] : Temperature 1
-            -row[5] : Temperature 2
-            -row[6] : Temperature 3
-            -row[7] : Temperature 4
+            -row[1] : Date (in database format) with name Date
+            -row[2] : Temperature Bed with name TempBed
+            -row[3] : Pressure with name Pressure
+            -row[4] : Temperature 1 with name Temp1
+            -row[5] : Temperature 2 with name Temp2
+            -row[6] : Temperature 3 with name Temp3
+            -row[7] : Temperature 4 with name Temp4
         """
         #Convert datetime objects (here Timestamp objects) into a string with correct date format.
-        dfCleaned["date"] = dfCleaned["date"].dt.strftime("%Y/%m/%d %H:%M:%S") #Convert
+        dfCleaned["Date"] = dfCleaned["Date"].dt.strftime("%Y/%m/%d %H:%M:%S")
 
         query_dates = self.build_insert_date()
         query_dates.bindValue(":PointKey", self.pointID)

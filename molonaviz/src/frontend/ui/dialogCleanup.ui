@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1452</width>
+    <height>914</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_2">
+   <item>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QTabWidget" name="tabWidget">
+       <property name="currentIndex">
+        <number>0</number>
+       </property>
+       <widget class="QWidget" name="tabCleanRaw">
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <attribute name="title">
+         <string>Raw Data Cleanup</string>
+        </attribute>
+        <layout class="QGridLayout" name="gridLayout">
+         <item row="0" column="0">
+          <layout class="QGridLayout" name="gridLayout_2">
+           <item row="3" column="0" rowspan="9" colspan="3">
+            <layout class="QVBoxLayout" name="widgetRawData"/>
+           </item>
+           <item row="11" column="3">
+            <widget class="QPushButton" name="pushButtonResetAll">
+             <property name="text">
+              <string>Reset</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="3">
+            <widget class="QRadioButton" name="radioButtonZScore">
+             <property name="text">
+              <string>Z-score</string>
+             </property>
+             <attribute name="buttonGroup">
+              <string notr="true">buttonProcessingGroup</string>
+             </attribute>
+            </widget>
+           </item>
+           <item row="5" column="3">
+            <widget class="QRadioButton" name="radioButtonNone">
+             <property name="text">
+              <string>None</string>
+             </property>
+             <attribute name="buttonGroup">
+              <string notr="true">buttonProcessingGroup</string>
+             </attribute>
+            </widget>
+           </item>
+           <item row="0" column="0" colspan="3">
+            <widget class="QComboBox" name="comboBoxRawVar"/>
+           </item>
+           <item row="4" column="3">
+            <widget class="QRadioButton" name="radioButtonIQR">
+             <property name="text">
+              <string>IQR</string>
+             </property>
+             <attribute name="buttonGroup">
+              <string notr="true">buttonProcessingGroup</string>
+             </attribute>
+            </widget>
+           </item>
+           <item row="2" column="0" colspan="2">
+            <layout class="QVBoxLayout" name="widgetToolBar"/>
+           </item>
+           <item row="2" column="3">
+            <widget class="QLabel" name="labelMethod">
+             <property name="text">
+              <string>Outliers method:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="9" column="3">
+            <widget class="QRadioButton" name="radioButtonFC">
+             <property name="text">
+              <string>Display in °F</string>
+             </property>
+             <attribute name="buttonGroup">
+              <string notr="true">buttonTConversionsGroup</string>
+             </attribute>
+            </widget>
+           </item>
+           <item row="7" column="3">
+            <widget class="QPushButton" name="pushButtonSelectPoints">
+             <property name="text">
+              <string>Select points</string>
+             </property>
+            </widget>
+           </item>
+           <item row="10" column="3">
+            <widget class="QRadioButton" name="radioButtonCK">
+             <property name="text">
+              <string>Display in K</string>
+             </property>
+             <attribute name="buttonGroup">
+              <string notr="true">buttonTConversionsGroup</string>
+             </attribute>
+            </widget>
+           </item>
+           <item row="8" column="3">
+            <widget class="QRadioButton" name="radioButton">
+             <property name="text">
+              <string>Display in °C</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+             <attribute name="buttonGroup">
+              <string notr="true">buttonTConversionsGroup</string>
+             </attribute>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="tabImportCleaned">
+        <attribute name="title">
+         <string>Import cleanead measures</string>
+        </attribute>
+       </widget>
+      </widget>
+     </item>
+     <item>
+      <widget class="QDialogButtonBox" name="buttonBox">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="standardButtons">
+        <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>Dialog</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>248</x>
+     <y>254</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>157</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>Dialog</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>316</x>
+     <y>260</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <buttongroups>
+  <buttongroup name="buttonProcessingGroup"/>
+  <buttongroup name="buttonTConversionsGroup"/>
+ </buttongroups>
+</ui>
