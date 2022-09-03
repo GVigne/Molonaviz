@@ -175,6 +175,11 @@ def convertDates(df : pd.DataFrame, timesIndex = 0):
     # None of the known format are valid
     raise ValueError("Cannot convert dates: No known formats match your data!")
 
+def databaseDateFormat():
+    """
+    Return the database date format as a string: currently, it is YYYY/MM/DD HH:MM:SS.
+    """
+    return "%Y/%m/%d %H:%M:%S"
 
 def databaseDateToDatetime(date : str):
     """
@@ -183,15 +188,15 @@ def databaseDateToDatetime(date : str):
     """
     if isinstance(date, list) or isinstance(date, np.ndarray):
         return [databaseDateToDatetime(d) for d in date]
-    return datetime.strptime(date, "%Y/%m/%d %H:%M:%S")
+    return datetime.strptime(date, databaseDateFormat())
 
 def datetimeToDatabaseDate(date : datetime):
     """
     Given a datetime oject, return a date (string) in the database format (YYYY/MM/DD HH:MM:SS).
     """
-    return date.strftime("%Y/%m/%d %H:%M:%S")
+    return date.strftime(databaseDateFormat())
 
-def date_to_mdates(dates : list[str]):
+def dateToMdates(dates : list[str]):
     """
     Given a list of datetime objects, return the corresponding list of matplotlib dates.
     """

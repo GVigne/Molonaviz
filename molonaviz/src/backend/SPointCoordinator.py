@@ -4,7 +4,7 @@ import pandas as pd
 
 from src.InnerMessages import ComputationsState
 from src.backend.GraphsModels import PressureDataModel, TemperatureDataModel, SolvedTemperatureModel, HeatFluxesModel, WaterFluxModel, ParamsDistributionModel
-from src.utils.utils import databaseDateToDatetime
+from src.utils.utils import databaseDateFormat, databaseDateToDatetime
 
 class SPointCoordinator:
     """
@@ -244,16 +244,17 @@ class SPointCoordinator:
         """
         Insert the cleaned measures into the database.
         The cleaned measures must be in dataframe with the following structure:
-            -row[1] : Date (in database format) with name Date
-            -row[2] : Temperature Bed with name TempBed
-            -row[3] : Pressure with name Pressure
-            -row[4] : Temperature 1 with name Temp1
-            -row[5] : Temperature 2 with name Temp2
-            -row[6] : Temperature 3 with name Temp3
-            -row[7] : Temperature 4 with name Temp4
+            -row[1] : Date (in datetime/Timestamp format) with name Date
+            -row[2] : Temperature 1 with name Temp1
+            -row[3] : Temperature 2 with name Temp2
+            -row[4] : Temperature 3 with name Temp3
+            -row[5] : Temperature 4 with name Temp4
+            -row[6] : Bet temperature with name TempBed
+            -row[7] : Pressure with name Pressure
+        Furthermore, they must be database friendly (ie no NaN, no empty field... Just full columns basically).
         """
         #Convert datetime objects (here Timestamp objects) into a string with correct date format.
-        dfCleaned["Date"] = dfCleaned["Date"].dt.strftime("%Y/%m/%d %H:%M:%S")
+        dfCleaned["Date"] = dfCleaned["Date"].dt.strftime(databaseDateFormat())
 
         query_dates = self.build_insert_date()
         query_dates.bindValue(":PointKey", self.pointID)
@@ -263,17 +264,16 @@ class SPointCoordinator:
         
         self.con.transaction()
         for row in dfCleaned.itertuples():
-            if not(isnan(row[2]) or isnan(row[3]) or isnan(row[4]) or isnan(row[5]) or isnan(row[6]) or isnan(row[7])):
-                query_dates.bindValue(":Date", row[1])
-                query_dates.exec()
-                query_measures.bindValue(":DateID", query_dates.lastInsertId())
-                query_measures.bindValue(":TempBed", row[2])
-                query_measures.bindValue(":Temp1", row[4])
-                query_measures.bindValue(":Temp2", row[5])
-                query_measures.bindValue(":Temp3", row[6])
-                query_measures.bindValue(":Temp4", row[7])
-                query_measures.bindValue(":Pressure", row[3])
-                query_measures.exec()
+            query_dates.bindValue(":Date", row[1])
+            query_dates.exec()
+            query_measures.bindValue(":DateID", query_dates.lastInsertId())
+            query_measures.bindValue(":Temp1", row[2])
+            query_measures.bindValue(":Temp2", row[3])
+            query_measures.bindValue(":Temp3", row[4])
+            query_measures.bindValue(":Temp4", row[5])
+            query_measures.bindValue(":TempBed", row[6])
+            query_measures.bindValue(":Pressure", row[7])
+            query_measures.exec()
         self.con.commit()
     
     def deleteProcessedData(self):

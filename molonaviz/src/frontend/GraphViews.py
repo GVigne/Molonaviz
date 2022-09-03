@@ -12,7 +12,7 @@ from matplotlib.ticker import MaxNLocator
 import numpy as np
 from src.MoloModel import MoloModel
 from src.MoloView import MoloView
-from src.utils.utils import date_to_mdates
+from src.utils.utils import dateToMdates
 
 class GraphView(FigureCanvasQTAgg, MoloView):
     """
@@ -59,7 +59,7 @@ class GraphView1D(GraphView):
         This method allows to apply changes to the data on the x-axis (for example, format a date).
         """
         if self.time_dependent:
-            self.x = date_to_mdates(self.x)
+            self.x = dateToMdates(self.x)
             formatter = mdates.DateFormatter("%y/%m/%d %H:%M")
             self.axes.xaxis.set_major_formatter(formatter)
             self.axes.xaxis.set_major_locator(MaxNLocator(4))
@@ -114,7 +114,7 @@ class GraphView2D(GraphView):
         This method allows to apply changes to the data on the x-axis (for example, format a date).
         """
         if self.time_dependent:
-            self.x = date_to_mdates(self.x)
+            self.x = dateToMdates(self.x)
             formatter = mdates.DateFormatter("%y/%m/%d %H:%M")
             self.axes.xaxis.set_major_formatter(formatter)
             self.axes.xaxis.set_major_locator(MaxNLocator(4))

@@ -12,7 +12,7 @@ from matplotlib.ticker import MaxNLocator
 import matplotlib.dates as mdates
 import numpy as np
 
-from src.utils.utils import date_to_mdates
+from src.utils.utils import dateToMdates
 from src.backend.SPointCoordinator import SPointCoordinator
 from src.Containers import SamplingPoint
 from src.InnerMessages import CleanupStatus, ComputationsState
@@ -36,11 +36,11 @@ class CompareCanvas(FigureCanvasQTAgg):
         Set the given dataframe as the reference data.
         """
         self.reference_data = data
-        # self.reference_data["Date"] = date_to_mdates(self.reference_data["Date"])
+        # self.reference_data["Date"] = dateToMdates(self.reference_data["Date"])
     
     def set_modified_data(self, data):
         self.modified_data = data
-        # self.modified_data["Date"] = date_to_mdates(self.modified_data["Date"])
+        # self.modified_data["Date"] = dateToMdates(self.modified_data["Date"])
 
     def plot_data(self, field):
         """

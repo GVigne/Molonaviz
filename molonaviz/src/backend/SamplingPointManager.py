@@ -5,6 +5,8 @@ import os, shutil
 from src.MoloModel import MoloModel
 from src.Containers import SamplingPoint
 
+from src.utils.utils import databaseDateFormat
+
 class SamplingPointModel(MoloModel):
     """
     A model to display the sampling points.
@@ -91,8 +93,8 @@ class SamplingPointManager:
         pointID = self.insert_new_point(pointName, psensorName, shaftName, noticefile, configfile, infoDF) 
 
         #Convert datetime objects (here Timestamp objects) into a string with correct date format.
-        trawDF["Date"] = trawDF["Date"].dt.strftime("%Y/%m/%d %H:%M:%S")
-        prawDF["Date"] = prawDF["Date"].dt.strftime("%Y/%m/%d %H:%M:%S")
+        trawDF["Date"] = trawDF["Date"].dt.strftime(databaseDateFormat())
+        prawDF["Date"] = prawDF["Date"].dt.strftime(databaseDateFormat())
 
         #Pressure records
         self.con.transaction()
@@ -124,8 +126,8 @@ class SamplingPointManager:
         Return the ID of the created point.
         """
         #Convert date objects (or here Timestamp objets) to string with correct date format
-        infoDF[1][3] = infoDF[1][3].strftime("%Y/%m/%d %H:%M:%S")
-        infoDF[1][4] = infoDF[1][4].strftime("%Y/%m/%d %H:%M:%S")
+        infoDF[1][3] = infoDF[1][3].strftime(databaseDateFormat())
+        infoDF[1][4] = infoDF[1][4].strftime(databaseDateFormat())
 
         insertPoint = self.build_insert_sampling_point()
 
