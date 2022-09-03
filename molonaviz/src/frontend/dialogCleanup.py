@@ -15,6 +15,7 @@ import numpy as np
 from src.utils.utils import date_to_mdates
 from src.backend.SPointCoordinator import SPointCoordinator
 from src.Containers import SamplingPoint
+from src.InnerMessages import CleanupStatus, ComputationsState
 
 From_DialogCleanup= uic.loadUiType(os.path.join(os.path.dirname(__file__), "ui", "dialogCleanup.ui"))[0]
 
@@ -77,43 +78,46 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
         self.coordinator = coordinator
         self.spoint = spoint
 
-        self.radioButton.setChecked(True)#Should already be done in UI
-        self.radioButtonFC.clicked.connect(self.displayinF)
-        self.radioButtonCK.clicked.connect(self.displayinK)
-        self.radioButton.clicked.connect(self.displayinC)
-        self.radioButtonNone.setChecked(True) #This should already be done in the UI
-        self.radioButtonNone.clicked.connect(self.setNoneProcessing)
-        self.radioButtonIQR.clicked.connect(self.setIQRProcessing)
-        self.radioButtonZScore.clicked.connect(self.setZScoreProcessing)
-
         self.uiToDF = {"Differential pressure" : "Pressure",
-                        "Temperature at depth 1": "Temp1",
-                        "Temperature at depth 2": "Temp2",
-                        "Temperature at depth 3": "Temp3",
-                        "Temperature at depth 4": "Temp4",
-                        "Stream Temperature" : "TempBed"
-                        } #Conversion between what is displayed on the ui and the corresponding DF column.
+                    "Temperature at depth 1": "Temp1",
+                    "Temperature at depth 2": "Temp2",
+                    "Temperature at depth 3": "Temp3",
+                    "Temperature at depth 4": "Temp4",
+                    "Stream Temperature" : "TempBed"
+                    } # Conversion between what is displayed on the ui and the corresponding DF column.
+        self.comboBoxRawVar.addItems(list(self.uiToDF.keys()))
 
-        #Retrieve the dataframes
+        self.radioButtonNone.setChecked(True) # This should already be done in the UI      
+        self.radioButtonC.setChecked(True) # This should already be done in the UI 
+        
+        self.radioButtonNone.clicked.connect(self.setNoneComputation) # This should already be done in the UI        
+        self.radioButtonIQR.clicked.connect(self.setIQRComputation)
+        self.radioButtonZScore.clicked.connect(self.setZScoreComputation)
+        self.radioButtonF.clicked.connect(self.refreshPlot)
+        self.radioButtonK.clicked.connect(self.refreshPlot)
+        self.radioButtonC.clicked.connect(self.refreshPlot)
+        self.comboBoxRawVar.currentIndexChanged.connect(self.showNewVar)
+        self.pushButtonResetAll.clicked.connect(self.reset)
+
+        self.varStatus = {"Pressure" : CleanupStatus.NONE,
+                          "Temp1" : CleanupStatus.NONE,
+                          "Temp2" : CleanupStatus.NONE,
+                          "Temp3" : CleanupStatus.NONE,
+                          "Temp4" : CleanupStatus.NONE,
+                          "TempBed" : CleanupStatus.NONE
+                        } # The cleanup status for every variable: initially, we don't do anything.
         self.data = None
-        self.intercept = 0
-        self.dUdH = 1
-        self.dUdT = 1
+        self.intercept, self.dUdH, self.dUdT = self.coordinator.calibrationInfos()
         self.buildDF()
         self.convertVoltagePressure()
-        self.cleaned_data = self.data.copy(deep = True) #By default, nothing has changed excet Voltage -> Pressure conversion
-        self.currentTempUnit = "C" #°C by default
 
         self.mplCanvas = CompareCanvas()
         self.mplCanvas.set_reference_data(self.data)
         self.toolBar = NavigationToolbar2QT(self.mplCanvas,self)
         self.widgetToolBar.addWidget(self.toolBar)
         self.widgetRawData.addWidget(self.mplCanvas)
-
-        self.comboBoxRawVar.addItems(["Differential pressure", "Temperature at depth 1", "Temperature at depth 2", "Temperature at depth 3", "Temperature at depth 4", "Stream Temperature"])
-        self.comboBoxRawVar.currentIndexChanged.connect(self.plotVariable)
-
-        self.plotVariable()
+    
+        self.refreshPlot()
     
     def buildDF(self):
         """
@@ -121,51 +125,117 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
         """
         backend_data = self.coordinator.allRawMeasures()
         self.data = pd.DataFrame(backend_data, columns = ["Date","Temp1", "Temp2", "Temp3", "Temp4", "TempBed", "Voltage"])
-        
-
+    
     def convertVoltagePressure(self):
         """
-        Convert the Voltage column into a (differential) Pressure field, taking into accound the calibration information.
+        Convert the Voltage column into a (differential) Pressure field, taking into account the calibration information.
+        This should only be called once, as we'd rather have the user speak in terms of differential pressure than in Voltage.
         """
         self.data["Pressure"] = (self.data["Voltage"] - self.data["TempBed"]*self.dUdT - self.intercept)/self.dUdH
         self.data.drop(labels="Voltage", axis = 1, inplace = True)
     
-    def plotVariable(self):
-        #TODO: use a dictionnary for this!
+    def setNoneComputation(self):
+        """
+        Set None cleanup rule for the current variable.
+        """
         var = self.uiToDF[self.comboBoxRawVar.currentText()]
-        self.mplCanvas.plot_data(var)
+        self.varStatus[var] = CleanupStatus.NONE
+        self.refreshPlot()
     
-    def setNoneProcessing(self):
-        self.cleaned_data = self.data
-        self.mplCanvas.set_modified_data(self.cleaned_data)
-        self.plotVariable()
-    
-    def setIQRProcessing(self):
+    def setIQRComputation(self):
+        """
+        Set IQR cleanup rule for the current variable.
+        """
         var = self.uiToDF[self.comboBoxRawVar.currentText()]
-        q1 = self.data[var].quantile(0.25)
-        q3 = self.data[var].quantile(0.75)
+        self.varStatus[var] = CleanupStatus.IQR
+        self.refreshPlot()
+    
+    def setZScoreComputation(self):
+        """
+        Set Z-Score cleanup rule for the current variable.
+        """
+        var = self.uiToDF[self.comboBoxRawVar.currentText()]
+        self.varStatus[var] = CleanupStatus.ZSCORE
+        self.refreshPlot()
+    
+    def showNewVar(self):
+        """
+        Refresh the plots and update the radio buttons for the current variable.
+        """
+        var = self.uiToDF[self.comboBoxRawVar.currentText()]
+        if self.varStatus[var] == CleanupStatus.NONE:
+            self.radioButtonNone.setChecked(True)
+        elif self.varStatus[var] == CleanupStatus.IQR:
+            self.radioButtonIQR.setChecked(True)
+        elif self.varStatus[var] == CleanupStatus.ZSCORE:
+            self.radioButtonZScore.setChecked(True)
+
+        self.refreshPlot()
+    
+    def refreshPlot(self):
+        """
+        Refresh the plot according to the variable the user is looking at.
+        Currently, this implies recomputing the for every variable the decomposition (IQR, Zscore or None). If this is problem, this should be changed: however, we are only looking at ~10 variables on a dataframe of ~5000 entries, so it really shouldn't be a limitation. 
+        """
+        cleanedData = self.data.copy(deep = True)
+        self.applyCleanupChanges(cleanedData) # Modifies in place cleanedData
+        reference_data, cleanedData = self.applyTemperatureChanges(cleanedData)
+
+        self.mplCanvas.set_reference_data(reference_data)
+        self.mplCanvas.set_modified_data(cleanedData)
+        displayVar = self.uiToDF[self.comboBoxRawVar.currentText()]
+        self.mplCanvas.plot_data(displayVar)
+    
+    def applyCleanupChanges(self, cleanedData : pd.DataFrame):
+        """
+        Apply IN PLACE the cleanup change requested for every variable on the given dataframe.
+        """
+        for i, (varName, varStatus) in enumerate(self.varStatus.items()):
+            if varStatus == CleanupStatus.NONE:
+                # Nothing to be done, move on!
+                pass
+            elif varStatus == CleanupStatus.IQR:
+                self.applyIQR(cleanedData, varName)
+            elif varStatus == CleanupStatus.ZSCORE:
+                self.applyZScore(cleanedData, varName)
+        cleanedData.dropna(inplace = True) # For sanity purposes
+    
+    def applyIQR(self, cleanedData : pd.DataFrame, varName : str):
+        """
+        Modifies IN PLACE the given dataframe by applying IQR treatment on the column with name varName.
+        """
+        q1 = cleanedData[varName].quantile(0.25)
+        q3 = cleanedData[varName].quantile(0.75)
         iqr = q3-q1 #Interquartile range
         fence_low  = q1-1.5*iqr
         fence_high = q3+1.5*iqr
 
-        self.cleaned_data = self.data.copy(deep = True)
-        self.cleaned_data.drop(self.cleaned_data.loc[self.cleaned_data[var] < fence_low].index, inplace = True)
-        self.cleaned_data.drop(self.cleaned_data.loc[self.cleaned_data[var] > fence_high].index, inplace = True)
+        cleanedData.drop(cleanedData.loc[cleanedData[varName] < fence_low].index, inplace = True)
+        cleanedData.drop(cleanedData.loc[cleanedData[varName] > fence_high].index, inplace = True)
 
-        self.mplCanvas.set_modified_data(self.cleaned_data)
-        self.plotVariable()
+    def applyZScore(self, cleanedData : pd.DataFrame, varName : str):
+        """
+        Modifies IN PLACE the given dataframe by applying Z-Score treatment on the column with name varName.
+        """
+        var_column = self.data[varName].copy(deep = True).dropna()
+        cleanedData[varName]= var_column.loc[(np.abs(stats.zscore(var_column)) < 3)] # Pandas dark magic!
+        cleanedData.dropna(inplace = True)
     
-    def setZScoreProcessing(self):
-        var = self.uiToDF[self.comboBoxRawVar.currentText()]
-        self.cleaned_data = self.data.copy(deep = True)
-        var_column = self.data[var].copy(deep = True).dropna()
-        self.cleaned_data[var]= var_column.loc[(np.abs(stats.zscore(var_column)) < 3)]
-        self.cleaned_data.dropna(inplace = True)
-        self.mplCanvas.set_modified_data(self.cleaned_data)
-        self.plotVariable()
-    
-    def FtoC(self, x):
-        return (x-32)/1.8
+    def reset(self):
+        """
+        Discard all cleanup changes made.
+        """
+        self.varStatus = {"Pressure" : CleanupStatus.NONE,
+                          "Temp1" : CleanupStatus.NONE,
+                          "Temp2" : CleanupStatus.NONE,
+                          "Temp3" : CleanupStatus.NONE,
+                          "Temp4" : CleanupStatus.NONE,
+                          "TempBed" : CleanupStatus.NONE
+                        } # No cleanup done by default.
+        self.radioButtonNone.setChecked(True)
+        self.mplCanvas.set_modified_data(None)
+
+        self.refreshPlot()
     
     def CtoF(self, x):
         return x*1.8 + 32
@@ -173,65 +243,28 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
     def CtoK(self,x):
         return x+273.15
 
-    def KtoC(self,x):
-        return x-273.15
-    
-    def FtoK(self,x):
-        return self.CtoK(self.FtoC(x))
-    
-    def KtoF(self,x):
-        return self.CtoF(self.KtoC(x))
-
-    def displayinC(self):
-        if self.currentTempUnit !="C":
-            if self.currentTempUnit =="F":
-                convertFun = self.FtoC
-            else:
-                convertFun = self.KtoC
-
-            self.data[["Temp1","Temp2","Temp3","Temp4", "TempBed"]] = self.data[["Temp1","Temp2","Temp3","Temp4", "TempBed"]].apply(convertFun)
-            if self.cleaned_data is not None:
-                self.cleaned_data[["Temp1","Temp2","Temp3","Temp4", "TempBed"]] = self.cleaned_data[["Temp1","Temp2","Temp3","Temp4", "TempBed"]].apply(convertFun)
-            
-            self.currentTempUnit = "C"
-            self.mplCanvas.set_reference_data(self.data)
-            self.mplCanvas.set_modified_data(self.cleaned_data)
-            self.plotVariable()
-
-    def displayinF(self):
-        if self.currentTempUnit !="F":
-            if self.currentTempUnit =="C":
+    def applyTemperatureChanges(self, cleanedData : pd.DataFrame):
+        """
+        Return two dataframes:
+            - the first is a copy of self.data, with a temperature conversion. self.data must not be modified.
+            - the second is the given cleanedData dataframe onto which a temperature conversion has been done. cleanedData can be modified
+        This function builds on the fact that self.data and cleanedData have values in °C.
+        """
+        if self.radioButtonC.isChecked():
+            return self.data, cleanedData # Nothing to change
+        else:
+            if self.radioButtonF.isChecked():
                 convertFun = self.CtoF
-            else:
-                convertFun = self.KtoF
-
-            self.data[["Temp1","Temp2","Temp3","Temp4", "TempBed"]] = self.data[["Temp1","Temp2","Temp3","Temp4", "TempBed"]].apply(convertFun)
-            if self.cleaned_data is not None:
-                self.cleaned_data[["Temp1","Temp2","Temp3","Temp4", "TempBed"]] = self.cleaned_data[["Temp1","Temp2","Temp3","Temp4", "TempBed"]].apply(convertFun)
-            
-            self.currentTempUnit = "F"
-            self.mplCanvas.set_reference_data(self.data)
-            self.mplCanvas.set_modified_data(self.cleaned_data)
-            self.plotVariable()
-
-    def displayinK(self):
-        if self.currentTempUnit !="K":
-            if self.currentTempUnit =="C":
+            elif self.radioButtonK.isChecked():
                 convertFun = self.CtoK
-            else:
-                convertFun = self.FtoK
+        
+            referenceData = self.data.copy(deep = True)
+            referenceData[["Temp1","Temp2","Temp3","Temp4", "TempBed"]] = referenceData[["Temp1","Temp2","Temp3","Temp4", "TempBed"]].apply(convertFun)
+            cleanedData[["Temp1","Temp2","Temp3","Temp4", "TempBed"]] = cleanedData[["Temp1","Temp2","Temp3","Temp4", "TempBed"]].apply(convertFun)
 
-            self.data[["Temp1","Temp2","Temp3","Temp4", "TempBed"]] = self.data[["Temp1","Temp2","Temp3","Temp4", "TempBed"]].apply(convertFun)
-            if self.cleaned_data is not None:
-                self.cleaned_data[["Temp1","Temp2","Temp3","Temp4", "TempBed"]] = self.cleaned_data[["Temp1","Temp2","Temp3","Temp4", "TempBed"]].apply(convertFun)
-            
-            self.currentTempUnit = "K"
-            self.mplCanvas.set_reference_data(self.data)
-            self.mplCanvas.set_modified_data(self.cleaned_data)
-            self.plotVariable()
-    
+            return referenceData, cleanedData
+
     def getCleanedMeasures(self):
-        # dlg.df_cleaned["date"].replace('', nan, inplace = True)
-        # dlg.df_cleaned.dropna(subset = ["date"], inplace = True)
-        # convertDates(dlg.df_cleaned) #Convert dates to datetime (or here Timestamp) objects
-        return self.cleaned_data
+        cleanedData = self.data.copy(deep = True)
+        self.applyCleanupChanges(cleanedData)
+        return cleanedData

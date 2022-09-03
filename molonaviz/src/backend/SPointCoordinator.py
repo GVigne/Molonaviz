@@ -182,6 +182,15 @@ class SPointCoordinator:
         selectdepth.exec()
         selectdepth.next()
         return selectdepth.value(0)
+
+    def calibrationInfos(self):
+        """
+        Return three values corresponding to the intercept, differential pressure (DuDH), and differential temperature (DuDT).
+        """
+        select_cal_infos = self.build_calibration_info()
+        select_cal_infos.exec()
+        select_cal_infos.next()
+        return select_cal_infos.value(0), select_cal_infos.value(1), select_cal_infos.value(2)
     
     def refreshMeasuresPlots(self, raw_measures):
         """
@@ -665,7 +674,7 @@ class SPointCoordinator:
             ORDER by Date.Date   
         """)
         return query
-    
+
     def build_quantiles(self):
         """
         Build and return the quantiles values.
@@ -679,7 +688,7 @@ class SPointCoordinator:
             ORDER BY Quantile.Quantile  
         """)
         return query
-    
+
     def build_max_depth(self):
         """
         Build and return a query giving the total depth for the sampling point with the ID samplingPointID.
@@ -694,6 +703,19 @@ class SPointCoordinator:
             """)
         return shaft_depth
     
+    def build_calibration_info(self):
+        """
+        Build and return a query giving information to calibrate the computations: the intercept, Du/DH and Du/DT for the current point.
+        """
+        query = QSqlQuery(self.con)
+        query.prepare(f"""
+            SELECT PressureSensor.Intercept, PressureSensor.DuDH, PressureSensor.DuDT FROM PressureSensor 
+            JOIN SamplingPoint
+            ON PressureSensor.ID = SamplingPoint.PressureSensor
+            WHERE SamplingPoint.ID = {self.samplingPointID}
+        """)
+        return query
+
     def build_insert_point(self):
         """
         Build and return a query creating a Point. For now, most fields are empty.

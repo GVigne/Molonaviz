@@ -34,34 +34,38 @@
         <layout class="QGridLayout" name="gridLayout">
          <item row="0" column="0">
           <layout class="QGridLayout" name="gridLayout_2">
-           <item row="3" column="0" rowspan="9" colspan="3">
-            <layout class="QVBoxLayout" name="widgetRawData"/>
+           <item row="2" column="3">
+            <widget class="QLabel" name="labelMethod">
+             <property name="text">
+              <string>Outliers method:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="9" column="3">
+            <widget class="QRadioButton" name="radioButtonF">
+             <property name="text">
+              <string>Display in °F</string>
+             </property>
+             <attribute name="buttonGroup">
+              <string notr="true">buttonTConversionsGroup</string>
+             </attribute>
+            </widget>
+           </item>
+           <item row="10" column="3">
+            <widget class="QRadioButton" name="radioButtonK">
+             <property name="text">
+              <string>Display in K</string>
+             </property>
+             <attribute name="buttonGroup">
+              <string notr="true">buttonTConversionsGroup</string>
+             </attribute>
+            </widget>
            </item>
            <item row="11" column="3">
             <widget class="QPushButton" name="pushButtonResetAll">
              <property name="text">
               <string>Reset</string>
              </property>
-            </widget>
-           </item>
-           <item row="3" column="3">
-            <widget class="QRadioButton" name="radioButtonZScore">
-             <property name="text">
-              <string>Z-score</string>
-             </property>
-             <attribute name="buttonGroup">
-              <string notr="true">buttonProcessingGroup</string>
-             </attribute>
-            </widget>
-           </item>
-           <item row="5" column="3">
-            <widget class="QRadioButton" name="radioButtonNone">
-             <property name="text">
-              <string>None</string>
-             </property>
-             <attribute name="buttonGroup">
-              <string notr="true">buttonProcessingGroup</string>
-             </attribute>
             </widget>
            </item>
            <item row="0" column="0" colspan="3">
@@ -77,26 +81,6 @@
              </attribute>
             </widget>
            </item>
-           <item row="2" column="0" colspan="2">
-            <layout class="QVBoxLayout" name="widgetToolBar"/>
-           </item>
-           <item row="2" column="3">
-            <widget class="QLabel" name="labelMethod">
-             <property name="text">
-              <string>Outliers method:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="9" column="3">
-            <widget class="QRadioButton" name="radioButtonFC">
-             <property name="text">
-              <string>Display in °F</string>
-             </property>
-             <attribute name="buttonGroup">
-              <string notr="true">buttonTConversionsGroup</string>
-             </attribute>
-            </widget>
-           </item>
            <item row="7" column="3">
             <widget class="QPushButton" name="pushButtonSelectPoints">
              <property name="text">
@@ -104,18 +88,24 @@
              </property>
             </widget>
            </item>
-           <item row="10" column="3">
-            <widget class="QRadioButton" name="radioButtonCK">
+           <item row="2" column="0" colspan="2">
+            <layout class="QVBoxLayout" name="widgetToolBar"/>
+           </item>
+           <item row="3" column="0" rowspan="9" colspan="3">
+            <layout class="QVBoxLayout" name="widgetRawData"/>
+           </item>
+           <item row="5" column="3">
+            <widget class="QRadioButton" name="radioButtonZScore">
              <property name="text">
-              <string>Display in K</string>
+              <string>Z-score</string>
              </property>
              <attribute name="buttonGroup">
-              <string notr="true">buttonTConversionsGroup</string>
+              <string notr="true">buttonProcessingGroup</string>
              </attribute>
             </widget>
            </item>
            <item row="8" column="3">
-            <widget class="QRadioButton" name="radioButton">
+            <widget class="QRadioButton" name="radioButtonC">
              <property name="text">
               <string>Display in °C</string>
              </property>
@@ -124,6 +114,19 @@
              </property>
              <attribute name="buttonGroup">
               <string notr="true">buttonTConversionsGroup</string>
+             </attribute>
+            </widget>
+           </item>
+           <item row="3" column="3">
+            <widget class="QRadioButton" name="radioButtonNone">
+             <property name="text">
+              <string>None</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+             <attribute name="buttonGroup">
+              <string notr="true">buttonProcessingGroup</string>
              </attribute>
             </widget>
            </item>

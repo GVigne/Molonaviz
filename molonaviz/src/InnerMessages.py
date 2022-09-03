@@ -10,3 +10,9 @@ class ComputationsState(Enum):
     CLEANED_MEASURES = auto()
     DIRECT_MODEL = auto()
     MCMC = auto()
+
+@unique
+class CleanupStatus(Enum):
+    NONE = auto()
+    IQR = auto()
+    ZSCORE = auto()

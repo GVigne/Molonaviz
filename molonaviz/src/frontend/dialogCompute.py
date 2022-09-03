@@ -28,6 +28,8 @@ class DialogCompute(QtWidgets.QDialog, From_DialogCompute):
         self.pushButtonRestoreDefault.clicked.connect(self.setDefaultValues)
         self.pushButtonRun.clicked.connect(self.run)
 
+        self.groupBoxMCMC.setChecked(False)
+
         self.setDefaultValues()
     
     def setDefaultValues(self):
