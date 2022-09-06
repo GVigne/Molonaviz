@@ -15,11 +15,11 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
-    <layout class="QVBoxLayout" name="verticalLayout">
+    <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0">
      <item>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="tabCleanRaw">
         <property name="maximumSize">
@@ -31,104 +31,150 @@
         <attribute name="title">
          <string>Raw Data Cleanup</string>
         </attribute>
-        <layout class="QGridLayout" name="gridLayout">
-         <item row="0" column="0">
-          <layout class="QGridLayout" name="gridLayout_2">
-           <item row="2" column="3">
-            <widget class="QLabel" name="labelMethod">
-             <property name="text">
-              <string>Outliers method:</string>
-             </property>
-            </widget>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,0">
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_5">
+             <item>
+              <widget class="QComboBox" name="comboBoxRawVar"/>
+             </item>
+             <item>
+              <layout class="QVBoxLayout" name="widgetToolBar"/>
+             </item>
+             <item>
+              <layout class="QVBoxLayout" name="widgetRawData"/>
+             </item>
+            </layout>
            </item>
-           <item row="9" column="3">
-            <widget class="QRadioButton" name="radioButtonF">
-             <property name="text">
-              <string>Display in °F</string>
-             </property>
-             <attribute name="buttonGroup">
-              <string notr="true">buttonTConversionsGroup</string>
-             </attribute>
-            </widget>
-           </item>
-           <item row="10" column="3">
-            <widget class="QRadioButton" name="radioButtonK">
-             <property name="text">
-              <string>Display in K</string>
-             </property>
-             <attribute name="buttonGroup">
-              <string notr="true">buttonTConversionsGroup</string>
-             </attribute>
-            </widget>
-           </item>
-           <item row="11" column="3">
-            <widget class="QPushButton" name="pushButtonResetAll">
-             <property name="text">
-              <string>Reset</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0" colspan="3">
-            <widget class="QComboBox" name="comboBoxRawVar"/>
-           </item>
-           <item row="4" column="3">
-            <widget class="QRadioButton" name="radioButtonIQR">
-             <property name="text">
-              <string>IQR</string>
-             </property>
-             <attribute name="buttonGroup">
-              <string notr="true">buttonProcessingGroup</string>
-             </attribute>
-            </widget>
-           </item>
-           <item row="7" column="3">
-            <widget class="QPushButton" name="pushButtonSelectPoints">
-             <property name="text">
-              <string>Select points</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0" colspan="2">
-            <layout class="QVBoxLayout" name="widgetToolBar"/>
-           </item>
-           <item row="3" column="0" rowspan="9" colspan="3">
-            <layout class="QVBoxLayout" name="widgetRawData"/>
-           </item>
-           <item row="5" column="3">
-            <widget class="QRadioButton" name="radioButtonZScore">
-             <property name="text">
-              <string>Z-score</string>
-             </property>
-             <attribute name="buttonGroup">
-              <string notr="true">buttonProcessingGroup</string>
-             </attribute>
-            </widget>
-           </item>
-           <item row="8" column="3">
-            <widget class="QRadioButton" name="radioButtonC">
-             <property name="text">
-              <string>Display in °C</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-             <attribute name="buttonGroup">
-              <string notr="true">buttonTConversionsGroup</string>
-             </attribute>
-            </widget>
-           </item>
-           <item row="3" column="3">
-            <widget class="QRadioButton" name="radioButtonNone">
-             <property name="text">
-              <string>None</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-             <attribute name="buttonGroup">
-              <string notr="true">buttonProcessingGroup</string>
-             </attribute>
-            </widget>
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_6" stretch="0,0,0,0,0">
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_3">
+               <item alignment="Qt::AlignBottom">
+                <widget class="QLabel" name="label">
+                 <property name="minimumSize">
+                  <size>
+                   <width>300</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>Outliers method:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QRadioButton" name="radioButtonIQR">
+                 <property name="text">
+                  <string>IQR</string>
+                 </property>
+                 <attribute name="buttonGroup">
+                  <string notr="true">outliersgroup</string>
+                 </attribute>
+                </widget>
+               </item>
+               <item>
+                <widget class="QRadioButton" name="radioButtonNone">
+                 <property name="text">
+                  <string>None</string>
+                 </property>
+                 <property name="checked">
+                  <bool>false</bool>
+                 </property>
+                 <attribute name="buttonGroup">
+                  <string notr="true">outliersgroup</string>
+                 </attribute>
+                </widget>
+               </item>
+               <item>
+                <widget class="QRadioButton" name="radioButtonZScore">
+                 <property name="text">
+                  <string>Z-score</string>
+                 </property>
+                 <attribute name="buttonGroup">
+                  <string notr="true">outliersgroup</string>
+                 </attribute>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QGridLayout" name="gridLayout_4">
+               <item row="0" column="0">
+                <widget class="QLabel" name="label_2">
+                 <property name="text">
+                  <string>Starting date:</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QLabel" name="label_3">
+                 <property name="text">
+                  <string>End date:</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QLineEdit" name="lineEdit_3"/>
+               </item>
+               <item row="1" column="1">
+                <widget class="QLineEdit" name="lineEdit_4"/>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_9">
+               <item>
+                <widget class="QRadioButton" name="radioButtonC">
+                 <property name="text">
+                  <string>Display in °C</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                 <attribute name="buttonGroup">
+                  <string notr="true">temperatureGroup</string>
+                 </attribute>
+                </widget>
+               </item>
+               <item>
+                <widget class="QRadioButton" name="radioButtonF">
+                 <property name="text">
+                  <string>Display in °F</string>
+                 </property>
+                 <attribute name="buttonGroup">
+                  <string notr="true">temperatureGroup</string>
+                 </attribute>
+                </widget>
+               </item>
+               <item>
+                <widget class="QRadioButton" name="radioButtonK">
+                 <property name="text">
+                  <string>Display in K</string>
+                 </property>
+                 <attribute name="buttonGroup">
+                  <string notr="true">temperatureGroup</string>
+                 </attribute>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <widget class="QPushButton" name="pushButtonSelectPoints">
+               <property name="text">
+                <string>Select points</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="pushButtonResetAll">
+               <property name="text">
+                <string>Reset</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
           </layout>
          </item>
@@ -138,6 +184,33 @@
         <attribute name="title">
          <string>Import cleanead measures</string>
         </attribute>
+        <layout class="QVBoxLayout" name="verticalLayout_4">
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <item>
+            <widget class="QLabel" name="label_4">
+             <property name="text">
+              <string>Path to the cleaned measures</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="lineEditBrowseCleaned">
+             <property name="readOnly">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButtonBrowse">
+             <property name="text">
+              <string>Browse</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
        </widget>
       </widget>
      </item>
@@ -191,7 +264,7 @@
   </connection>
  </connections>
  <buttongroups>
-  <buttongroup name="buttonProcessingGroup"/>
-  <buttongroup name="buttonTConversionsGroup"/>
+  <buttongroup name="temperatureGroup"/>
+  <buttongroup name="outliersgroup"/>
  </buttongroups>
 </ui>

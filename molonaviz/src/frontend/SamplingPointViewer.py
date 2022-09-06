@@ -379,7 +379,8 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
                 #Clean the database first before putting new data
                 self.coordinator.deleteProcessedData()
                 df_cleaned = dlg.getCleanedMeasures()
-                self.coordinator.insertCleanedMeasures(df_cleaned)
+                if not df_cleaned.empty:
+                    self.coordinator.insertCleanedMeasures(df_cleaned)
 
                 self.updateAllViews()
                 self.handleComputationsButtons()

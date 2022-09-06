@@ -12,12 +12,16 @@ from matplotlib.ticker import MaxNLocator
 import matplotlib.dates as mdates
 import numpy as np
 
-from src.utils.utils import dateToMdates
+from src.utils.utils import convertDates, dateToMdates, displayCriticalMessage
 from src.backend.SPointCoordinator import SPointCoordinator
 from src.Containers import SamplingPoint
 from src.InnerMessages import CleanupStatus, ComputationsState
 
 From_DialogCleanup= uic.loadUiType(os.path.join(os.path.dirname(__file__), "ui", "dialogCleanup.ui"))[0]
+
+class InvalidCSVStructure(Exception):
+    pass
+
 
 class CompareCanvas(FigureCanvasQTAgg):
     """
@@ -98,6 +102,8 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
         self.radioButtonC.clicked.connect(self.refreshPlot)
         self.comboBoxRawVar.currentIndexChanged.connect(self.showNewVar)
         self.pushButtonResetAll.clicked.connect(self.reset)
+        self.tabWidget.currentChanged.connect(self.switchTab)
+        self.pushButtonBrowse.clicked.connect(self.browse)
 
         self.varStatus = {"Pressure" : CleanupStatus.NONE,
                           "Temp1" : CleanupStatus.NONE,
@@ -257,14 +263,60 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
                 convertFun = self.CtoF
             elif self.radioButtonK.isChecked():
                 convertFun = self.CtoK
-        
+
             referenceData = self.data.copy(deep = True)
             referenceData[["Temp1","Temp2","Temp3","Temp4", "TempBed"]] = referenceData[["Temp1","Temp2","Temp3","Temp4", "TempBed"]].apply(convertFun)
             cleanedData[["Temp1","Temp2","Temp3","Temp4", "TempBed"]] = cleanedData[["Temp1","Temp2","Temp3","Temp4", "TempBed"]].apply(convertFun)
 
             return referenceData, cleanedData
 
+    def browse(self):
+        filePath = QtWidgets.QFileDialog.getOpenFileName(self, "Get Cleaned Measures File","", "CSV files (*.csv)")[0]
+        if filePath:
+            self.lineEditBrowseCleaned.setText(filePath)
+
+    def switchTab(self):
+        """
+        Method called when user switches tab. For now, this resets the line edit with the path to the cleaned measures.
+        """
+        self.lineEditBrowseCleaned.setText("")
+
+    def importCleanedData(self, path):
+        """
+        Given a path to a .csv file, open it and get relevant information for the backend. Return a dataframe with the correct structure.
+        WARNING: this function MUST return a dataframe with exactly the structure defined, and without any NaNs, empty blanks...
+        """
+        # TODO: improve this function!
+        df = pd.read_csv(path)
+        columnnames = df.columns.values.tolist()
+        if columnnames != ["Date","Temp1", "Temp2", "Temp3", "Temp4", "TempBed", "Pressure"]:
+            displayCriticalMessage("The columns must be named (in this order): Date, Temp1, Temp2, Temp3, Temp4, TempBed, Pressure.")
+            raise InvalidCSVStructure
+        #The backend will call something like row[1] to have the Date. The first column must be the index, and not relevant data. Check if there is an index.
+        if not(pd.Index(np.arange(0,len(df))).equals(df.index)):
+            displayCriticalMessage("The dataframe must have the default index column as a numbering method.")
+            raise InvalidCSVStructure
+        df.dropna(inplace=True)
+
+        try:
+            convertDates(df)
+        except Exception as e:
+            displayCriticalMessage("The 'Date' column can't be converted to datetime objects.")
+            raise InvalidCSVStructure
+        return df
+
     def getCleanedMeasures(self):
-        cleanedData = self.data.copy(deep = True)
-        self.applyCleanupChanges(cleanedData)
+        """
+        Return the dataframe with the cleaned measures.
+        Return an empty list if something went wrong and the measures couldn't get extracted.
+        """
+        pathToCleaned = self.lineEditBrowseCleaned.text()
+        if pathToCleaned == "":
+            cleanedData = self.data.copy(deep = True)
+            self.applyCleanupChanges(cleanedData)
+        else:
+            try:
+                cleanedData = self.importCleanedData(pathToCleaned)
+            except Exception as e:
+                cleanedData = pd.DataFrame() #Empty Dataframe
         return cleanedData
