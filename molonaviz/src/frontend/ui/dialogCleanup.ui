@@ -19,7 +19,7 @@
      <item>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="tabCleanRaw">
         <property name="maximumSize">
@@ -101,10 +101,27 @@
              </item>
              <item>
               <layout class="QGridLayout" name="gridLayout_4">
-               <item row="0" column="0">
-                <widget class="QLabel" name="label_2">
+               <item row="0" column="5">
+                <widget class="QSpinBox" name="spinBoxStartMonth">
+                 <property name="minimum">
+                  <number>1</number>
+                 </property>
+                 <property name="maximum">
+                  <number>12</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="4">
+                <widget class="QLabel" name="label_6">
                  <property name="text">
-                  <string>Starting date:</string>
+                  <string>M</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QLabel" name="label_5">
+                 <property name="text">
+                  <string>D</string>
                  </property>
                 </widget>
                </item>
@@ -115,11 +132,90 @@
                  </property>
                 </widget>
                </item>
-               <item row="0" column="1">
-                <widget class="QLineEdit" name="lineEdit_3"/>
+               <item row="0" column="0">
+                <widget class="QLabel" name="label_2">
+                 <property name="text">
+                  <string>Starting date:</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="2">
+                <widget class="QSpinBox" name="spinBoxStartDay">
+                 <property name="minimum">
+                  <number>1</number>
+                 </property>
+                 <property name="maximum">
+                  <number>31</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="6">
+                <widget class="QLabel" name="label_7">
+                 <property name="text">
+                  <string>Y</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="7">
+                <widget class="QSpinBox" name="spinBoxStartYear">
+                 <property name="minimum">
+                  <number>1800</number>
+                 </property>
+                 <property name="maximum">
+                  <number>2200</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="2">
+                <widget class="QSpinBox" name="spinBoxEndDay">
+                 <property name="minimum">
+                  <number>1</number>
+                 </property>
+                 <property name="maximum">
+                  <number>31</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="5">
+                <widget class="QSpinBox" name="spinBoxEndMonth">
+                 <property name="minimum">
+                  <number>1</number>
+                 </property>
+                 <property name="maximum">
+                  <number>12</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="7">
+                <widget class="QSpinBox" name="spinBoxEndYear">
+                 <property name="minimum">
+                  <number>1800</number>
+                 </property>
+                 <property name="maximum">
+                  <number>2200</number>
+                 </property>
+                </widget>
                </item>
                <item row="1" column="1">
-                <widget class="QLineEdit" name="lineEdit_4"/>
+                <widget class="QLabel" name="label_8">
+                 <property name="text">
+                  <string>D</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="4">
+                <widget class="QLabel" name="label_9">
+                 <property name="text">
+                  <string>M</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="6">
+                <widget class="QLabel" name="label_10">
+                 <property name="text">
+                  <string>Y</string>
+                 </property>
+                </widget>
                </item>
               </layout>
              </item>
@@ -264,7 +360,7 @@
   </connection>
  </connections>
  <buttongroups>
-  <buttongroup name="temperatureGroup"/>
   <buttongroup name="outliersgroup"/>
+  <buttongroup name="temperatureGroup"/>
  </buttongroups>
 </ui>

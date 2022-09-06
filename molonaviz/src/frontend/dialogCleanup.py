@@ -105,6 +105,13 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
         self.tabWidget.currentChanged.connect(self.switchTab)
         self.pushButtonBrowse.clicked.connect(self.browse)
 
+        self.spinBoxStartDay.valueChanged.connect(self.refreshPlot)
+        self.spinBoxStartMonth.valueChanged.connect(self.refreshPlot)
+        self.spinBoxStartYear.valueChanged.connect(self.refreshPlot)
+        self.spinBoxEndDay.valueChanged.connect(self.refreshPlot)
+        self.spinBoxEndMonth.valueChanged.connect(self.refreshPlot)
+        self.spinBoxEndYear.valueChanged.connect(self.refreshPlot)
+
         self.varStatus = {"Pressure" : CleanupStatus.NONE,
                           "Temp1" : CleanupStatus.NONE,
                           "Temp2" : CleanupStatus.NONE,
@@ -116,6 +123,7 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
         self.intercept, self.dUdH, self.dUdT = self.coordinator.calibrationInfos()
         self.buildDF()
         self.convertVoltagePressure()
+        self.setupStartEndDates()
 
         self.mplCanvas = CompareCanvas()
         self.mplCanvas.set_reference_data(self.data)
@@ -124,7 +132,7 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
         self.widgetRawData.addWidget(self.mplCanvas)
     
         self.refreshPlot()
-    
+
     def buildDF(self):
         """
         Fetch raw measures from the coordinator, and arrange them all in one big panda dataframe stored in self.data.
@@ -140,6 +148,27 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
         self.data["Pressure"] = (self.data["Voltage"] - self.data["TempBed"]*self.dUdT - self.intercept)/self.dUdH
         self.data.drop(labels="Voltage", axis = 1, inplace = True)
     
+    def setupStartEndDates(self):
+        """
+        Fill the combo boxes with the first date and the last date in the dataframe.
+        """
+        # Block the signals so refreshPlot isn't called 6 times.
+        for spin in [self.spinBoxStartDay, self.spinBoxStartMonth, self.spinBoxStartYear, self.spinBoxEndDay, self.spinBoxEndMonth, self.spinBoxEndYear]:
+            spin.blockSignals(True)
+
+        startDate = self.data["Date"].iloc[0]
+        self.spinBoxStartDay.setValue(startDate.day)
+        self.spinBoxStartMonth.setValue(startDate.month)
+        self.spinBoxStartYear.setValue(startDate.year)
+        endDate = self.data["Date"].iloc[-1]
+        self.spinBoxEndDay.setValue(endDate.day)
+        self.spinBoxEndMonth.setValue(endDate.month)
+        self.spinBoxEndYear.setValue(endDate.year)
+
+        # Re-enable the signals
+        for spin in [self.spinBoxStartDay, self.spinBoxStartMonth, self.spinBoxStartYear, self.spinBoxEndDay, self.spinBoxEndMonth, self.spinBoxEndYear]:
+            spin.blockSignals(False)
+
     def setNoneComputation(self):
         """
         Set None cleanup rule for the current variable.
@@ -177,13 +206,14 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
             self.radioButtonZScore.setChecked(True)
 
         self.refreshPlot()
-    
+
     def refreshPlot(self):
         """
         Refresh the plot according to the variable the user is looking at.
         Currently, this implies recomputing the for every variable the decomposition (IQR, Zscore or None). If this is problem, this should be changed: however, we are only looking at ~10 variables on a dataframe of ~5000 entries, so it really shouldn't be a limitation. 
         """
         cleanedData = self.data.copy(deep = True)
+        self.applyDateBoundariesChanges(cleanedData)
         self.applyCleanupChanges(cleanedData) # Modifies in place cleanedData
         reference_data, cleanedData = self.applyTemperatureChanges(cleanedData)
 
@@ -192,6 +222,28 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
         displayVar = self.uiToDF[self.comboBoxRawVar.currentText()]
         self.mplCanvas.plot_data(displayVar)
     
+    def applyDateBoundariesChanges(self, cleanedData : pd.DataFrame):
+        """
+        Restrict IN PLACE the given dataframe to the boundaries given by the spinboxes.
+        In any of the following cases, the initial dataframe is not modified:
+        - the start date is after the last date in the dataframe
+        - the end date is before the first date in the dataframe
+        - the end date is before the start date
+        """
+        pd_startDate = pd.Timestamp(day = self.spinBoxStartDay.value(), month = self.spinBoxStartMonth.value(), year = self.spinBoxStartYear.value())
+        pd_endDate = pd.Timestamp(day = self.spinBoxEndDay.value(), month = self.spinBoxEndMonth.value(), year = self.spinBoxEndYear.value())
+        if pd_startDate > cleanedData["Date"].iloc[-1]:
+            return cleanedData
+        elif pd_endDate < cleanedData["Date"].iloc[0]:
+            return cleanedData
+        elif pd_startDate > pd_endDate:
+            return cleanedData
+        else:
+            cleanedData.drop(cleanedData.loc[cleanedData["Date"] > pd_endDate].index, inplace = True)
+            cleanedData.drop(cleanedData.loc[cleanedData["Date"] < pd_startDate].index, inplace = True)
+            cleanedData.dropna(inplace=True)
+            return cleanedData
+
     def applyCleanupChanges(self, cleanedData : pd.DataFrame):
         """
         Apply IN PLACE the cleanup change requested for every variable on the given dataframe.
@@ -240,6 +292,7 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
                         } # No cleanup done by default.
         self.radioButtonNone.setChecked(True)
         self.mplCanvas.set_modified_data(None)
+        self.setupStartEndDates()
 
         self.refreshPlot()
     
@@ -308,11 +361,12 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
     def getCleanedMeasures(self):
         """
         Return the dataframe with the cleaned measures.
-        Return an empty list if something went wrong and the measures couldn't get extracted.
+        Return an empty dataframe if something went wrong and the measures couldn't get extracted.
         """
         pathToCleaned = self.lineEditBrowseCleaned.text()
         if pathToCleaned == "":
             cleanedData = self.data.copy(deep = True)
+            self.applyDateBoundariesChanges(cleanedData)
             self.applyCleanupChanges(cleanedData)
         else:
             try:

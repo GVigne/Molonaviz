@@ -22,6 +22,7 @@ Better laboratory import and point import -> generate CSV in another window
 Date conventions: the frontend should always handle and give to the backend datatime objects (or Timestamps)
 DF convention : either the columns have a fixed name, of they are identified by row/column. Right now, backend is a bit strange for that reason.
 
+#PandasSuck : the Timestamps only go from the year 1677 to the year 2262, so changing the spin box boundaries will make the cleanup window crash.
 
 For dates:
     -For raw measures, the format can be anything (I as a programmer still need to know what the convention is).
