@@ -32,8 +32,8 @@ class CompareCanvas(FigureCanvasQTAgg):
         self.fig = Figure()
         self.axes = self.fig.add_subplot(111)
         super().__init__(self.fig)
-        self.reference_data = None
-        self.modified_data = None
+        self.reference_data = pd.DataFrame(columns =["Date", "Temp1","Temp2", "Temp3", "Temp4", "TempBed", "Pressure"])
+        self.modified_data = pd.DataFrame(columns =["Date", "Temp1","Temp2", "Temp3", "Temp4", "TempBed", "Pressure"])
     
     def set_reference_data(self, data):
         """
@@ -52,15 +52,12 @@ class CompareCanvas(FigureCanvasQTAgg):
         """
         self.axes.clear()
         #Dark pandas magic!
-        if self.reference_data is not None:
-            if self.modified_data is None:
-                self.reference_data.plot.scatter(x ="Date", y = field, c = 'b', s = 1, ax = self.axes)
-            else:
-                df_all = self.reference_data.merge(self.modified_data.drop_duplicates(), on=["Date", "Temp1","Temp2", "Temp3", "Temp4", "TempBed", "Pressure"], how = 'left', indicator = True)
-                cleaned_only = df_all[df_all["_merge"] == "left_only"]  
-                untouched =  df_all[df_all["_merge"] == "both"] 
-                cleaned_only.plot.scatter(x ="Date", y = field, c = '#FF6D6D', s = 1, ax = self.axes)
-                untouched.plot.scatter(x ="Date", y = field, c = 'b', s = 1, ax = self.axes)
+        if not self.reference_data.empty:
+            df_all = self.reference_data.merge(self.modified_data.drop_duplicates(), on=["Date", "Temp1","Temp2", "Temp3", "Temp4", "TempBed", "Pressure"], how = 'left', indicator = True)
+            cleaned_only = df_all[df_all["_merge"] == "left_only"]  
+            untouched =  df_all[df_all["_merge"] == "both"] 
+            cleaned_only.plot.scatter(x ="Date", y = field, c = '#FF6D6D', s = 1, ax = self.axes)
+            untouched.plot.scatter(x ="Date", y = field, c = 'b', s = 1, ax = self.axes)
             
             self.format_xaxis()
             self.fig.canvas.draw()
@@ -230,8 +227,18 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
         - the end date is before the first date in the dataframe
         - the end date is before the start date
         """
-        pd_startDate = pd.Timestamp(day = self.spinBoxStartDay.value(), month = self.spinBoxStartMonth.value(), year = self.spinBoxStartYear.value())
-        pd_endDate = pd.Timestamp(day = self.spinBoxEndDay.value(), month = self.spinBoxEndMonth.value(), year = self.spinBoxEndYear.value())
+        pd_startDate = pd.Timestamp(day = self.spinBoxStartDay.value(), 
+                                    month = self.spinBoxStartMonth.value(), 
+                                    year = self.spinBoxStartYear.value(),
+                                    hour = 0,
+                                    minute = 0,
+                                    second = 0)
+        pd_endDate = pd.Timestamp(day = self.spinBoxEndDay.value(),
+                                month = self.spinBoxEndMonth.value(),
+                                year = self.spinBoxEndYear.value(),
+                                hour = 23,
+                                minute = 59,
+                                second = 59)
         if pd_startDate > cleanedData["Date"].iloc[-1]:
             return cleanedData
         elif pd_endDate < cleanedData["Date"].iloc[0]:
