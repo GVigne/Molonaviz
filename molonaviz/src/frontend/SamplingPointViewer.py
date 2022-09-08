@@ -12,7 +12,7 @@ from src.backend.Compute import Compute
 from src.frontend.GraphViews import PressureView, TemperatureView,UmbrellaView,TempDepthView,TempMapView,AdvectiveFlowView, ConductiveFlowView, TotalFlowView, WaterFluxView, Log10KView, ConductivityView, PorosityView, CapacityView
 from src.frontend.dialogExportCleanedMeasures import DialogExportCleanedMeasures
 from src.frontend.dialogConfirm import DialogConfirm
-from src.frontend.dialogCleanup import DialogCleanup
+from src.frontend.dialogsCleanup import DialogCleanup
 from src.frontend.dialogCompute import DialogCompute
 
 

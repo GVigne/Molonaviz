@@ -65,9 +65,12 @@
                 </widget>
                </item>
                <item>
-                <widget class="QRadioButton" name="radioButtonIQR">
+                <widget class="QRadioButton" name="radioButtonNone">
                  <property name="text">
-                  <string>IQR</string>
+                  <string>None</string>
+                 </property>
+                 <property name="checked">
+                  <bool>false</bool>
                  </property>
                  <attribute name="buttonGroup">
                   <string notr="true">outliersgroup</string>
@@ -75,12 +78,9 @@
                 </widget>
                </item>
                <item>
-                <widget class="QRadioButton" name="radioButtonNone">
+                <widget class="QRadioButton" name="radioButtonIQR">
                  <property name="text">
-                  <string>None</string>
-                 </property>
-                 <property name="checked">
-                  <bool>false</bool>
+                  <string>IQR</string>
                  </property>
                  <attribute name="buttonGroup">
                   <string notr="true">outliersgroup</string>
@@ -360,7 +360,7 @@
   </connection>
  </connections>
  <buttongroups>
-  <buttongroup name="outliersgroup"/>
   <buttongroup name="temperatureGroup"/>
+  <buttongroup name="outliersgroup"/>
  </buttongroups>
 </ui>

@@ -1,3 +1,4 @@
+from ntpath import join
 import os
 import pandas as pd
 
@@ -12,64 +13,54 @@ from matplotlib.ticker import MaxNLocator
 import matplotlib.dates as mdates
 import numpy as np
 
-from src.utils.utils import convertDates, dateToMdates, displayCriticalMessage
+from src.frontend.cleanupCanvases import CompareCanvas, SelectCanvas, createEmptyDf
+from src.utils.utils import convertDates, displayCriticalMessage
 from src.backend.SPointCoordinator import SPointCoordinator
 from src.Containers import SamplingPoint
-from src.InnerMessages import CleanupStatus, ComputationsState
+from src.InnerMessages import CleanupStatus
 
 From_DialogCleanup= uic.loadUiType(os.path.join(os.path.dirname(__file__), "ui", "dialogCleanup.ui"))[0]
+From_DialogSelectPoints= uic.loadUiType(os.path.join(os.path.dirname(__file__), "ui", "dialogSelectPoints.ui"))[0]
 
 class InvalidCSVStructure(Exception):
     pass
 
-
-class CompareCanvas(FigureCanvasQTAgg):
+class DialogSelectPoints(QtWidgets.QDialog, From_DialogSelectPoints):
     """
-    A small class to represent a canvas on which raw and cleaned measures will be plotted.
-    This class holds two panda dataframes (reference_data = raw data, modified_data = cleaned data). These dataframes must have dates in datetime (or Timestamp) format. However, internally, these dataframes hold matplotlib dates.
+    A small dialog to show a canvas (SelectCanvas) so the user can manually select points.
     """
-    def __init__(self):
-        self.fig = Figure()
-        self.axes = self.fig.add_subplot(111)
-        super().__init__(self.fig)
-        self.reference_data = pd.DataFrame(columns =["Date", "Temp1","Temp2", "Temp3", "Temp4", "TempBed", "Pressure"])
-        self.modified_data = pd.DataFrame(columns =["Date", "Temp1","Temp2", "Temp3", "Temp4", "TempBed", "Pressure"])
-    
-    def set_reference_data(self, data):
-        """
-        Set the given dataframe as the reference data.
-        """
-        self.reference_data = data
-        # self.reference_data["Date"] = dateToMdates(self.reference_data["Date"])
-    
-    def set_modified_data(self, data):
-        self.modified_data = data
-        # self.modified_data["Date"] = dateToMdates(self.modified_data["Date"])
+    def __init__(self, reference_data : pd.DataFrame, field : str,  cleanedData : pd.DataFrame, selectedData : pd.DataFrame):
+        # Call constructor of parent classes
+        super(DialogSelectPoints, self).__init__()
+        QtWidgets.QDialog.__init__(self)
 
-    def plot_data(self, field):
-        """
-        Plot given field (Pressure, Temp1, Temp2, Temp3, Temp4 or TempBed).
-        """
-        self.axes.clear()
-        #Dark pandas magic!
-        if not self.reference_data.empty:
-            df_all = self.reference_data.merge(self.modified_data.drop_duplicates(), on=["Date", "Temp1","Temp2", "Temp3", "Temp4", "TempBed", "Pressure"], how = 'left', indicator = True)
-            cleaned_only = df_all[df_all["_merge"] == "left_only"]  
-            untouched =  df_all[df_all["_merge"] == "both"] 
-            cleaned_only.plot.scatter(x ="Date", y = field, c = '#FF6D6D', s = 1, ax = self.axes)
-            untouched.plot.scatter(x ="Date", y = field, c = 'b', s = 1, ax = self.axes)
-            
-            self.format_xaxis()
-            self.fig.canvas.draw()
+        self.setupUi(self)
+        self.pushButtonReset.clicked.connect(self.reset)
+
+        self.mplCanvas = SelectCanvas(reference_data, field)
+        self.mplCanvas.set_cleaned_data(cleanedData)
+        self.mplCanvas.set_selected_data(selectedData)
+        self.toolBar = NavigationToolbar2QT(self.mplCanvas, self)
+
+        self.widgetToolBar.addWidget(self.toolBar)
+        self.widgetSelectPoints.addWidget(self.mplCanvas)
+        self.mplCanvas.plot_data(field)
     
-    def format_xaxis(self):
-        formatter = mdates.DateFormatter("%y/%m/%d %H:%M")
-        self.axes.xaxis.set_major_formatter(formatter)
-        self.axes.xaxis.set_major_locator(MaxNLocator(4))
+    def reset(self):
+        self.mplCanvas.reset()
+    
+    def getSelectedPoints(self):
+        return self.mplCanvas.getSelectedPoints()
 
 class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
     """
     A dialog to either automatically clean the raw measures, of to import cleaned measures.
+    This dialog holds deals with 3 dataframes:
+    - self.data is a big dataframe with all the measures (= raw measures)
+    - self.manuallySelected is a subset of self.data holding the points selected by the user which should be removed
+    - cleanedData is a subset of self.data holding the points selected by the outliers methods which should be removed
+    
+    Note: currently cleanedData is recomputed everytime we need it. If this becomes an issue, we should change it.
     """
     def __init__(self, coordinator : SPointCoordinator, spoint : SamplingPoint):# coordinator : SPointCoordinator, point : SamplingPoint):
         super(DialogCleanup, self).__init__()
@@ -101,6 +92,7 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
         self.pushButtonResetAll.clicked.connect(self.reset)
         self.tabWidget.currentChanged.connect(self.switchTab)
         self.pushButtonBrowse.clicked.connect(self.browse)
+        self.pushButtonSelectPoints.clicked.connect(self.openSelectPointsWindow)
 
         self.spinBoxStartDay.valueChanged.connect(self.refreshPlot)
         self.spinBoxStartMonth.valueChanged.connect(self.refreshPlot)
@@ -122,8 +114,9 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
         self.convertVoltagePressure()
         self.setupStartEndDates()
 
-        self.mplCanvas = CompareCanvas()
-        self.mplCanvas.set_reference_data(self.data)
+        self.manuallySelected = createEmptyDf()
+
+        self.mplCanvas = CompareCanvas(self.data)
         self.toolBar = NavigationToolbar2QT(self.mplCanvas,self)
         self.widgetToolBar.addWidget(self.toolBar)
         self.widgetRawData.addWidget(self.mplCanvas)
@@ -204,25 +197,34 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
 
         self.refreshPlot()
 
+    def computeCleanedData(self):
+        """
+        Create and return a new dataframe holding the points which should be removed. These points are given by the ouliers methods.
+        """
+        cleanedData = createEmptyDf()
+        cleanedData = self.applyCleanupChanges(cleanedData)
+        cleanedData = self.applyDateBoundariesChanges(cleanedData)
+        return cleanedData
+
     def refreshPlot(self):
         """
         Refresh the plot according to the variable the user is looking at.
         Currently, this implies recomputing the for every variable the decomposition (IQR, Zscore or None). If this is problem, this should be changed: however, we are only looking at ~10 variables on a dataframe of ~5000 entries, so it really shouldn't be a limitation. 
         """
-        cleanedData = self.data.copy(deep = True)
-        self.applyDateBoundariesChanges(cleanedData)
-        self.applyCleanupChanges(cleanedData) # Modifies in place cleanedData
+        cleanedData = self.computeCleanedData() 
         reference_data, cleanedData = self.applyTemperatureChanges(cleanedData)
 
         self.mplCanvas.set_reference_data(reference_data)
-        self.mplCanvas.set_modified_data(cleanedData)
+        self.mplCanvas.set_cleaned_data(cleanedData)
+        self.mplCanvas.set_selected_data(self.manuallySelected)
         displayVar = self.uiToDF[self.comboBoxRawVar.currentText()]
         self.mplCanvas.plot_data(displayVar)
     
     def applyDateBoundariesChanges(self, cleanedData : pd.DataFrame):
         """
-        Restrict IN PLACE the given dataframe to the boundaries given by the spinboxes.
-        In any of the following cases, the initial dataframe is not modified:
+        Apply date restriction on the total dataframe. The rejected points (ie those which should not be kept) should be merged into the dataframe given as argument.
+        Return the total merged dataframe (original + point outside date of the boundaries given by the spinboxes)
+        In any of the following cases, no point is rejected, and the input dataframe is returned:
         - the start date is after the last date in the dataframe
         - the end date is before the first date in the dataframe
         - the end date is before the start date
@@ -239,69 +241,60 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
                                 hour = 23,
                                 minute = 59,
                                 second = 59)
-        if pd_startDate > cleanedData["Date"].iloc[-1]:
+        if pd_startDate > self.data["Date"].max():
             return cleanedData
-        elif pd_endDate < cleanedData["Date"].iloc[0]:
+        elif pd_endDate < self.data["Date"].min():
             return cleanedData
         elif pd_startDate > pd_endDate:
             return cleanedData
         else:
-            cleanedData.drop(cleanedData.loc[cleanedData["Date"] > pd_endDate].index, inplace = True)
-            cleanedData.drop(cleanedData.loc[cleanedData["Date"] < pd_startDate].index, inplace = True)
-            cleanedData.dropna(inplace=True)
+            mask =  (self.data["Date"] > pd_endDate) | (self.data["Date"] < pd_startDate)
+            cleanedData = pd.concat([cleanedData, self.data[mask]], axis = 0)
+            cleanedData.drop_duplicates(inplace = True)
+            cleanedData.dropna(inplace = True) # For sanity purposes
             return cleanedData
-
+            
     def applyCleanupChanges(self, cleanedData : pd.DataFrame):
         """
-        Apply IN PLACE the cleanup change requested for every variable on the given dataframe.
+        Apply the cleanup changes requested for every variable. The rejected points (ie those which should not be kept) should be merged into the dataframe given as argument.
+        Return the total merged dataframe (original + all changed made by every outlier method)
         """
         for i, (varName, varStatus) in enumerate(self.varStatus.items()):
             if varStatus == CleanupStatus.NONE:
                 # Nothing to be done, move on!
-                pass
+                continue
             elif varStatus == CleanupStatus.IQR:
-                self.applyIQR(cleanedData, varName)
+                df_to_remove = self.applyIQR(varName)
             elif varStatus == CleanupStatus.ZSCORE:
-                self.applyZScore(cleanedData, varName)
+                df_to_remove = self.applyZScore(varName)
+
+            cleanedData = pd.concat([cleanedData, df_to_remove], axis = 0)
+            cleanedData.drop_duplicates(inplace = True)
         cleanedData.dropna(inplace = True) # For sanity purposes
+        return cleanedData
     
-    def applyIQR(self, cleanedData : pd.DataFrame, varName : str):
+    def applyIQR(self, varName : str):
         """
-        Modifies IN PLACE the given dataframe by applying IQR treatment on the column with name varName.
+        Applies IQR method to the total dataframe on variable varName. Return a list of the points which should be removed.
         """
-        q1 = cleanedData[varName].quantile(0.25)
-        q3 = cleanedData[varName].quantile(0.75)
+        q1 = self.data[varName].quantile(0.25)
+        q3 = self.data[varName].quantile(0.75)
         iqr = q3-q1 #Interquartile range
         fence_low  = q1-1.5*iqr
         fence_high = q3+1.5*iqr
 
-        cleanedData.drop(cleanedData.loc[cleanedData[varName] < fence_low].index, inplace = True)
-        cleanedData.drop(cleanedData.loc[cleanedData[varName] > fence_high].index, inplace = True)
+        mask = (self.data[varName] < fence_low) | (self.data[varName] > fence_high)
+        return self.data[mask]
 
-    def applyZScore(self, cleanedData : pd.DataFrame, varName : str):
-        """
-        Modifies IN PLACE the given dataframe by applying Z-Score treatment on the column with name varName.
-        """
-        var_column = self.data[varName].copy(deep = True).dropna()
-        cleanedData[varName]= var_column.loc[(np.abs(stats.zscore(var_column)) < 3)] # Pandas dark magic!
-        cleanedData.dropna(inplace = True)
-    
-    def reset(self):
-        """
-        Discard all cleanup changes made.
-        """
-        self.varStatus = {"Pressure" : CleanupStatus.NONE,
-                          "Temp1" : CleanupStatus.NONE,
-                          "Temp2" : CleanupStatus.NONE,
-                          "Temp3" : CleanupStatus.NONE,
-                          "Temp4" : CleanupStatus.NONE,
-                          "TempBed" : CleanupStatus.NONE
-                        } # No cleanup done by default.
-        self.radioButtonNone.setChecked(True)
-        self.mplCanvas.set_modified_data(None)
-        self.setupStartEndDates()
+        # cleanedData.drop(cleanedData.loc[cleanedData[varName] < fence_low].index, inplace = True)
+        # cleanedData.drop(cleanedData.loc[cleanedData[varName] > fence_high].index, inplace = True)
 
-        self.refreshPlot()
+    def applyZScore(self, varName : str):
+        """
+        Applies IQR method to the total dataframe on variable varName. Return a list of the points which should be removed.        
+        """
+        mask = (np.abs(stats.zscore(self.data[varName])) > 3)
+        return self.data[mask]
     
     def CtoF(self, x):
         return x*1.8 + 32
@@ -329,6 +322,40 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
             cleanedData[["Temp1","Temp2","Temp3","Temp4", "TempBed"]] = cleanedData[["Temp1","Temp2","Temp3","Temp4", "TempBed"]].apply(convertFun)
 
             return referenceData, cleanedData
+
+    def reset(self):
+        """
+        Discard all cleanup changes made.
+        """
+        self.varStatus = {"Pressure" : CleanupStatus.NONE,
+                          "Temp1" : CleanupStatus.NONE,
+                          "Temp2" : CleanupStatus.NONE,
+                          "Temp3" : CleanupStatus.NONE,
+                          "Temp4" : CleanupStatus.NONE,
+                          "TempBed" : CleanupStatus.NONE
+                        } # No cleanup done by default.
+        self.radioButtonNone.setChecked(True)
+        self.manuallySelected = createEmptyDf()
+        self.mplCanvas.set_cleaned_data(createEmptyDf())
+        self.setupStartEndDates()
+
+        self.refreshPlot()
+    
+    def openSelectPointsWindow(self):
+        """
+        Open a small windwo allowing the user to select manually points for the current variable.
+        WARNING: this should be the last thing the user does before quitting the Cleanup window. If the user selects points THEN applies an outlier method, the selected points will be discarded.
+        """
+        field = self.uiToDF[self.comboBoxRawVar.currentText()]
+        cleanedData = self.computeCleanedData()
+        dlg = DialogSelectPoints(self.data, field, cleanedData, self.manuallySelected)
+        res = dlg.exec()
+        if res == QtWidgets.QDialog.Accepted:
+            selected = dlg.getSelectedPoints()
+            self.manuallySelected = pd.concat([self.manuallySelected, selected], axis = 0)
+            self.manuallySelected.drop_duplicates(inplace = True)
+            self.manuallySelected.dropna(inplace=True)
+            self.refreshPlot()
 
     def browse(self):
         filePath = QtWidgets.QFileDialog.getOpenFileName(self, "Get Cleaned Measures File","", "CSV files (*.csv)")[0]
@@ -372,9 +399,14 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
         """
         pathToCleaned = self.lineEditBrowseCleaned.text()
         if pathToCleaned == "":
-            cleanedData = self.data.copy(deep = True)
-            self.applyDateBoundariesChanges(cleanedData)
-            self.applyCleanupChanges(cleanedData)
+            cleanedData = self.computeCleanedData()
+            cleaned_u_selected = pd.concat([cleanedData, self.manuallySelected], axis = 0)
+            cleaned_u_selected.drop_duplicates(inplace = True)
+            cleaned_u_selected.dropna(inplace=True)
+
+            df_to_keep = self.data.merge(cleaned_u_selected, on=["Date", "Temp1","Temp2", "Temp3", "Temp4", "TempBed", "Pressure"], how = 'left', indicator = True)
+            untouched = df_to_keep[df_to_keep["_merge"] == "left_only"].copy(deep = True)
+            return untouched
         else:
             try:
                 cleanedData = self.importCleanedData(pathToCleaned)
