@@ -32,15 +32,12 @@ CONCLUSION: Always use datetime objects in the program. In database, always stor
 
 
 Known bugs:
--When importing a lab, some messages may appear such as "The thermometers have been added to the database", despite it not being the case
--Subwindows do not fill up the zone.
--When opening a new point, respect the rule to display subwindows (tabbed, cascade...)
+-Compute sometimes fail after computations, with error saying directmodel must first be launched before getting data.
+-When importing a lab, some messages may appear such as "The thermometers have been added to the database", despite it not being the case -> This is just very poor error handling
 -The C++ file which writes sensor data to csv take dates in the format YYYY:MM:DD:HH:MM:SS (and sampling time in format HH:MM:SS) but writes on the CSV file dates in format YYYY/MM/DD HH:MM:SS
 -The pressure matplotib view is now inconsistant: if raw_data then it corresponds to a voltage, and if not raw_data it corresponds to a pressure (m) 
--Sometimes, cleanup may return a pandas dataframe with NaN in charge diff. This was "patched" so that only non-Nan values are put in the database, it is an ugly patch. Cleanup needs to be redone.
 -Open a point. A subwindow is put in the MDI area using addSubWindow: it doesn't have a scroll bar and fits on the screen. Now change to cascade (or tile view) and back again to subwindow view (the default view). This time, there is a scrollbar, so it's a big ugly: its probably because when using addSubWindow, a resize happens somewhere in some manner. I tested with setFocus but that didn't work.
 -When changing database, since the con is closed and config.txt removed BEFORE opening the "Select database dialog", if the user quits this dialog, then the action is not canceled as it should be.
--Compute sometimes fail after computations, with error saying directmodel must first be launched before getting data.
 
 
 Warning: Discrepancy
@@ -52,7 +49,6 @@ Warning: Discrepancy
  So the issue is that either Python will slow us dows because of the row major convention, or SQL will slow us down by doing queries over a table with many entries.
 
 Warning: Duplicate
--Compute and WidgetPoint for cleaned measures
 -In Compute, saveLayers and saveLayersAndParams are duplicates
 -saveMCMCResults and saveDirectResults are almost copies, except for the method called (get_temps_solve or get_temps_MCMC)
 
@@ -60,14 +56,13 @@ TODO:
 -Fix segfault when quitting the app while computations are being made.
 -Problem with threads? when launching multiple computations one after the other -> the app freezes.
 -In InsertCleanedMeasures, remove isnan
--Create a custom iterable object from a QSQLquery which does not require to create a list. This is easy: just reimplement __iter__
+-Create a custom iterable object from a QSQLquery which does not require to create a list. This is easy: just reimplement __iter__ -> This would make it compatible with matplotib?
 -Reduce the number of dialogs. Many dialogs are just confirmation and/or a combo box with different fields.
 -Turn the info model into a true MoloModel
 -Tooltips! Especially compute window
 -What should I do with the default script, currently called sample_text.txt? Where to put it? Default value when creating a point -> when creating a Database, it should be in the Script folder
 -Date management when importing raw data
 -Make the database insensitive to the name of the points/studies (ie 2 points, pressure sensors... may have the same name)
--In Cleanup: translate panda headers in english, and also put capital letters!
 -Where to put unique constraints?
 -Where to put null constraints? Many foreign keys do not have such constraints, and this can be a big problem. When importing a lab, if a thermometer is invalid, it will not be added to the database. Should the pressure sensors and shafts linked to this thermometer be added with an empty field or simply not added? It'd say not added -> just have to change the database.
 -QSqlDatabasePrivate::addDatabase: duplicate connection name 'qt_sql_default_connection', old connection removed. This happens because of utils.utils createDatabaseDirectory function, which creates a QT QDatabase object: we then open the connection, and QT doesn't like having two default connections with same name. Needs investigating.

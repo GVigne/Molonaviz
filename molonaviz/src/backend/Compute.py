@@ -63,6 +63,7 @@ class Compute(QtCore.QObject):
 
         self.con = coordinator.con
         self.pointID = coordinator.pointID
+        self.coordinator = coordinator
         self.col = None
 
     def setColumn(self):
@@ -71,7 +72,7 @@ class Compute(QtCore.QObject):
         """
         press = []
         temps = []
-        cleaned_measures = self.build_cleaned_measures()
+        cleaned_measures = self.coordinator.build_cleaned_measures(full_query=True)
         cleaned_measures.exec()
         while cleaned_measures.next():
             temps.append([databaseDateToDatetime(cleaned_measures.value(0)),[cleaned_measures.value(1), cleaned_measures.value(2), cleaned_measures.value(3), cleaned_measures.value(4)] ]) #Date and 4 Temperatures
@@ -458,21 +459,4 @@ class Compute(QtCore.QObject):
             ON SamplingPoint.ID = Point.SamplingPoint
             WHERE Point.ID = {self.pointID}
         """)
-        return query
-    
-    def build_cleaned_measures(self):
-        """
-        Build and return a query giving the dates, temperatures and pressure.
-        Warning: this is a code duplicate of widgetPoints's build_cleaned_measures.
-        """
-        query  = QSqlQuery(self.con)
-        query.prepare(f"""
-                    SELECT Date.Date, CleanedMeasures.Temp1, CleanedMeasures.Temp2, CleanedMeasures.Temp3, CleanedMeasures.Temp4, CleanedMeasures.Pressure, CleanedMeasures.TempBed FROM CleanedMeasures
-                    JOIN Date
-                    ON CleanedMeasures.Date = Date.ID
-                    JOIN Point
-                    ON CleanedMeasures.PointKey = Point.ID
-                    WHERE Point.ID = {self.pointID}
-                    ORDER BY Date.Date
-                """)
         return query
