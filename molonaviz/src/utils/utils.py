@@ -120,7 +120,26 @@ def extractDetectorsDF(labDirPath):
                 raise InvalidFile
         except Exception as e:
             print("Couldn't load shaft ", file)
-    return validThermometers, validPSensors, validShafts
+    rejected = checkDetectorsIntegrity(validThermometers, validPSensors, validShafts)
+    if len(rejected) == 0:
+        return validThermometers, validPSensors, validShafts
+    raise InvalidFile
+
+def checkDetectorsIntegrity(thermos : list[pd.DataFrame], psensors : list[pd.DataFrame], shafts : list[pd.DataFrame]):
+    """
+    Given lists of dataframes describing sensors, make sure they have the correct number of fields.
+    """
+    rejected = []
+    for thermo in thermos:
+        if len(thermo) != 4:
+            rejected.append(thermo)
+    for psensor in psensors:
+        if len(psensor) !=8:
+            rejected.append(psensor)
+    for shaft in shafts:
+        if len(shaft) !=4:
+            rejected.append(shaft)
+    return rejected
 
 
 

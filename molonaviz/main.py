@@ -19,7 +19,7 @@ from src.backend.StudyAndLabManager import StudyAndLabManager
 
 from src.frontend.printThread import InterceptOutput, Receiver
 from src.frontend.MoloTreeView import ThermometerTreeView, PSensorTreeViewModel, ShaftTreeView, SamplingPointTreeView
-from src.utils.utils import displayCriticalMessage, createDatabaseDirectory, checkDbFolderIntegrity, extractDetectorsDF
+from src.utils.utils import InvalidFile, displayCriticalMessage, createDatabaseDirectory, checkDbFolderIntegrity, extractDetectorsDF
 
 
 From_MainWindow = uic.loadUiType(os.path.join(os.path.dirname(__file__),"src", "frontend", "ui","mainwindow.ui"))[0]
@@ -195,8 +195,11 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         if res == QtWidgets.QDialog.Accepted:
             labdir,labname = dlg.getLaboInfo()
             if labdir and labname: #Both strings are not empty
-                thermometersDF, psensorsDF, shaftsDF = extractDetectorsDF(labdir)
-                self.study_lab_manager.createNewLab(labname, thermometersDF, psensorsDF, shaftsDF)
+                try:
+                    thermometersDF, psensorsDF, shaftsDF = extractDetectorsDF(labdir)
+                    self.study_lab_manager.createNewLab(labname, thermometersDF, psensorsDF, shaftsDF)
+                except InvalidFile:
+                    displayCriticalMessage("Some of the files in the laboratory do not match the API. Nothing was added to the database. Please check your files and try again.")
     
     def createStudy(self):
         """
