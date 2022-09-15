@@ -77,7 +77,7 @@ class Compute(QtCore.QObject):
         while cleaned_measures.next():
             # Warning: temperatures are stored in °C. However, phyheatmy requires K to work!
             temps.append([databaseDateToDatetime(cleaned_measures.value(0)),[cleaned_measures.value(i)+273.15 for i in range(1,5)]]) #Date and 4 Temperatures
-            press.append([databaseDateToDatetime(cleaned_measures.value(0)), [cleaned_measures.value(i)+273.15 for i in range(5,7)]]) #Date, Pressure, Temperature
+            press.append([databaseDateToDatetime(cleaned_measures.value(0)), [cleaned_measures.value(6), cleaned_measures.value(5) + 273.15]]) #Date, Pressure, Temperature
 
         column_infos = self.build_column_infos()
         column_infos.exec()
