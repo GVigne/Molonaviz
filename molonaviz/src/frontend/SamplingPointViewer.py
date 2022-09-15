@@ -133,10 +133,10 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
             pressPath, tempPath = dlg.getFilesNames()
             pressfile = open(pressPath, 'w')
             presswriter = csv.writer(pressfile)
-            presswriter.writerow(["Date", "Differential pressure (m)", "Temperature (K)"])
+            presswriter.writerow(["Date", "Differential pressure (m)", "Temperature (°C)"])
             tempfile = open(tempPath, 'w')
             tempwriter = csv.writer(tempfile)
-            tempwriter.writerow(["Date", "Temperature 1 (K)", "Temperature 2 (K)", "Temperature 3 (K)", "Temperature 4 (K)"])
+            tempwriter.writerow(["Date", "Temperature 1 (°C)", "Temperature 2 (°C)", "Temperature 3 (°C)", "Temperature 4 (°C)"])
             
             measures = self.coordinator.allCleanedMeasures()
             for temprow, pressrow in measures:

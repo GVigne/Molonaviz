@@ -182,7 +182,7 @@ class TemperatureView(GraphView1D):
     """
     Concrete class to display the Pressure in "Data arrays and plots" tab.
     """
-    def __init__(self, molomodel: MoloModel | None, time_dependent=True, title="", ylabel="Temperature (K)", xlabel=""):
+    def __init__(self, molomodel: MoloModel | None, time_dependent=True, title="", ylabel="Temperature (°C)", xlabel=""):
         super().__init__(molomodel, time_dependent, title, ylabel, xlabel)
     
     def retrieve_data(self):
@@ -193,7 +193,7 @@ class UmbrellaView(GraphView1D):
     """
     Concrete class for the umbrellas plots.
     """
-    def __init__(self, molomodel: MoloModel | None, time_dependent=False, title="", ylabel="Depth (m)", xlabel="Temperature (K)", nb_dates =10):
+    def __init__(self, molomodel: MoloModel | None, time_dependent=False, title="", ylabel="Depth (m)", xlabel="Temperature (°C)", nb_dates =10):
         super().__init__(molomodel, time_dependent, title, ylabel, xlabel)
         self.nb_dates = nb_dates
     
@@ -223,7 +223,7 @@ class TempDepthView(GraphView1D):
     The basis state is [None, []], as no quantile can be displayed, and the view can't know at which depth is the thermometer.
     options is NOT considered to be part of internal data, and will not be modified when calling reset_data.
     """
-    def __init__(self, molomodel: MoloModel | None, time_dependent=True, title="", ylabel="Temperature (K)", xlabel="",options=[None,[]]):
+    def __init__(self, molomodel: MoloModel | None, time_dependent=True, title="", ylabel="Temperature (°C)", xlabel="",options=[None,[]]):
         super().__init__(molomodel, time_dependent, title, ylabel, xlabel)
         self.options = options
     

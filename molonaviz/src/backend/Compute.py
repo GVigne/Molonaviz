@@ -75,8 +75,9 @@ class Compute(QtCore.QObject):
         cleaned_measures = self.coordinator.build_cleaned_measures(full_query=True)
         cleaned_measures.exec()
         while cleaned_measures.next():
-            temps.append([databaseDateToDatetime(cleaned_measures.value(0)),[cleaned_measures.value(1), cleaned_measures.value(2), cleaned_measures.value(3), cleaned_measures.value(4)] ]) #Date and 4 Temperatures
-            press.append([databaseDateToDatetime(cleaned_measures.value(0)), [cleaned_measures.value(5), cleaned_measures.value(6)]]) #Date, Pressure, Temperature
+            # Warning: temperatures are stored in °C. However, phyheatmy requires K to work!
+            temps.append([databaseDateToDatetime(cleaned_measures.value(0)),[cleaned_measures.value(i)+273.15 for i in range(1,5)]]) #Date and 4 Temperatures
+            press.append([databaseDateToDatetime(cleaned_measures.value(0)), [cleaned_measures.value(i)+273.15 for i in range(5,7)]]) #Date, Pressure, Temperature
 
         column_infos = self.build_column_infos()
         column_infos.exec()
@@ -124,7 +125,6 @@ class Compute(QtCore.QObject):
 
         self.DirectModelFinished.emit()
 
-    
     def updateNBCells(self, nb_cells):
         """
         Update entry in Point table to reflect the given number of cells.
@@ -215,7 +215,8 @@ class Compute(QtCore.QObject):
                 fetchDepth.exec()
                 fetchDepth.next()
                 insertTemps.bindValue(":Depth", fetchDepth.value(0))
-                insertTemps.bindValue(":Temperature", float(solvedTemps[i,j])) #Need to convert into float, as SQL doesn't undestand np.float32 !
+                # We need to convert into float, as SQL doesn't undestand np.float32 !
+                insertTemps.bindValue(":Temperature", float(solvedTemps[i,j]) -273.15) # Also convert to °C (pyheatmy returns K)
                 insertTemps.bindValue(":AdvectiveFlow", float(advecFlows[i,j]))
                 insertTemps.bindValue(":ConductiveFlow", float(conduFlows[i,j]))
                 insertTemps.bindValue(":TotalFlow", float(advecFlows[i,j] + conduFlows[i,j]))
@@ -293,7 +294,7 @@ class Compute(QtCore.QObject):
         """
         #Quantiles for the MCMC
         quantiles = self.col.get_quantiles()
-        depths = self.col.get_depths_mcmc()
+        depths = self.col.get_depths_mcmc() # Should be get_depths_solve? 
         advecFlows = self.col.get_advec_flows_solve()
         conduFlows = self.col.get_conduc_flows_solve()
         times = self.col.get_times_mcmc()
@@ -441,6 +442,7 @@ class Compute(QtCore.QObject):
         self.con.commit()
 
         #Direct model = quantile 0
+        # self.col.compute_solve_transi(self.col.get_best_param())
         self.saveDirectModelResults(save_dates = False)
 
     def build_column_infos(self):
