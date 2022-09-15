@@ -51,6 +51,7 @@ Warning: Discrepancy
 Warning: Duplicate
 -In Compute, saveLayers and saveLayersAndParams are duplicates
 -saveMCMCResults and saveDirectResults are almost copies, except for the method called (get_temps_solve or get_temps_MCMC)
+-In samplingPointViewer, the functions to make coordinate the splitters (have them move together) -> do a custom widget
 
 TODO:
 -Fix segfault when quitting the app while computations are being made.

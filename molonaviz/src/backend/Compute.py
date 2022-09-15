@@ -295,8 +295,6 @@ class Compute(QtCore.QObject):
         #Quantiles for the MCMC
         quantiles = self.col.get_quantiles()
         depths = self.col.get_depths_mcmc() # Should be get_depths_solve? 
-        advecFlows = self.col.get_advec_flows_solve()
-        conduFlows = self.col.get_conduc_flows_solve()
         times = self.col.get_times_mcmc()
         
         sensorsID = self.col.get_id_sensors()
@@ -351,15 +349,16 @@ class Compute(QtCore.QObject):
                 fetchDate.exec()
                 fetchDate.next()
                 insertTemps.bindValue(":Date", fetchDate.value(0))
+                # Note: we leave out the AdvectiveFlow, ConductiveFlow and TotalFlow. Why?
+                # Well theses values are not computed per quantile: instead, there are computed for the direct model.
+                # There is no need to store these values as they don't represent anything. Hence, we leave them out and they will be empty.
+                # This isn't a problem as they are never used: once again, only the values for the direct model are relevant.
                 for i in range(nb_rows):
                     fetchDepth.bindValue(":Depth", float(depths[i]))
                     fetchDepth.exec()
                     fetchDepth.next()
                     insertTemps.bindValue(":Depth", fetchDepth.value(0))
-                    insertTemps.bindValue(":Temperature", float(solvedTemps[i,j])) #Need to convert into float, as SQL doesn't undestand np.float32 !
-                    insertTemps.bindValue(":AdvectiveFlow", float(advecFlows[i,j]))
-                    insertTemps.bindValue(":ConductiveFlow", float(conduFlows[i,j]))
-                    insertTemps.bindValue(":TotalFlow", float(advecFlows[i,j] + conduFlows[i,j]))
+                    insertTemps.bindValue(":Temperature", float(solvedTemps[i,j]) - 273.15) #Need to convert into float, as SQL doesn't undestand np.float32 !
                     insertTemps.exec()
             self.con.commit()
 
@@ -441,8 +440,8 @@ class Compute(QtCore.QObject):
             current_params_index +=1
         self.con.commit()
 
-        #Direct model = quantile 0
-        # self.col.compute_solve_transi(self.col.get_best_param())
+        # Recompute direct model with best parameters.
+        self.col.compute_solve_transi(layers, self.mcmc_runner.nb_cells, verbose = False)
         self.saveDirectModelResults(save_dates = False)
 
     def build_column_infos(self):
