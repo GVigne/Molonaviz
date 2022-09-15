@@ -36,9 +36,12 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         self.checkBoxDirectModel.setChecked(True)
         self.radioButtonTherm1.setChecked(True)
         #By default, this widget tries to maximize the size of the boxes, even if they are empty.
-        self.splitterVertical.setSizes([QtGui.QGuiApplication.primaryScreen().virtualSize().height(),QtGui.QGuiApplication.primaryScreen().virtualSize().height()])
-        self.splitterHorizLeft.setSizes([QtGui.QGuiApplication.primaryScreen().virtualSize().width(),QtGui.QGuiApplication.primaryScreen().virtualSize().width()])
-        self.splitterHorizRight.setSizes([QtGui.QGuiApplication.primaryScreen().virtualSize().width(),QtGui.QGuiApplication.primaryScreen().virtualSize().width()])
+        self.tempSplitterVertical.setSizes([QtGui.QGuiApplication.primaryScreen().virtualSize().height(),QtGui.QGuiApplication.primaryScreen().virtualSize().height()])
+        self.tempSplitterHorizLeft.setSizes([QtGui.QGuiApplication.primaryScreen().virtualSize().width(),QtGui.QGuiApplication.primaryScreen().virtualSize().width()])
+        self.tempSplitterHorizRight.setSizes([QtGui.QGuiApplication.primaryScreen().virtualSize().width(),QtGui.QGuiApplication.primaryScreen().virtualSize().width()])
+        self.fluxesSplitterVertical.setSizes([QtGui.QGuiApplication.primaryScreen().virtualSize().height(),QtGui.QGuiApplication.primaryScreen().virtualSize().height()])
+        self.fluxesSplitterHorizLeft.setSizes([QtGui.QGuiApplication.primaryScreen().virtualSize().width(),QtGui.QGuiApplication.primaryScreen().virtualSize().width()])
+        self.fluxesSplitterHorizRight.setSizes([QtGui.QGuiApplication.primaryScreen().virtualSize().width(),QtGui.QGuiApplication.primaryScreen().virtualSize().width()])
 
         #Create all view and link them to the correct models
         self.graphpress = PressureView(self.coordinator.getPressureModel())
@@ -61,8 +64,11 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         self.layoutsRules = self.initialiseLayoutsRules()
 
         #This allows to create 4 graphs in a square with one vertical and one horizontal splitter.  
-        self.splitterHorizLeft.splitterMoved.connect(self.adjustRightSplitter)
-        self.splitterHorizRight.splitterMoved.connect(self.adjustLeftSplitter)
+        self.tempSplitterHorizLeft.splitterMoved.connect(self.adjustTempRightSplitter)
+        self.tempSplitterHorizRight.splitterMoved.connect(self.adjustTempLeftSplitter)
+        self.fluxesSplitterHorizLeft.splitterMoved.connect(self.adjustFluxesRightSplitter)
+        self.fluxesSplitterHorizRight.splitterMoved.connect(self.adjustFluxesLeftSplitter)
+
 
         # Link every button to their function
         self.comboBoxSelectLayer.textActivated.connect(self.changeDisplayedParams)
@@ -403,15 +409,26 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
                 self.computeEngine.computeDirectModel(params, nb_cells)
                 self.handleComputationsButtons()
 
+    def adjustTempRightSplitter(self, pos : int, index : int):
+        """
+        This is called when the left horizontal splitter in the temperature tab is moved. Move the right one accordingly.
+        """
+        self.tempSplitterHorizRight.setSizes(self.tempSplitterHorizLeft.sizes())
 
-    def adjustRightSplitter(self, pos : int, index : int):
+    def adjustTempLeftSplitter(self, pos : int, index : int):
         """
-        This is called when the left horizontal splitter is moved. Move the right one accordingly.
+        This is called when the right horizontal splitter in the temperature tab is moved. Move the left one accordingly.
         """
-        self.splitterHorizRight.setSizes(self.splitterHorizLeft.sizes())
-    
-    def adjustLeftSplitter(self, pos : int, index : int):
+        self.tempSplitterHorizLeft.setSizes(self.tempSplitterHorizRight.sizes())
+
+    def adjustFluxesRightSplitter(self, pos : int, index : int):
         """
-        This is called when the right horizontal splitter is moved. Move the left one accordingly.
+        This is called when the left horizontal splitter in the fluxes tab is moved. Move the right one accordingly.
         """
-        self.splitterHorizLeft.setSizes(self.splitterHorizRight.sizes())
+        self.fluxesSplitterHorizRight.setSizes(self.fluxesSplitterHorizLeft.sizes())
+
+    def adjustFluxesLeftSplitter(self, pos : int, index : int):
+        """
+        This is called when the right horizontal splitter in the fluxes tab is moved. Move the left one accordingly.
+        """
+        self.fluxesSplitterHorizLeft.setSizes(self.fluxesSplitterHorizRight.sizes())

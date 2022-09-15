@@ -151,7 +151,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tabInfos">
       <attribute name="title">
@@ -351,108 +351,30 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
-        <widget class="QSplitter" name="splitter_2">
+        <widget class="QSplitter" name="fluxesSplitterVertical">
          <property name="orientation">
-          <enum>Qt::Vertical</enum>
+          <enum>Qt::Horizontal</enum>
          </property>
-         <widget class="QScrollArea" name="scrollArea_11">
-          <property name="widgetResizable">
-           <bool>true</bool>
+         <widget class="QSplitter" name="fluxesSplitterHorizLeft">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
           </property>
-          <widget class="QWidget" name="scrollAreaWidgetContents_16">
-           <property name="geometry">
-            <rect>
-             <x>0</x>
-             <y>0</y>
-             <width>1363</width>
-             <height>420</height>
-            </rect>
-           </property>
-           <layout class="QHBoxLayout" name="horizontalLayout_7">
-            <item>
-             <widget class="QSplitter" name="splitter_6">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <widget class="QGroupBox" name="groupBoxWaterFlux">
-               <property name="title">
-                <string/>
-               </property>
-               <layout class="QVBoxLayout" name="verticalLayout_12">
-                <item>
-                 <layout class="QVBoxLayout" name="waterFluxVBox"/>
-                </item>
-               </layout>
-              </widget>
-              <widget class="QGroupBox" name="groupBoxAdvectiveFlux">
-               <property name="contextMenuPolicy">
-                <enum>Qt::DefaultContextMenu</enum>
-               </property>
-               <property name="title">
-                <string/>
-               </property>
-               <property name="flat">
-                <bool>false</bool>
-               </property>
-               <layout class="QVBoxLayout" name="verticalLayout_14">
-                <item>
-                 <layout class="QVBoxLayout" name="advectiveFluxVBox"/>
-                </item>
-               </layout>
-              </widget>
-             </widget>
-            </item>
-           </layout>
+          <widget class="QWidget" name="layoutWidget_3">
+           <layout class="QVBoxLayout" name="waterFluxVBox"/>
+          </widget>
+          <widget class="QWidget" name="layoutWidget_4">
+           <layout class="QVBoxLayout" name="totalFluxVBox"/>
           </widget>
          </widget>
-         <widget class="QScrollArea" name="scrollArea_14">
-          <property name="widgetResizable">
-           <bool>true</bool>
+         <widget class="QSplitter" name="fluxesSplitterHorizRight">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
           </property>
-          <widget class="QWidget" name="scrollAreaWidgetContents_18">
-           <property name="geometry">
-            <rect>
-             <x>0</x>
-             <y>0</y>
-             <width>1363</width>
-             <height>420</height>
-            </rect>
-           </property>
-           <layout class="QHBoxLayout" name="horizontalLayout_5">
-            <item>
-             <widget class="QSplitter" name="splitter_5">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <widget class="QGroupBox" name="groupBoxTotalFlux">
-               <property name="title">
-                <string/>
-               </property>
-               <layout class="QVBoxLayout" name="verticalLayout_15">
-                <item>
-                 <layout class="QVBoxLayout" name="totalFluxVBox"/>
-                </item>
-               </layout>
-              </widget>
-              <widget class="QGroupBox" name="groupBoxConductiveFlux">
-               <property name="contextMenuPolicy">
-                <enum>Qt::DefaultContextMenu</enum>
-               </property>
-               <property name="title">
-                <string/>
-               </property>
-               <property name="flat">
-                <bool>false</bool>
-               </property>
-               <layout class="QVBoxLayout" name="verticalLayout_16">
-                <item>
-                 <layout class="QVBoxLayout" name="conductiveFluxVBox"/>
-                </item>
-               </layout>
-              </widget>
-             </widget>
-            </item>
-           </layout>
+          <widget class="QWidget" name="layoutWidget">
+           <layout class="QVBoxLayout" name="advectiveFluxVBox"/>
+          </widget>
+          <widget class="QWidget" name="layoutWidget_2">
+           <layout class="QVBoxLayout" name="conductiveFluxVBox"/>
           </widget>
          </widget>
         </widget>
@@ -465,14 +387,14 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_6">
        <item>
-        <widget class="QSplitter" name="splitterVertical">
+        <widget class="QSplitter" name="tempSplitterVertical">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
          <property name="handleWidth">
           <number>10</number>
          </property>
-         <widget class="QSplitter" name="splitterHorizLeft">
+         <widget class="QSplitter" name="tempSplitterHorizLeft">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
           </property>
@@ -558,7 +480,7 @@
            </layout>
           </widget>
          </widget>
-         <widget class="QSplitter" name="splitterHorizRight">
+         <widget class="QSplitter" name="tempSplitterHorizRight">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
           </property>
