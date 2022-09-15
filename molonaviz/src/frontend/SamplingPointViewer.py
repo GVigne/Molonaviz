@@ -151,6 +151,7 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         Refresh type of data displayed (raw or processed) when the checkbox "Show Raw Measures" changes state.
         """
         self.setPressureAndTemperatureTables()
+        self.graphpress.show_voltage_label(self.checkBoxRawData.isChecked())
         self.coordinator.refreshMeasuresPlots(self.checkBoxRawData.isChecked())
         self.linkAllViewsLayouts()
 

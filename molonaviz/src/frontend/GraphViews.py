@@ -171,12 +171,21 @@ class PressureView(GraphView1D):
     """
     Concrete class to display the Pressure in "Data arrays and plots" tab.
     """
-    def __init__(self, molomodel: MoloModel | None, time_dependent=True, title="", ylabel="Differential pressure (m)", xlabel=""):
+    def __init__(self, molomodel: MoloModel | None, time_dependent=True, title="", ylabel="Voltage (V)", xlabel=""):
         super().__init__(molomodel, time_dependent, title, ylabel, xlabel)
     
     def retrieve_data(self):
         self.x  = self.model.get_dates()
         self.y  = {"":np.float64(self.model.get_pressure())} #No label required for this one.
+
+    def show_voltage_label(self, show_voltage : bool):
+        """
+        Change the y-label according to show_voltage. This allows a PressureView to handle both pressure and voltage, which are two representations of the same physical quantity.
+        """
+        if show_voltage:
+            self.ylabel = "Voltage (V)"
+        else:
+            self.ylabel = "Differential pressure (m)"
 
 class TemperatureView(GraphView1D):
     """
