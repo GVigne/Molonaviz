@@ -2,8 +2,11 @@ from src.MoloModel import MoloModel #Used only for type hints
 
 class MoloView:
     """
-    Abstract class representing a frontend view, which can be anything used to display data (a tree view, a matlpotlib canvas, a combo box...).
-    It is the view's responsability to subscribe to a model. This can be done with the register and unregister function. For convenience, a high-level function subscribe_model is implemented to replace the model by another one.
+    Abstract class representing a frontend view, which can be anything used to display data (a tree view, a
+    matlpotlib canvas, a combo box...).
+    It is the view's responsability to subscribe to a model. This can be done with the register and
+    unregister function. For convenience, a high-level function subscribe_model is implemented to replace
+    the model by another one.
     Views must also be able to handle empty iterables or objects given by the models.
     """
     def __init__(self, molomodel : MoloModel | None = None):
@@ -30,7 +33,9 @@ class MoloView:
     def subscribe_model(self, molomodel : MoloModel):
         """
         Revert the view to an empty state, then subscribe to the new given model.
-        WARNING: if this function was not called and no model was given when creating an instance of this class, there is no guarentee the view will work or won't throw exceptions. Before trying to display or update anything, a model MUST be set.
+        WARNING: if this function was not called and no model was given when creating an instance of this
+        class, there is no guarentee the view will work or won't throw exceptions. Before trying to display
+        or update anything, a model MUST be set.
         """
         self.reset_data()
         self.unregister()
@@ -39,19 +44,22 @@ class MoloView:
 
     def on_update(self):
         """
-        This method is called when the model notifies that some data has changed. It must be overloaded for the child classes.
+        This method is called when the model notifies that some data has changed. It must be overloaded for
+        the child classes.
         """
         pass
     
     def retrieve_data(self):
         """
-        Fetch appropriate data from model. This must be overloaded for child classes, and should probably be called by on_update.
+        Fetch appropriate data from model. This must be overloaded for child classes, and should probably be
+        called by on_update.
         """
         pass
     
     def reset_data(self):
         """
-        Reset all internal data to a base state representing an empty view.
+        Reset all internal data to a base state representing an empty view. This must be overloaded for child
+        classes.
         """
         pass
        

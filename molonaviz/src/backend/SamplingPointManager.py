@@ -71,7 +71,6 @@ class SamplingPointManager:
         select_spoints.next()
         return SamplingPoint(select_spoints.value(0), select_spoints.value(1),select_spoints.value(2), select_spoints.value(3), select_spoints.value(4))
 
-    
     def refreshSPoints(self):
         """
         This function should only be called by frontend users.
