@@ -242,10 +242,10 @@ class TempDepthView(GraphView1D):
     
     def retrieve_data(self):
         if self.options[0] is not None: #A computation has been done.
-            thermo_depth = self.options[0]
+            depth_thermo = self.options[0]
             self.x = self.model.get_dates()
             for quantile in self.options[1]:
-                self.y[f"Température à la profondeur {thermo_depth:.3f} m - quantile {quantile}"] = self.model.get_temp_by_date(thermo_depth, quantile)
+                self.y[f"Température à la profondeur {depth_thermo:.3f} m - quantile {quantile}"] = self.model.get_temp_by_date(depth_thermo, quantile)
     
 class WaterFluxView(GraphView1D):
     """

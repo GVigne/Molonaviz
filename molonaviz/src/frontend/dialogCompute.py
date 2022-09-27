@@ -67,7 +67,6 @@ class DialogCompute(QtWidgets.QDialog, From_DialogCompute):
         #Clear the table
         self.tableWidget.setRowCount(nb_layers)
 
-        # max_depth =  100*shaft_depth.value(0)
         for i in range(nb_layers):
             self.tableWidget.setVerticalHeaderItem(i, QTableWidgetItem(f"Layer {i+1}"))
             layerBottom = int((self.maxdepth/nb_layers)*(i+1))

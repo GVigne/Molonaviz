@@ -48,10 +48,10 @@ class Compute(QtCore.QObject):
     """
     How to use this class : 
     - Initialise the compute engine by giving it the  database connection and ID of the current Point.
-    - When computations are needed, create an associated Column objected. This requires cleaned measures to be in the database for this point. This can be made by calling compute.setColumn()
+    - When computations are needed, create an associated Column objected. This requires cleaned measures to be in the database for this point. This can be made by calling compute.set_column()
     - Launch the computation :
-        - with given parameters : compute.computeDirectModel(params: tuple, nb_cells: int, sensorDir: str)
-        - with parameters inferred from MCMC : compute.computeMCMC(nb_iter: int, priors: dict, nb_cells: str, sensorDir: str)
+        - with given parameters : compute.compute_direct_model(params: tuple, nb_cells: int, sensorDir: str)
+        - with parameters inferred from MCMC : compute.compute_MCMC(nb_iter: int, priors: dict, nb_cells: str, sensorDir: str)
     """
     MCMCFinished = QtCore.pyqtSignal()
     DirectModelFinished = QtCore.pyqtSignal()
@@ -66,7 +66,7 @@ class Compute(QtCore.QObject):
         self.coordinator = coordinator
         self.col = None
 
-    def setColumn(self):
+    def set_column(self):
         """
         Create the Column object associated to the current Point.
         """
@@ -96,7 +96,7 @@ class Compute(QtCore.QObject):
         
         self.col = Column.from_dict(col_dict)
 
-    def computeDirectModel(self, params : list[list],  nb_cells: int):
+    def compute_direct_model(self, params : list[list],  nb_cells: int):
         """
         Launch the direct model with given parameters per layer.
         """
@@ -104,28 +104,28 @@ class Compute(QtCore.QObject):
             print("Please wait while for the previous computation to end")
             return
     
-        self.saveLayersAndParams(params)
-        self.updateNBCells(nb_cells)
+        self.save_layers_and_params(params)
+        self.update_nb_cells(nb_cells)
 
-        self.setColumn() #Updates self.col
+        self.set_column() #Updates self.col
         self.direct_runner = ColumnDirectModelRunner(self.col,params,nb_cells)
-        self.direct_runner.finished.connect(self.endDirectmodel)
+        self.direct_runner.finished.connect(self.end_direct_model)
         self.direct_runner.moveToThread(self.thread)
         self.thread.started.connect(self.direct_runner.run)
         self.thread.start()
     
-    def endDirectmodel(self):
+    def end_direct_model(self):
         """
         This is called when the DirectModel is over. Save the relevant information in the database
         """
-        self.saveDirectModelResults()
+        self.save_direct_model_results()
 
         self.thread.quit()
         print("Direct model finished.")
 
         self.DirectModelFinished.emit()
 
-    def updateNBCells(self, nb_cells):
+    def update_nb_cells(self, nb_cells):
         """
         Update entry in Point table to reflect the given number of cells.
         """
@@ -133,7 +133,7 @@ class Compute(QtCore.QObject):
         updatePoint.prepare(f"UPDATE Point SET DiscretStep = {nb_cells} WHERE ID = {self.pointID}")
         updatePoint.exec()
 
-    def saveLayersAndParams(self, data : list[list]):
+    def save_layers_and_params(self, data : list[list]):
         """
         Save the layers and the last parameters in the database.
         """
@@ -160,7 +160,7 @@ class Compute(QtCore.QObject):
             insertparams.exec()
         self.con.commit()
     
-    def saveDirectModelResults(self, save_dates = True):
+    def save_direct_model_results(self, save_dates = True):
         """
         Query the database and save the direct model results.
         """
@@ -260,7 +260,7 @@ class Compute(QtCore.QObject):
         insertRMSE.exec()
         self.con.commit()
 
-    def computeMCMC(self, nb_iter: int, all_priors : list, nb_cells: str, quantiles: tuple):
+    def compute_MCMC(self, nb_iter: int, all_priors : list, nb_cells: str, quantiles: tuple):
         """
         Launch the MCMC computation with given parameters.
         """
@@ -268,27 +268,27 @@ class Compute(QtCore.QObject):
             print("Please wait while for the previous computation to end")
             return
     
-        self.updateNBCells(nb_cells)
+        self.update_nb_cells(nb_cells)
 
-        self.setColumn() #Updates self.col
+        self.set_column() #Updates self.col
         self.mcmc_runner = ColumnMCMCRunner(self.col, nb_iter, all_priors, nb_cells, quantiles)
-        self.mcmc_runner.finished.connect(self.endMCMC)
+        self.mcmc_runner.finished.connect(self.end_MCMC)
         self.mcmc_runner.moveToThread(self.thread)
         self.thread.started.connect(self.mcmc_runner.run)
         self.thread.start()
     
-    def endMCMC(self):
+    def end_MCMC(self):
         """
         This is called when the MCMC is over. Save the relevant information in the database.
         """
-        self.saveMCMCResults()
+        self.save_MCMC_results()
 
         self.thread.quit()
         print("MCMC finished.")
 
         self.MCMCFinished.emit()
 
-    def saveMCMCResults(self):
+    def save_MCMC_results(self):
         """
         Query the database and save the MCMC results. This is essentially a copy of saveDirectResults, except for the function called to get the results.
         """
@@ -442,7 +442,7 @@ class Compute(QtCore.QObject):
 
         # Recompute direct model with best parameters.
         self.col.compute_solve_transi(layers, self.mcmc_runner.nb_cells, verbose = False)
-        self.saveDirectModelResults(save_dates = False)
+        self.save_direct_model_results(save_dates = False)
 
     def build_column_infos(self):
         """

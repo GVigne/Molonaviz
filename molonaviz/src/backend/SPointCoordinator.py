@@ -24,7 +24,7 @@ class SPointCoordinator:
         spointID_query.next()
         self.samplingPointID = spointID_query.value(0)
 
-        self.pointID = self.findOrCreatePointID()
+        self.pointID = self.find_or_create_point_ID()
 
         #Create all models (empty for now)
         self.pressuremodel = PressureDataModel([])
@@ -34,7 +34,7 @@ class SPointCoordinator:
         self.waterflux_model = WaterFluxModel([])
         self.paramsdistr_model = ParamsDistributionModel([])
     
-    def findOrCreatePointID(self):
+    def find_or_create_point_ID(self):
         """
         Return the Point ID corresponding to this sampling point OR if this is the first time this sampling point is opened, create the relevant entry in the Point table.
         """
@@ -48,25 +48,25 @@ class SPointCoordinator:
             return insertPoint.lastInsertId()
         return select_pointID.value(0)
     
-    def getPressureModel(self):
+    def get_pressure_model(self):
         return self.pressuremodel
     
-    def getTempModel(self):
+    def get_temp_model(self):
         return self.tempmodel
     
-    def getTempMapModel(self):
+    def get_temp_map_model(self):
         return self.tempmap_model
     
-    def getWaterFluxesModel(self):
+    def get_water_fluxes_model(self):
         return self.waterflux_model
     
-    def getFluxesModel(self):
+    def get_fluxes_model(self):
         return self.fluxes_model
     
-    def getParamsDistrModel(self):
+    def get_params_distr_model(self):
         return self.paramsdistr_model
     
-    def getSPointInfos(self):
+    def get_spoint_infos(self):
         """
         Return the path to the scheme, the path to notice and a model containing the informations about the sampling point.
         """
@@ -83,7 +83,7 @@ class SPointCoordinator:
 
         return schemePath, noticePath, infosModel
     
-    def getParamsModel(self, layer : float):
+    def get_params_model(self, layer : float):
         """
         Given a layer (identified by its depth), return the associated best parameters.
         """
@@ -92,7 +92,7 @@ class SPointCoordinator:
         self.paramsModel = QSqlQueryModel()
         self.paramsModel.setQuery(select_params)
     
-    def getTableModel(self, raw_measures : bool):
+    def get_table_model(self, raw_measures : bool):
         """
         Return a model with all direct information from the database.
         If raw_measures is true, the raw measures from the point are displayed, else cleaned measures are displayed
@@ -106,7 +106,7 @@ class SPointCoordinator:
         self.tableModel.setQuery(select_query)
         return self.tableModel 
     
-    def allRawMeasures(self):
+    def all_raw_measures(self):
         """
         Return the cleaned measures in an iterable format. The result is a list of lists. The inner lists hold the following information in the following order:
             -date (in datetime format), Temp1, Temp2, Temp3, Temp, TempBed, Voltage
@@ -118,7 +118,7 @@ class SPointCoordinator:
             result.append([databaseDateToDatetime(select_data.value(0))]+ [select_data.value(i) for i in range(1,7)])
         return result
 
-    def allCleanedMeasures(self):
+    def all_cleaned_measures(self):
         """
         Return the cleaned measures in an iterable format. The result is a list of tuple:
         -the first element is a list holding temperature readings (date, Temp1, Temp2, Temp3, Temp4)
@@ -131,7 +131,7 @@ class SPointCoordinator:
             result.append(([select_data.value(i) for i in range(5)],[select_data.value(0), select_data.value(6),select_data.value(5)]))
         return result
     
-    def layersDepths(self):
+    def layers_depths(self):
         """
         Return a list with all the depths of the layers. It may be empty.
         """
@@ -142,7 +142,7 @@ class SPointCoordinator:
             layers.append(select_depths_layers.value(0))
         return layers
     
-    def allRMSE(self):
+    def all_RMSE(self):
         """
         Return
         -the RMSE for the direct model
@@ -165,7 +165,7 @@ class SPointCoordinator:
 
         return directModelRMSE, globalRmse, [select_thermRMSE.value(i) for i in range(3)]
     
-    def thermoDepth(self, depth_id : int):
+    def thermo_depth(self, depth_id : int):
         """
         Given a thermometer number (1, 2, 3), return depth of associated thermometer.
         """
@@ -174,7 +174,7 @@ class SPointCoordinator:
         select_thermo_depth.next()
         return select_thermo_depth.value(0)
 
-    def maxDepth(self):
+    def max_depth(self):
         """
         Return the altitude of the deepest point in the river. We can assume that this is the lenght of the shaft.
         """
@@ -183,7 +183,7 @@ class SPointCoordinator:
         selectdepth.next()
         return selectdepth.value(0)
 
-    def calibrationInfos(self):
+    def calibration_infos(self):
         """
         Return three values corresponding to the intercept, differential pressure (DuDH), and differential temperature (DuDT).
         """
@@ -192,7 +192,7 @@ class SPointCoordinator:
         select_cal_infos.next()
         return select_cal_infos.value(0), select_cal_infos.value(1), select_cal_infos.value(2)
     
-    def refreshMeasuresPlots(self, raw_measures):
+    def refresh_measures_plots(self, raw_measures):
         """
         Refresh the models displaying the measures in graphs.
         If raw_measures is true, then the raw measures will be displayed, else cleaned measures will be shown.
@@ -204,43 +204,43 @@ class SPointCoordinator:
             select_pressure = self.build_cleaned_measures(field ="Pressure")
             select_temp = self.build_cleaned_measures(field ="Temp")
 
-        self.pressuremodel.newQueries([select_pressure])
-        self.tempmodel.newQueries([select_temp])
+        self.pressuremodel.new_queries([select_pressure])
+        self.tempmodel.new_queries([select_temp])
 
-    def refreshParamsDistr(self, layer : float):
+    def refresh_params_distr(self, layer : float):
         """
         Refresh the parameter distribution model for the given layer.
         """
         select_params = self.build_params_distribution(layer)
-        self.paramsdistr_model.newQueries([select_params])
+        self.paramsdistr_model.new_queries([select_params])
     
-    def refreshAllModels(self, raw_measures_plot : bool, layer : float):
+    def refresh_all_models(self, raw_measures_plot : bool, layer : float):
         """
         Refresh all models.
         If some models have their own function to be refreshed, then these functions should be called to prevent code duplication
         """
-        self.refreshMeasuresPlots(raw_measures_plot)
+        self.refresh_measures_plots(raw_measures_plot)
         
         #Plot the heat fluxes
         select_heatfluxes= self.build_result_queries(result_type="2DMap",option="HeatFlows") #This is a list
         select_depths = self.build_depths()
         select_dates = self.build_dates()
-        self.fluxes_model.newQueries([select_dates,select_depths]+select_heatfluxes)
+        self.fluxes_model.new_queries([select_dates,select_depths]+select_heatfluxes)
 
         #Plot the water fluxes
         select_waterflux= self.build_result_queries(result_type="WaterFlux") #This is already a list
-        self.waterflux_model.newQueries(select_waterflux)
+        self.waterflux_model.new_queries(select_waterflux)
 
         #Plot the temperatures
         select_tempmap = self.build_result_queries(result_type="2DMap",option="Temperature") #This is a list of temperatures for all quantiles
         select_depths = self.build_depths()
         select_dates = self.build_dates()
-        self.tempmap_model.newQueries([select_dates,select_depths]+select_tempmap)
+        self.tempmap_model.new_queries([select_dates,select_depths]+select_tempmap)
 
         #Histogramms
-        self.refreshParamsDistr(layer)
+        self.refresh_params_distr(layer)
     
-    def insertCleanedMeasures(self, dfCleaned : pd.DataFrame):
+    def insert_cleaned_measures(self, dfCleaned : pd.DataFrame):
         """
         Insert the cleaned measures into the database.
         The cleaned measures must be in dataframe with the following structure:
@@ -276,11 +276,11 @@ class SPointCoordinator:
             query_measures.exec()
         self.con.commit()
     
-    def deleteProcessedData(self):
+    def delete_processed_data(self):
         """
         Delete all processed data (cleaned measures and computations). This reverts the sampling point to its original state (only raw measures)
         """
-        self.deleteComputations()
+        self.delete_computations()
 
         #Now delete the cleaned measures and then the dates.
         dateID = QSqlQuery(self.con)
@@ -298,10 +298,10 @@ class SPointCoordinator:
             deleteDate.bindValue(":Date", dateID.value(0))
             deleteDate.exec()
         self.con.commit()
-        #Note: the Point has not been removed, but it doesn't matter. The findOrCreatePointID function is here for this reason.
+        #Note: the Point has not been removed, but it doesn't matter. The find_or_create_point_ID function is here for this reason.
 
     
-    def deleteComputations(self):
+    def delete_computations(self):
         """
         Delete every computations made for this point. This function builds and execute the DELETE queries. Be careful, calling it will clear the database for this point!
         """
@@ -325,9 +325,9 @@ class SPointCoordinator:
                             IncertPressure = NULL
                         WHERE ID = {self.pointID}""")
     
-    def computationType(self):
+    def computation_type(self):
         """
-        Return a symbolic name representing the state of the database.
+        Return a symbolic name (via an enumeration) representing the state of the database.
         """
         quant = QSqlQuery(self.con)
         quant.prepare(f"""SELECT COUNT(*) FROM Quantile
@@ -573,10 +573,10 @@ class SPointCoordinator:
         """
         Return a list of queries according to the user's wish. The list will either be of length 1 (the model was not computed before), or more than one: in this case, there are as many queries as there are quantiles: the first query corresponds to the default model (quantile 0)
         """
-        computation_type = self.computationType()
-        if computation_type == ComputationsState.DIRECT_MODEL:
+        compute_type = self.computation_type()
+        if compute_type == ComputationsState.DIRECT_MODEL:
             return [self.define_result_queries(result_type=result_type,option=option, quantile=0)]
-        elif computation_type == ComputationsState.MCMC:
+        elif compute_type == ComputationsState.MCMC:
             #This could be enhanced by going in the database and seeing which quantiles are available. For now, these available quantiles will be hard-coded
             select_quantiles = self.build_quantiles()
             select_quantiles.exec()

@@ -109,7 +109,7 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
                           "TempBed" : CleanupStatus.NONE
                         } # The cleanup status for every variable: initially, we don't do anything.
         self.data = None
-        self.intercept, self.dUdH, self.dUdT = self.coordinator.calibrationInfos()
+        self.intercept, self.dUdH, self.dUdT = self.coordinator.calibration_infos()
         self.buildDF()
         self.convertVoltagePressure()
         self.setupStartEndDates()
@@ -127,7 +127,7 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
         """
         Fetch raw measures from the coordinator, and arrange them all in one big panda dataframe stored in self.data.
         """
-        backend_data = self.coordinator.allRawMeasures()
+        backend_data = self.coordinator.all_raw_measures()
         self.data = pd.DataFrame(backend_data, columns = ["Date","Temp1", "Temp2", "Temp3", "Temp4", "TempBed", "Voltage"])
     
     def convertVoltagePressure(self):

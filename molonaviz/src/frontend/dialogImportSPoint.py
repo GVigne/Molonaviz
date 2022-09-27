@@ -40,9 +40,9 @@ class DialogImportSPoint(QtWidgets.QDialog, From_DialogImportSPoint):
         This is an overloaded function, called when the user presses the "OK" button.
         This function runs integrity checks on the database before allowing the dialog to be closed. Theses checks make sure the name of the point, the pressure sensor and the shaft respect database integrity: the point must not already be in the study and the sensors must exist.
         """
-        points = self.studyHandler.getSPointsNames()
-        psensors = self.labHandler.getPSensorsNames()
-        shafts = self.labHandler.getShaftsNames()
+        points = self.studyHandler.get_spoints_names()
+        psensors = self.labHandler.get_psensors_names()
+        shafts = self.labHandler.get_shafts_names()
 
         if not self.lineEditPointName.text() or not self.lineEditPSensorName.text() or not self.lineEditShaftName.text():
             displayCriticalMessage("The name of the point, the pressure sensor and the shaft cannot be empty.")

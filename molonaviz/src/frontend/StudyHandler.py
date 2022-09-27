@@ -23,23 +23,23 @@ class StudyHandler:
         self.spointCoordinator = None
         self.spointViewer = None
     
-    def getSPointModel(self):
+    def get_spoint_model(self):
         """
         Return the sampling point model.
         """
-        return self.spointManager.getSPointModel()
+        return self.spointManager.get_spoint_model()
     
-    def getSPointsNames(self):
+    def get_spoints_names(self):
         """
         Return the list of the names of the sampling points.
         """
-        return self.spointManager.getSPointsNames()
+        return self.spointManager.get_spoints_names()
     
-    def refreshSPoints(self):
+    def refresh_spoints(self):
         """
         Refresh sampling points information
         """
-        self.spointManager.refreshSPoints()
+        self.spointManager.refresh_spoints()
     
     def importSPoint(self, name : str, psensor : str, shaft : str, infofile : str, noticefile : str, configfile : str, prawfile : str, trawfile : str):
         """
@@ -61,8 +61,8 @@ class StudyHandler:
         convertDates(dftemp) #Convert dates to datetime (or here Timestamp) objects
        
         #Give the dataframes to the backend
-        self.spointManager.createNewSPoint(name, psensor, shaft, noticefile, configfile, infoDF, dfpress, dftemp)
-        self.spointManager.refreshSPoints()
+        self.spointManager.create_new_spoint(name, psensor, shaft, noticefile, configfile, infoDF, dfpress, dftemp)
+        self.spointManager.refresh_spoints()
     
     def openSPoint(self, spointName : str):
         """
@@ -70,7 +70,7 @@ class StudyHandler:
         Return a viewer instance which can be added to a subwindow like a widget.
         """
         self.spointCoordinator = SPointCoordinator(self.con, self.studyName, spointName)
-        samplingPoint = self.spointManager.getSPoint(spointName)
+        samplingPoint = self.spointManager.get_spoint(spointName)
         self.spointViewer = SamplingPointViewer(self.spointCoordinator, samplingPoint)
         self.spointViewer.setWindowTitle(self.studyName)
         return self.spointViewer

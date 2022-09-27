@@ -42,15 +42,11 @@ class SamplingPointManager:
         select_study_id.next()
         self.studyID = select_study_id.value(0)
         self.studyName = studyName
-    
-    def getStudyName(self):
-        return self.studyName
-   
 
-    def getSPointModel(self):
+    def get_spoint_model(self):
         return self.spointModel
     
-    def getSPointsNames(self):
+    def get_spoints_names(self):
         """
         This function should only be called by frontend users.
         Return a list of all the sampling points names.
@@ -62,7 +58,7 @@ class SamplingPointManager:
             spoints.append(select_spoints.value(0))
         return spoints
     
-    def getSPoint(self, spointName):
+    def get_spoint(self, spointName):
         """
         Return a SamplingPoint object representing the sampling point with name spointName.
         """
@@ -71,15 +67,15 @@ class SamplingPointManager:
         select_spoints.next()
         return SamplingPoint(select_spoints.value(0), select_spoints.value(1),select_spoints.value(2), select_spoints.value(3), select_spoints.value(4))
 
-    def refreshSPoints(self):
+    def refresh_spoints(self):
         """
         This function should only be called by frontend users.
         Refresh the sampling point model with appropriate information from the database.
         """
         select_spoints = self.build_select_spoints()
-        self.spointModel.newQueries([select_spoints])
+        self.spointModel.new_queries([select_spoints])
     
-    def createNewSPoint(self, pointName : str, psensorName : str, shaftName :str, noticefile : str, configfile : str, infoDF : pd.DataFrame, prawDF : pd.DataFrame, trawDF : pd.DataFrame):
+    def create_new_spoint(self, pointName : str, psensorName : str, shaftName :str, noticefile : str, configfile : str, infoDF : pd.DataFrame, prawDF : pd.DataFrame, trawDF : pd.DataFrame):
         """
         This function should only be called by frontend users.
         Create a new sampling point attached to the study currently opened (ie the one linked to this instance of SamplingPointManager).

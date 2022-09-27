@@ -19,16 +19,16 @@ class LabEquipementManager:
         selectLabID.next()
         self.labID = selectLabID.value(0)    
     
-    def getThermoModel(self):
+    def get_thermo_model(self):
         return self.thermoModel
     
-    def getPSensorModel(self):
+    def get_psensor_model(self):
         return self.psensorModel
     
-    def getShaftModel(self):
+    def get_shaft_model(self):
         return self.shaftModel
     
-    def getPSensorsNames(self):
+    def get_psensors_names(self):
         """
         This function should only be called by frontend users.
         Return a list of all the pressure sensors names.
@@ -40,7 +40,7 @@ class LabEquipementManager:
             psensors.append(select_psensors.value(0))
         return psensors
     
-    def getShaftsNames(self):
+    def get_shafts_names(self):
         """
         This function should only be called by frontend users.
         Return a list of all the sampling points.
@@ -52,19 +52,19 @@ class LabEquipementManager:
             shafts.append(select_shafts.value(0))
         return shafts
     
-    def refreshDetectors(self):
+    def refresh_detectors(self):
         """
         This function should only be called by frontend users.
         Refresh the models with appropriate information from the database.
         """
         select_thermo = self.build_select_thermometers()
-        self.thermoModel.newQueries([select_thermo])
+        self.thermoModel.new_queries([select_thermo])
 
         select_psensors = self.build_select_psensors()
-        self.psensorModel.newQueries([select_psensors])
+        self.psensorModel.new_queries([select_psensors])
 
         select_shafts = self.build_select_shafts()
-        self.shaftModel.newQueries([select_shafts])
+        self.shaftModel.new_queries([select_shafts])
     
     def build_select_lab_id(self, laboName : str):
         """

@@ -197,7 +197,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
             if labdir and labname: #Both strings are not empty
                 try:
                     thermometersDF, psensorsDF, shaftsDF = extractDetectorsDF(labdir)
-                    self.study_lab_manager.createNewLab(labname, thermometersDF, psensorsDF, shaftsDF)
+                    self.study_lab_manager.create_new_lab(labname, thermometersDF, psensorsDF, shaftsDF)
                 except InvalidFile:
                     displayCriticalMessage("Some of the files in the laboratory do not match the API. Nothing was added to the database. Please check your files and try again.")
     
@@ -205,7 +205,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         """
         Display a dialog so the user may create a study.The study is added to the database. Then, open this study (by calling self.openStudy)
         """
-        labs = self.study_lab_manager.getLabNames()
+        labs = self.study_lab_manager.get_lab_names()
         if len(labs) == 0:
             displayCriticalMessage("No laboratory was found in the database. Please create one first.")
         else:
@@ -215,17 +215,17 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
             if res == QtWidgets.QDialog.Accepted:
                 userLab = dlg.selectedLab()
                 userStudyName = dlg.studyName()
-                if self.study_lab_manager.isStudyInDatabase(userStudyName) or not userStudyName: #The study is already in the database, or the study name is empty
+                if self.study_lab_manager.is_study_in_database(userStudyName) or not userStudyName: #The study is already in the database, or the study name is empty
                     displayCriticalMessage("The name of the study may not be empty and must be different from the studies in the database.")
                 else:
-                    self.study_lab_manager.createNewStudy(userStudyName, userLab)
+                    self.study_lab_manager.create_new_study(userStudyName, userLab)
                     self.openStudy(userStudyName)
     
     def chooseStudyName(self):
         """
         Display a dialog so the user may choose a study to open, or display an error message. Then, open a study (by calling self.openStudy).
         """
-        studies = self.study_lab_manager.getStudyNames()
+        studies = self.study_lab_manager.get_study_names()
         if len(studies) ==0:
             displayCriticalMessage("No study was found in the database. Please create one first.")
         else:
@@ -245,17 +245,17 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         if self.currentLab is not None:
             self.currentLab.close()
             self.currentLab = None
-        labName = self.study_lab_manager.getLabNames(studyName)[0] #Reminder: getLabNames returns a list.
+        labName = self.study_lab_manager.get_lab_names(studyName)[0] #Reminder: get_lab_names returns a list.
         self.currentLab = LabHandler(self.con, labName)
 
-        self.thermoView.subscribe_model(self.currentLab.getThermoModel())
-        self.psensorView.subscribe_model(self.currentLab.getPSensorModel())
-        self.shaftView.subscribe_model(self.currentLab.getShaftModel())
-        self.currentLab.refreshDetectors()
+        self.thermoView.subscribe_model(self.currentLab.get_thermo_model())
+        self.psensorView.subscribe_model(self.currentLab.get_psensor_model())
+        self.shaftView.subscribe_model(self.currentLab.get_shaft_model())
+        self.currentLab.refresh_detectors()
 
         #Open sampling point manager.
-        self.spointView.subscribe_model(self.currentStudy.getSPointModel())
-        self.currentStudy.refreshSPoints()
+        self.spointView.subscribe_model(self.currentStudy.get_spoint_model())
+        self.currentStudy.refresh_spoints()
 
         self.dockSensors.setWindowTitle(f"Current lab: {labName}") 
         
@@ -302,7 +302,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         This happens when the user clicks the "Open Point" action. Display a dialog so the user may choose a point to open, or display an error message. Then, open the corresponding point.
         This function may only be called if a study is opened. 
         """
-        spointsNames = self.currentStudy.getSPointsNames()
+        spointsNames = self.currentStudy.get_spoints_names()
 
         if len(spointsNames) ==0:
             displayCriticalMessage("No point was found in this study. Please import one first.")

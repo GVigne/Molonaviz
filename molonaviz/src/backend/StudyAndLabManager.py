@@ -11,7 +11,7 @@ class StudyAndLabManager:
     def __init__(self, con : QSqlDatabase):
         self.con = con
 
-    def createNewLab(self, labName : str, thermometersDF : list[pd.DataFrame], psensorsDF : list[pd.DataFrame], shaftsDF : list[pd.DataFrame]):
+    def create_new_lab(self, labName : str, thermometersDF : list[pd.DataFrame], psensorsDF : list[pd.DataFrame], shaftsDF : list[pd.DataFrame]):
         """
         This function should only be called by frontend users.
         Create a new laboratory with the name labName, and populate it with different physical detectors. For each type of detectors (currently there are only 3), frontend users should give a list of panda dataframes with the correct information. These dataframes must be valid (no empty field, fields at the correct position...).
@@ -22,7 +22,7 @@ class StudyAndLabManager:
             labID = self.insert_new_lab(labName)
             self.insert_detectors(labID, thermometersDF, psensorsDF, shaftsDF)
     
-    def createNewStudy(self, studyName : str, labName : str):
+    def create_new_study(self, studyName : str, labName : str):
         """
         This function should only be called by frontend users
         Create a new study with the name studyName attached to the laboratory called labName. The names must be valid (ie studyName is unique, and there is a unique laboratory called labName).
@@ -38,7 +38,7 @@ class StudyAndLabManager:
         insertStudy.exec()
         print(f"The study {studyName} has been added to the database.")
 
-    def isStudyInDatabase(self, studyName : str):
+    def is_study_in_database(self, studyName : str):
         """
         This function should only be called by frontend users.
         Return True if a study with the name studyName is in the database.
@@ -49,7 +49,7 @@ class StudyAndLabManager:
             return True
         return False
         
-    def getLabNames(self, studyName = None):
+    def get_lab_names(self, studyName = None):
         """
         This function should only be called by frontend users.
         Return a list of all the names of the laboratories in the database, or, if a valid name of a study if given, a list containing only one element: the laboratory name attached to this study.
@@ -61,7 +61,7 @@ class StudyAndLabManager:
             labs.append(labs_query.value(0))
         return labs
     
-    def getStudyNames(self):
+    def get_study_names(self):
         """
         This function should only be called by frontend users.
         Return a list of all the names of the studies in the database.
