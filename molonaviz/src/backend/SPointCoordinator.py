@@ -30,7 +30,7 @@ class SPointCoordinator:
         self.pressuremodel = PressureDataModel([])
         self.tempmodel = TemperatureDataModel([])
         self.tempmap_model = SolvedTemperatureModel([])
-        self.fluxes_model = HeatFluxesModel([])
+        self.heatfluxes_model = HeatFluxesModel([])
         self.waterflux_model = WaterFluxModel([])
         self.paramsdistr_model = ParamsDistributionModel([])
 
@@ -60,8 +60,8 @@ class SPointCoordinator:
     def get_water_fluxes_model(self):
         return self.waterflux_model
 
-    def get_fluxes_model(self):
-        return self.fluxes_model
+    def get_heatfluxes_model(self):
+        return self.heatfluxes_model
 
     def get_params_distr_model(self):
         return self.paramsdistr_model
@@ -108,8 +108,8 @@ class SPointCoordinator:
 
     def all_raw_measures(self):
         """
-        Return the cleaned measures in an iterable format. The result is a list of lists. The inner lists hold the following information in the following order:
-            -date (in datetime format), Temp1, Temp2, Temp3, Temp, TempBed, Voltage
+        Return the raw measures in an iterable format. The result is a list of lists. The inner lists hold the following information in the following order:
+            -date (in datetime format), Temp1, Temp2, Temp3, Temp4, TempBed, Voltage
         """
         select_data = self.build_raw_measures(full_query=True)
         select_data.exec()
@@ -122,7 +122,7 @@ class SPointCoordinator:
         """
         Return the cleaned measures in an iterable format. The result is a list of tuple:
         -the first element is a list holding temperature readings (date, Temp1, Temp2, Temp3, Temp4)
-        -the second element is a list holding pressure readings (date, pressure, temperature)
+        -the second element is a list holding pressure readings (date, pressure, temperature at the river bed)
         """
         select_data = self.build_cleaned_measures(full_query=True)
         select_data.exec()
@@ -192,7 +192,7 @@ class SPointCoordinator:
         select_cal_infos.next()
         return select_cal_infos.value(0), select_cal_infos.value(1), select_cal_infos.value(2)
 
-    def refresh_measures_plots(self, raw_measures):
+    def refresh_measures_plots(self, raw_measures : bool):
         """
         Refresh the models displaying the measures in graphs.
         If raw_measures is true, then the raw measures will be displayed, else cleaned measures will be shown.
@@ -225,7 +225,7 @@ class SPointCoordinator:
         select_heatfluxes= self.build_result_queries(result_type="2DMap",option="HeatFlows") #This is a list
         select_depths = self.build_depths()
         select_dates = self.build_dates()
-        self.fluxes_model.new_queries([select_dates,select_depths]+select_heatfluxes)
+        self.heatfluxes_model.new_queries([select_dates,select_depths]+select_heatfluxes)
 
         #Plot the water fluxes
         select_waterflux= self.build_result_queries(result_type="WaterFlux") #This is already a list

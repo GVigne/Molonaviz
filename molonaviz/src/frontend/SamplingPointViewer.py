@@ -19,7 +19,7 @@ from src.frontend.dialogCompute import DialogCompute
 From_SamplingPointViewer = uic.loadUiType(os.path.join(os.path.dirname(__file__), "ui", "SamplingPointViewer.ui"))[0]
 
 class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
-    
+
     def __init__(self, spointCoordinator : SPointCoordinator, samplingPoint: SamplingPoint):
         # Call constructor of parent classes
         super(SamplingPointViewer, self).__init__()
@@ -29,7 +29,7 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         self.coordinator = spointCoordinator
         self.computeEngine = Compute(self.coordinator)
 
-        self.setupUi(self) 
+        self.setupUi(self)
 
         #This should already be done in the .ui file
         self.checkBoxRawData.setChecked(True)
@@ -47,13 +47,13 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         self.graphpress = PressureView(self.coordinator.get_pressure_model())
         self.graphtemp = TemperatureView(self.coordinator.get_temp_model())
         self.waterflux_view = WaterFluxView(self.coordinator.get_water_fluxes_model())
-        fluxesModel = self.coordinator.get_fluxes_model()
+        fluxesModel = self.coordinator.get_heatfluxes_model()
         self.advective_view = AdvectiveFlowView(fluxesModel)
         self.conductive_view = ConductiveFlowView(fluxesModel)
         self.totalflux_view = TotalFlowView(fluxesModel)
         tempMapModel = self.coordinator.get_temp_map_model()
         self.umbrella_view = UmbrellaView(tempMapModel)
-        self.tempmap_view = TempMapView(tempMapModel)    
+        self.tempmap_view = TempMapView(tempMapModel)
         self.depth_view = TempDepthView(tempMapModel)
         paramsDistrModel = self.coordinator.get_params_distr_model()
         self.logk_view = Log10KView(paramsDistrModel)
@@ -63,7 +63,7 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
 
         self.layoutsRules = self.initialiseLayoutsRules()
 
-        #This allows to create 4 graphs in a square with one vertical and one horizontal splitter.  
+        #This allows to create 4 graphs in a square with one vertical and one horizontal splitter.
         self.tempSplitterHorizLeft.splitterMoved.connect(self.adjustTempRightSplitter)
         self.tempSplitterHorizRight.splitterMoved.connect(self.adjustTempLeftSplitter)
         self.fluxesSplitterHorizLeft.splitterMoved.connect(self.adjustFluxesRightSplitter)
@@ -75,7 +75,7 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         self.radioButtonTherm1.clicked.connect(self.refreshTempDepthView)
         self.radioButtonTherm2.clicked.connect(self.refreshTempDepthView)
         self.radioButtonTherm3.clicked.connect(self.refreshTempDepthView)
-        self.checkBoxDirectModel.stateChanged.connect(self.refreshTempDepthView)      
+        self.checkBoxDirectModel.stateChanged.connect(self.refreshTempDepthView)
         self.pushButtonReset.clicked.connect(self.reset)
         self.pushButtonCleanUp.clicked.connect(self.cleanup)
         self.pushButtonCompute.clicked.connect(self.compute)
@@ -93,7 +93,7 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         self.setupCheckboxesQuantiles()
         self.setPressureAndTemperatureTables()
         self.updateAllViews()
-    
+
     def initialiseLayoutsRules(self):
         """
         Build a dictionnary containing the rules to which the layouts must abide:
@@ -116,7 +116,7 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
                             self.porosityVBox : (self.porosity_view, default_message),
                             self.capacityVBox : (self.capacity_view, default_message)}
         return layoutsRules
-    
+
     def handleComputationsButtons(self):
         """
         Disable or enable the compute button if no computations were made.
@@ -143,7 +143,7 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
             tempfile = open(tempPath, 'w')
             tempwriter = csv.writer(tempfile)
             tempwriter.writerow(["Date", "Temperature 1 (°C)", "Temperature 2 (°C)", "Temperature 3 (°C)", "Temperature 4 (°C)"])
-            
+
             measures = self.coordinator.all_cleaned_measures()
             for temprow, pressrow in measures:
                 presswriter.writerow(pressrow)
@@ -151,7 +151,7 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
             pressfile.close()
             tempfile.close()
             print("The cleaned measures have been exported successfully.")
-    
+
     def changeMeasuresState(self):
         """
         Refresh type of data displayed (raw or processed) when the checkbox "Show Raw Measures" changes state.
@@ -174,10 +174,10 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
 
         self.capacity_view.update_bins(bins)
         self.capacity_view.on_update()
-    
+
     def label_update(self):
         self.labelBins.setText(str(self.horizontalSliderBins.value()))
-    
+
     def setWidgetInfos(self):
         self.setWindowTitle(self.samplingPoint.name)
         self.lineEditPointName.setText(self.samplingPoint.name)
@@ -198,11 +198,11 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
             self.plainTextEditNotice.setPlainText(notice)
         except Exception as e:
             self.plainTextEditNotice.setPlainText("No notice was found")
-            
+
         #Infos
         self.infosModel = infosModel
         self.tableViewInfos.setModel(self.infosModel)
-    
+
     def setupComboBoxLayers(self):
         """
         Setup the Combo box and which will be used to display the parameters.
@@ -211,7 +211,7 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         for layer in layers:
             self.comboBoxSelectLayer.addItem(str(layer))
         if len(layers) > 0:
-            self.changeDisplayedParams(layers[0])    
+            self.changeDisplayedParams(layers[0])
 
     def changeDisplayedParams(self, layer : float):
         """
@@ -222,7 +222,7 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         #Resize the table view so it looks pretty
         self.tableViewParams.resizeColumnsToContents()
         self.coordinator.refresh_params_distr(layer)
-    
+
     def setupCheckboxesQuantiles(self):
         """
         Update the quantiles layout to display as many checkboxes as there are quantiles in the database, along with the associated RMSE.
@@ -245,7 +245,7 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         self.labelRMSETherm1.setText(f"RMSE: {thermRMSE[0] if thermRMSE[0] else 0:.2f} °C")
         self.labelRMSETherm2.setText(f"RMSE: {thermRMSE[1] if thermRMSE[1] else 0:.2f} °C")
         self.labelRMSETherm3.setText(f"RMSE: {thermRMSE[2] if thermRMSE[2] else 0:.2f} °C")
-    
+
 
     def removeAllCheckboxes(self):
         """
@@ -288,11 +288,11 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         elif self.radioButtonTherm3.isChecked():
             depth_id = 3
         #Hackish way to make sure depth_id is 1, 2 or 3: the app will crash if it's not one of these (depth_id not defined)
-        #This shouldn't happen though, as it would violate the radio button's behaviour 
+        #This shouldn't happen though, as it would violate the radio button's behaviour
         thermoDepth = self.coordinator.thermo_depth(depth_id)
         self.depth_view.update_options([thermoDepth,quantiles])
         self.depth_view.on_update() #Refresh the view
-    
+
     def setPressureAndTemperatureTables(self):
         """
         Set the two tables giving direct information from the database.
@@ -307,7 +307,7 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
             width += self.tableViewDataArray.columnWidth(i)
         width +=20 #Approximate width of the splitter bar
         self.tableViewDataArray.setFixedWidth(width)
-    
+
     def updateAllViews(self):
         """
         Update all the views displaying results by asking the backend to refresh the models.
@@ -321,7 +321,7 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         self.linkAllViewsLayouts()
 
         self.coordinator.refresh_all_models(self.checkBoxRawData.isChecked(), self.comboBoxSelectLayer.currentText())
-    
+
     def linkAllViewsLayouts(self):
         """
         Fill all layouts with either:
@@ -350,24 +350,24 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         elif compute_type == ComputationsState.MCMC:
             empty_layouts =[]
             filled_layouts = all_layouts
-        
+
         #Clear all layouts
         for layout in all_layouts:
             #Taken from Stack Overflow https://stackoverflow.com/questions/4528347/clear-all-widgets-in-a-layout-in-pyqt
             for i in reversed(range(layout.count())):
                 layout.itemAt(i).widget().setParent(None)
-        
+
         #Display custom message for layouts not displaying data
         for layout in empty_layouts:
             label = QtWidgets.QLabel(self.layoutsRules[layout][1])
-            layout.addWidget(label, QtCore.Qt.AlignCenter)    
+            layout.addWidget(label, QtCore.Qt.AlignCenter)
         #Fill layouts displaying data with proper view
         for layout in filled_layouts:
             view = self.layoutsRules[layout][0]
             toolbar = NavigationToolbar(view, self)
             layout.addWidget(view)
-            layout.addWidget(toolbar) 
-    
+            layout.addWidget(toolbar)
+
     def reset(self):
         dlg = DialogConfirm("Are you sure you want to delete the cleaned measures and all computations made for this point? This cannot be undone.")
         res = dlg.exec()
@@ -375,7 +375,7 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
             self.coordinator.delete_processed_data()
             self.updateAllViews()
             self.handleComputationsButtons()
-    
+
     def cleanup(self):
         dlg = DialogCleanup(self.coordinator,self.samplingPoint)
         res = dlg.exec()
@@ -391,7 +391,7 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
 
                 self.updateAllViews()
                 self.handleComputationsButtons()
-    
+
     def compute(self):
         dlg = DialogCompute(self.coordinator.max_depth())
         res = dlg.exec()

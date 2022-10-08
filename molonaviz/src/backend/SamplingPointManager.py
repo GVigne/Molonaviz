@@ -58,7 +58,7 @@ class SamplingPointManager:
             spoints.append(select_spoints.value(0))
         return spoints
 
-    def get_spoint(self, spointName):
+    def get_spoint(self, spointName : str):
         """
         Return a SamplingPoint object representing the sampling point with name spointName.
         """
@@ -166,7 +166,7 @@ class SamplingPointManager:
         query.prepare(f"SELECT Study.ID FROM Study WHERE Study.Name ='{studyName}'")
         return query
 
-    def build_select_spoints(self, spointName = None):
+    def build_select_spoints(self, spointName : str|None = None):
         """
         Build and return a query giving all the informations about the points in this study. If spointName is not None, return instead the information for this sampling point.
         """
