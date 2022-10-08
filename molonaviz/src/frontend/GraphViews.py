@@ -126,7 +126,7 @@ class GraphView2D(GraphView):
         if self.cmap.shape[1] ==len(self.x) and self.cmap.shape[0] == len(self.y):
             #View is not empty and should display something
             image = self.axes.imshow(self.cmap, cmap=cm.Spectral_r, aspect="auto", extent=[self.x[0], self.x[-1], float(self.y[-1]), float(self.y[0])], data="float")
-            plt.colorbar(image)
+            self.fig.colorbar(image) # Add a colorbar
             self.axes.xaxis_date()
             self.axes.set_title(self.title)
             self.axes.set_ylabel(self.ylabel)
@@ -245,7 +245,7 @@ class TempDepthView(GraphView1D):
             depth_thermo = self.options[0]
             self.x = self.model.get_dates()
             for quantile in self.options[1]:
-                self.y[f"Température à la profondeur {depth_thermo:.3f} m - quantile {quantile}"] = self.model.get_temp_by_date(depth_thermo, quantile)
+                self.y[f"Temperature at depth {depth_thermo:.3f} m - quantile {quantile}"] = self.model.get_temp_by_date(depth_thermo, quantile)
 
 class WaterFluxView(GraphView1D):
     """
@@ -269,7 +269,7 @@ class TempMapView(GraphView2D):
     """
     Concrete class for the heat map.
     """
-    def __init__(self, molomodel: MoloModel | None, time_dependent=True, title="", xlabel="", ylabel="Depth (m)"):
+    def __init__(self, molomodel: MoloModel | None, time_dependent=True, title="Temperature (C)", xlabel="", ylabel="Depth (m)"):
         super().__init__(molomodel, time_dependent, title, xlabel, ylabel)
 
     def retrieve_data(self):

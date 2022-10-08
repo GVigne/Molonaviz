@@ -17,17 +17,17 @@ class DialogExportCleanedMeasures(QtWidgets.QDialog,From_DialogExportCleanedMeas
         self.lineEditTemperaturesName.setText(f"cleanedTemperatures{spoint.name}")
 
         self.pushButtonBrowse.clicked.connect(self.browseDir)
-    
+
     def accept(self):
         """
         This is an overloaded function, called when the user presses the "OK" button.
         Make the directory given is a valid by the user.
         """
         if not os.path.isdir(self.lineEditCleanMeasDir.text()):
-            displayCriticalMessage("The directory does not exist. Please give another one.")
+            displayCriticalMessage("This directory does not exist. Please select another one.")
             return
         super().accept()
-        
+
     def browseDir(self):
         """
         Display a dialog so that the user may choose the target directory
@@ -35,7 +35,7 @@ class DialogExportCleanedMeasures(QtWidgets.QDialog,From_DialogExportCleanedMeas
         fileDir = QtWidgets.QFileDialog.getExistingDirectory(self, "Select target directory")
         if fileDir:
             self.lineEditCleanMeasDir.setText(fileDir)
-    
+
     def getFilesNames(self):
         """
         Return the correctly formated file paths.
@@ -44,7 +44,7 @@ class DialogExportCleanedMeasures(QtWidgets.QDialog,From_DialogExportCleanedMeas
         pressPath = os.path.join(fileDir, self.lineEditPressuresName.text())
         tempPath = os.path.join(fileDir, self.lineEditTemperaturesName.text())
         return self.addCSVExtension(pressPath), self.addCSVExtension(tempPath)
-    
+
     def addCSVExtension(self, filePath : str):
         """
         Add the .csv extension to the given file path if it already isn't there.

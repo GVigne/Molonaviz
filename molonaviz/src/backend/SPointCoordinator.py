@@ -128,7 +128,8 @@ class SPointCoordinator:
         select_data.exec()
         result = []
         while select_data.next():
-            result.append(([select_data.value(i) for i in range(5)],[select_data.value(0), select_data.value(6),select_data.value(5)]))
+            result.append(([databaseDateToDatetime(select_data.value(0))] + [select_data.value(i) for i in range(1,5)],
+                           [databaseDateToDatetime(select_data.value(0)), select_data.value(6),select_data.value(5)]))
         return result
 
     def layers_depths(self):
