@@ -11,10 +11,10 @@ class DialogOpenStudy(QtWidgets.QDialog,From_DialogOpenStudy):
         super(DialogOpenStudy, self).__init__()
         QtWidgets.QDialog.__init__(self)
         self.setupUi(self)
-        
+
         for study in studies:
             self.comboBoxShowStudies.addItem(study)
-    
+
     def selectedStudy(self):
         """
         Return the currently selected study.

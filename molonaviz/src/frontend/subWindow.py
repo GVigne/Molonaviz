@@ -10,7 +10,7 @@ class SubWindow(QtWidgets.QMdiSubWindow):
         super(SubWindow, self).__init__()
         QtWidgets.QMdiSubWindow.__init__(self)
         self.setWidget(wdg)
-    
+
     def closeEvent(self, event):
         """
         Remove the subwindow en closing the event (this is not done by default).
@@ -18,6 +18,6 @@ class SubWindow(QtWidgets.QMdiSubWindow):
         mdi = self.mdiArea()
         mdi.removeSubWindow(self)
         event.accept()
-          
+
 
 

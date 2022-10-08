@@ -11,7 +11,7 @@ class DialogAboutUs(QtWidgets.QDialog,From_DialogAboutUs):
     def __init__(self):
         super(DialogAboutUs, self).__init__()
         QtWidgets.QDialog.__init__(self)
-        
+
         self.setupUi(self)
 
         logoMines = os.path.join(os.path.dirname(__file__), "..", "..", "imgs","LogoMines.jpeg")

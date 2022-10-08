@@ -6,10 +6,6 @@ The config.txt file is created when the user wishes the path to the database be 
 
 DER_IHM.sql contains all the queries (in SQL language) required to recreate the database. It has been generated with the export function of Sqlite Studio.
 
-Studies and laboratories must have unique names for now (ie there is a UNIQUE constraint in the database).
-
-MoloTreeViewModel and MoloQtList are meant to work with object having at least the unique field or attribute "name". In Molonaviz, the objects used are "Containers" which only purpose is to store different fields, much like a SQL table.
-
 /!\ /!\ /!\ Requires python 3.10 for type hints /!\ /!\ /!\
 /!\ /!\ /!\ Not compatible with Python older than 3. exec was a reserveed keyword, so all QT code requiring to execute something (app.exec, dialog.exec, Query.exec...) used an underscore. The functions exec and exec were the same. In Python >3 exec is no longer reserved, and in PyQT6, exec disappears entirely. So, use exec and not exec /!\ /!\ /!\
 
@@ -29,7 +25,6 @@ Known bugs:
 -Compute sometimes fail after computations, with error saying directmodel must first be launched before getting data.
 -The C++ file which writes sensor data to csv take dates in the format YYYY:MM:DD:HH:MM:SS (and sampling time in format HH:MM:SS) but writes on the CSV file dates in format YYYY/MM/DD HH:MM:SS
 -When changing database, since the con is closed and config.txt removed BEFORE opening the "Select database dialog", if the user quits this dialog, then the action is not canceled as it should be.
-
 
 Warning: Discrepancy
 -The values in the Layer table correspond to the bottom of the layer. The values in Depth correspond to the middle of the cells.

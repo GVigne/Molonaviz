@@ -13,7 +13,7 @@ class DialogImportLab(QtWidgets.QDialog,From_DialogImportLab):
         self.setupUi(self)
 
         self.pushButtonBrowse.clicked.connect(self.browseDir)
-        
+
     def browseDir(self):
         """
         Display a dialog so that the user may choose the laboratory's directory.
@@ -21,7 +21,7 @@ class DialogImportLab(QtWidgets.QDialog,From_DialogImportLab):
         fileDir = QtWidgets.QFileDialog.getExistingDirectory(self, "Select Laboratory Directory")
         if fileDir:
             self.lineEditLabDir.setText(fileDir)
-    
+
     def getLaboInfo(self):
         """
         Return the path to the directory representing the lab as well as it's name. If there was some kind of problem, return two empty strings instead.

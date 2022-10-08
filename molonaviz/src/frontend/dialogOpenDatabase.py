@@ -35,7 +35,7 @@ class DialogOpenDatabase(QtWidgets.QDialog,From_DialogOpenDatabase):
             self.lineEditExistingDataDir.setText(fileDir)
             self.lineEditCreateDataDir.setText("")
             self.lineEditDataName.setText("")
-    
+
     def browseCreateDir(self):
         """
         Display a dialog so that the user may where to create a new database directory.
@@ -44,7 +44,7 @@ class DialogOpenDatabase(QtWidgets.QDialog,From_DialogOpenDatabase):
         if fileDir:
             self.lineEditCreateDataDir.setText(fileDir)
             self.lineEditExistingDataDir.setText("")
-    
+
     def getDir(self):
         """
         Return the directory path given by the user, a boolean stating if the database should be created (True) or if it already exists (False), and the name of the new database (empty string if the user tries to open an existing one).

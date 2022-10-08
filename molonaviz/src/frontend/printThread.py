@@ -9,13 +9,13 @@ class InterceptOutput:
     """
     def __init__(self, queue : Queue):
         self.queue = queue
-    
+
     def write(self, text : str):
         """
         Method called when trying to print something. This is an overloaded function.
         """
         self.queue.put(text)
-    
+
     def flush(self):
         """
         This function is necessary so no error occurs: however, it can be empty. See this Stack Overflow (https://stackoverflow.com/questions/20525587/python-logging-in-multiprocessing-attributeerror-logger-object-has-no-attrib) for more information.

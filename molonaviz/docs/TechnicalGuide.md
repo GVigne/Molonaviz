@@ -90,8 +90,8 @@ From a developper perspective, to implement a new feature:
     - different getters for the frontend
     - if the model has to have some sort of internal data (a list, a dataframe...), then it should implement the `update_data` and `reset_data` functions, which respectively update the inner data when new queries are being executed, and delete all inner data when clearing the model.
 - create a frontend object inheriting from `MoloView`, the highest abstract class representing a view. The view may also inherit from other objects: for example, the `GraphView` is a view which can display time series on a matplotlib canvas. It should implement at least:
-    - the `on_update` function, which is called whenever the *dataChanged* signal is catched.
-    - the `retrieve_data` function which uses the associated model's getters to fetch information
+    - the `onUpdate` function, which is called whenever the *dataChanged* signal is catched.
+    - the `retrieveData` function which uses the associated model's getters to fetch information
     - the `rest_data` function which clears all internal data in the view (ie revert it to a blank state).
 - to use the new view and model, one has to create an instance of the new view by giving it the appropriate instance of the new model. The frontend can now implement aditionnal features (such as matplotlib features) to present data in a nice way.
 

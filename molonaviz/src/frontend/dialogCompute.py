@@ -31,7 +31,7 @@ class DialogCompute(QtWidgets.QDialog, From_DialogCompute):
         self.groupBoxMCMC.setChecked(False)
 
         self.setDefaultValues()
-    
+
     def setDefaultValues(self):
         """
         Set the default values in the tables for both the direct model and the MCMC
@@ -57,7 +57,7 @@ class DialogCompute(QtWidgets.QDialog, From_DialogCompute):
         self.lineEditThermalCapacityMin.setText("1000")
         self.lineEditThermalCapacityMax.setText("1e7")
         self.lineEditThermalCapacitySigma.setText("100")
-        
+
         self.lineEditQuantiles.setText("0.05,0.5,0.95")
 
     def updateNBLayers(self, nb_layers : int):
@@ -81,17 +81,17 @@ class DialogCompute(QtWidgets.QDialog, From_DialogCompute):
         This function is called when the user presses the "Run" button: it corresponds to the "Accept" button.
         """
         super().accept()
-    
+
     def computationIsMCMC(self):
         """
         Return True if the user wishes to compute the MCMC, and false if he wants to compute the direct model.
         """
         return self.groupBoxMCMC.isChecked()
-               
+
     def getInputDirectModel(self):
         """
         Return the values entered by the user for direct model computations as a list of list and the number of cells. The list of list corresponds to the parameters for each layer.
-        """ 
+        """
         nb_cells = self.spinBoxNCellsDirect.value()
         nb_layers = self.spinBoxNLayersDirect.value()
         depths = []
@@ -99,7 +99,7 @@ class DialogCompute(QtWidgets.QDialog, From_DialogCompute):
         porosity = []
         thermconduct = []
         thermcap = []
-        
+
         for i in range (nb_layers):
             log10permeability.append(-log10(abs(float(self.tableWidget.item(i, 1).text())))) #Apply -log10 to the permeability values
             porosity.append(float(self.tableWidget.item(i, 2).text()))
@@ -112,7 +112,7 @@ class DialogCompute(QtWidgets.QDialog, From_DialogCompute):
     def getInputMCMC(self):
         """
         Return the values entered by the user for MCMC computation.
-        """ 
+        """
         nb_iter = int(self.lineEditMaxIterMCMC.text())
         nb_cells = self.spinBoxNCellsDirect.value()
 
@@ -153,5 +153,5 @@ class DialogCompute(QtWidgets.QDialog, From_DialogCompute):
         quantiles = quantiles.split(",")
         quantiles = tuple(quantiles)
         quantiles = [float(quantile) for quantile in quantiles]
-        
+
         return nb_iter, all_priors, nb_cells, quantiles

@@ -13,16 +13,16 @@ class DialogCreateStudy(QtWidgets.QDialog,From_DialogCreateStudy):
         super(DialogCreateStudy, self).__init__()
         QtWidgets.QDialog.__init__(self)
         self.setupUi(self)
-        
+
         for lab in labs:
             self.comboBoxShowLabs.addItem(lab)
-    
+
     def selectedLab(self):
         """
         Return the currently selected laboratory.
         """
         return self.comboBoxShowLabs.currentText()
-    
+
     def studyName(self):
         """
         Return the name of the study.
