@@ -3,12 +3,12 @@ from src.MoloModel import MoloModel
 from src.utils.utils import build_picture, databaseDateToDatetime
 
 """
-This file regroups different models used to display graphs in the window showing the sampling point results. 
+This file regroups different models used to display graphs in the window showing the sampling point results.
 """
 
 class PressureDataModel(MoloModel):
     """
-    A model to display the presure as given by the captors (raw or cleaned data).
+    A model to display the pressure as given by the captors (raw or cleaned data).
     """
     def __init__(self, queries):
         super().__init__(queries)
@@ -28,13 +28,13 @@ class PressureDataModel(MoloModel):
             return self.array_data[:,1]
         except Exception:
             return np.array([])
-    
+
     def get_dates(self):
         try:
             return databaseDateToDatetime(self.array_data[:,0])
         except Exception:
             return np.array([])
-    
+
     def reset_data(self):
         self.array_data = []
 
@@ -60,13 +60,13 @@ class TemperatureDataModel(MoloModel):
             return [self.array_data[:, i] for i in range(1,6)]
         except Exception:
             return np.array([])
-    
+
     def get_dates(self):
         try:
             return databaseDateToDatetime(self.array_data[:,0])
         except Exception:
             return np.array([])
-    
+
     def reset_data(self):
         self.array_data = []
 
@@ -78,7 +78,7 @@ class WaterFluxModel(MoloModel):
         super().__init__(queries)
         self.flows = {}
         self.dates=[]
-    
+
     def update_data(self):
         try:
             #Initialize data structures
@@ -99,16 +99,20 @@ class WaterFluxModel(MoloModel):
         except Exception:
             #Empty query or invalid query: then revert any changes done. The model is empty: nothing will be displayed.
             self.reset_data()
-    
+
     def get_water_flow(self):
         """
         Return a dictionnary with keys beings the quantiles and values being the arrays of associated flows.
         """
-        return {key:np.array(value) for index, (key,value) in enumerate(self.flows.items())}
-    
+        try :
+            return self.flows[0], {key:np.array(value) for index, (key,value) in enumerate(self.flows.items()) if key !=0}
+        except Exception:
+            # Quantile 0 (direct model) doesn't exists
+            return np.array([]), {}
+
     def get_dates(self):
         return databaseDateToDatetime(np.array(self.dates))
-    
+
     def reset_data(self):
         self.flows = {}
         self.dates=[]
@@ -122,7 +126,7 @@ class SolvedTemperatureModel(MoloModel):
         self.dates = []
         self.data = {}
         self.depths = []
-    
+
     def update_data(self):
         try:
             while self.queries[0].next():
@@ -145,7 +149,7 @@ class SolvedTemperatureModel(MoloModel):
             #Empty query or invalid query: then revert any changes done. The model is empty: nothing will be displayed.
             self.reset_data()
 
-    
+
     def get_temperatures_cmap(self,quantile):
         """
         Given a quantile, return the associated heat map.
@@ -154,13 +158,13 @@ class SolvedTemperatureModel(MoloModel):
             return self.data[quantile]
         except Exception:
             return np.array([[]])
-    
+
     def get_depths(self):
         return np.array(self.depths)
-    
+
     def get_dates(self):
         return databaseDateToDatetime(np.array(self.dates))
-    
+
     def get_depth_by_temp(self,nb_dates):
         """
         Return a list and a dictionnary:
@@ -177,7 +181,7 @@ class SolvedTemperatureModel(MoloModel):
             return self.depths,result
         except Exception:
             return np.array([]), {}
-    
+
     def get_temp_by_date(self,depth,quantile):
         """
         Return the temperatures for a given depth and quantile.
@@ -186,12 +190,12 @@ class SolvedTemperatureModel(MoloModel):
             return self.data[quantile][np.where(self.depths==depth)[0][0],:]
         except Exception:
             return np.array([])
-    
+
     def reset_data(self):
         self.dates = []
         self.data = {}
         self.depths = []
-    
+
 class HeatFluxesModel(MoloModel):
     """
     A model to display the three heat fluxes (advective, conductive, total)
@@ -221,31 +225,31 @@ class HeatFluxesModel(MoloModel):
         except Exception:
             #Empty query or invalid query: then revert any changes done. The model is empty: nothing will be displayed.
             self.reset_data()
-    
+
     def get_depths(self):
         return np.array(self.depths)
-    
+
     def get_dates(self):
         return databaseDateToDatetime(np.array(self.dates))
-    
+
     def get_advective_flow(self):
         if len(self.advective) ==0:
             #The model is empty!
             return np.array([[]])
         return self.advective
-    
+
     def get_conductive_flow(self):
         if len(self.conductive)==0:
             #The model is empty!
             return np.array([[]])
         return self.conductive
-    
+
     def get_total_flow(self):
         if len(self.total)==0:
             #The model is empty!
             return np.array([[]])
         return self.total
-    
+
     def reset_data(self):
         self.dates = []
         self.array_data = []
@@ -264,7 +268,7 @@ class ParamsDistributionModel(MoloModel):
         self.porosity = []
         self.conductivity = []
         self.capacity = []
-    
+
     def update_data(self):
         try:
             while self.queries[0].next():
@@ -285,10 +289,10 @@ class ParamsDistributionModel(MoloModel):
 
     def get_conductivity(self):
         return np.array(self.conductivity)
-    
+
     def get_porosity(self):
         return np.array(self.porosity)
-    
+
     def get_capacity(self):
         return np.array(self.capacity)
 
