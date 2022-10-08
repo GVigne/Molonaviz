@@ -14,22 +14,22 @@ class MoloView:
         if molomodel is not None:
             self.register(molomodel)
         self.model = molomodel
-    
+
     def register(self, model : MoloModel | None):
         """
         Subscribe this view to the given MoloModel.
         """
         if model is not None:
-            model.dataChanged.connect(self.on_update)
+            model.dataChanged.connect(self.onUpdate)
 
     def unregister(self):
         """
         Unsubscribe this view to its model, if there is one.
         """
         if self.model is not None:
-            self.model.dataChanged.disconnect(self.on_update)
+            self.model.dataChanged.disconnect(self.onUpdate)
             self.model = None
-    
+
     def subscribe_model(self, molomodel : MoloModel):
         """
         Revert the view to an empty state, then subscribe to the new given model.
@@ -37,29 +37,28 @@ class MoloView:
         class, there is no guarentee the view will work or won't throw exceptions. Before trying to display
         or update anything, a model MUST be set.
         """
-        self.reset_data()
+        self.resetData()
         self.unregister()
         self.register(molomodel)
         self.model = molomodel
 
-    def on_update(self):
+    def onUpdate(self):
         """
         This method is called when the model notifies that some data has changed. It must be overloaded for
         the child classes.
         """
         pass
-    
-    def retrieve_data(self):
+
+    def retrieveData(self):
         """
         Fetch appropriate data from model. This must be overloaded for child classes, and should probably be
-        called by on_update.
+        called by onUpdate.
         """
         pass
-    
-    def reset_data(self):
+
+    def resetData(self):
         """
         Reset all internal data to a base state representing an empty view. This must be overloaded for child
         classes.
         """
         pass
-       

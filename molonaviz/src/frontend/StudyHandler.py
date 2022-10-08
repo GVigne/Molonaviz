@@ -22,48 +22,48 @@ class StudyHandler:
 
         self.spointCoordinator = None
         self.spointViewer = None
-    
-    def get_spoint_model(self):
+
+    def getSPointModel(self):
         """
         Return the sampling point model.
         """
         return self.spointManager.get_spoint_model()
-    
-    def get_spoints_names(self):
+
+    def getSPointsNames(self):
         """
         Return the list of the names of the sampling points.
         """
         return self.spointManager.get_spoints_names()
-    
-    def refresh_spoints(self):
+
+    def refreshSpoints(self):
         """
         Refresh sampling points information
         """
         self.spointManager.refresh_spoints()
-    
+
     def importSPoint(self, name : str, psensor : str, shaft : str, infofile : str, noticefile : str, configfile : str, prawfile : str, trawfile : str):
         """
         Import a new sampling point from given files.
         """
         #Cleanup the .csv files
         infoDF = pd.read_csv(infofile, header=None)
-        infoDF[1][3] = pd.to_datetime(infoDF[1][3]) 
+        infoDF[1][3] = pd.to_datetime(infoDF[1][3])
         infoDF[1][4] = pd.to_datetime(infoDF[1][4]) #Convert dates to datetime (or here Timestamp) objects
         #Readings csv
         dfpress = pd.read_csv(prawfile)
         dfpress.columns = ["Date", "Voltage", "Temp_Stream"]
         dfpress.dropna(inplace=True)
         convertDates(dfpress) #Convert dates to datetime (or here Timestamp) objects
-        
+
         dftemp = pd.read_csv(trawfile)
         dftemp.columns = ["Date", "Temp1", "Temp2", "Temp3", "Temp4"]
         dftemp.dropna(inplace=True)
         convertDates(dftemp) #Convert dates to datetime (or here Timestamp) objects
-       
+
         #Give the dataframes to the backend
         self.spointManager.create_new_spoint(name, psensor, shaft, noticefile, configfile, infoDF, dfpress, dftemp)
         self.spointManager.refresh_spoints()
-    
+
     def openSPoint(self, spointName : str):
         """
         Open the sampling point with the name spointName.

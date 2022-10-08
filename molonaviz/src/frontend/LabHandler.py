@@ -9,42 +9,42 @@ class LabHandler:
     """
     def __init__(self, con : QSqlDatabase, labName : str):
         self.labManager = LabEquipementManager(con, labName)
-    
-    def get_thermo_model(self):
+
+    def getThermoModel(self):
         """
-        Return the thermometers backend model. 
+        Return the thermometers backend model.
         """
         return self.labManager.get_thermo_model()
-    
-    def get_psensor_model(self):
+
+    def getPSensorModel(self):
         """
-        Return the thermometers pressure sensor model. 
+        Return the thermometers pressure sensor model.
         """
         return self.labManager.get_psensor_model()
-    
-    def get_shaft_model(self):
+
+    def getShaftModel(self):
         """
-        Return the shaft pressure sensor model. 
+        Return the shaft pressure sensor model.
         """
         return self.labManager.get_shaft_model()
-    
-    def refresh_detectors(self):
+
+    def refreshDetectors(self):
         """
         Refresh the detectors data
         """
         self.labManager.refresh_detectors()
-    
-    def get_psensors_names(self):
+
+    def getPSensorsNames(self):
         """
         Return the list of the names of the pressure sensors.
         """
         return self.labManager.get_psensors_names()
-    
-    def get_shafts_names(self):
+
+    def getShaftsNames(self):
         """
         Return the list of the names of the shafts.
         """
         return self.labManager.get_shafts_names()
-    
+
     def close(self):
         pass

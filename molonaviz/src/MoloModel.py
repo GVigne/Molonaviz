@@ -14,7 +14,7 @@ class MoloModel(QObject):
         QObject.__init__(self)
         self.queries = queries
         self.data = None
-    
+
     def new_queries(self, queries):
         """
         This function should only be called by backend users.
@@ -23,7 +23,7 @@ class MoloModel(QObject):
         self.queries = queries
         self.reset_data()
         self.exec()
-    
+
     def exec(self):
         """
         Execute all queries and notify the subscribed views that the data has been modified.
@@ -40,7 +40,7 @@ class MoloModel(QObject):
         This function must be overloaded if the data field is not trivial and must be updated when executing queries.
         """
         pass
-    
+
     def reset_data(self):
         """
         Reinitialise all data. This should only be called when the frontend user wants a new set of queries to be

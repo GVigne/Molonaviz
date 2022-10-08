@@ -81,7 +81,7 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         self.pushButtonExportMeasures.clicked.connect(self.exportMeasures)
         self.checkBoxRawData.stateChanged.connect(self.changeMeasuresState)
         self.pushButtonRefreshBins.clicked.connect(self.refreshbins)
-        self.horizontalSliderBins.valueChanged.connect(self.label_update)
+        self.horizontalSliderBins.valueChanged.connect(self.labelUpdate)
 
         #Enable or disable computations buttons
         self.handleComputationsButtons()
@@ -156,25 +156,25 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         Refresh type of data displayed (raw or processed) when the checkbox "Show Raw Measures" changes state.
         """
         self.setPressureAndTemperatureTables()
-        self.graphpress.show_voltage_label(self.checkBoxRawData.isChecked())
+        self.graphpress.showVoltageLabel(self.checkBoxRawData.isChecked())
         self.coordinator.refresh_measures_plots(self.checkBoxRawData.isChecked())
         self.linkAllViewsLayouts()
 
     def refreshbins(self):
         bins = self.horizontalSliderBins.value()
-        self.logk_view.update_bins(bins)
-        self.logk_view.on_update()
+        self.logk_view.updateBins(bins)
+        self.logk_view.onUpdate()
 
-        self.conductivity_view.update_bins(bins)
-        self.conductivity_view.on_update()
+        self.conductivity_view.updateBins(bins)
+        self.conductivity_view.onUpdate()
 
-        self.porosity_view.update_bins(bins)
-        self.porosity_view.on_update()
+        self.porosity_view.updateBins(bins)
+        self.porosity_view.onUpdate()
 
-        self.capacity_view.update_bins(bins)
-        self.capacity_view.on_update()
+        self.capacity_view.updateBins(bins)
+        self.capacity_view.onUpdate()
 
-    def label_update(self):
+    def labelUpdate(self):
         self.labelBins.setText(str(self.horizontalSliderBins.value()))
 
     def setWidgetInfos(self):
@@ -245,7 +245,6 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         self.labelRMSETherm2.setText(f"RMSE: {thermRMSE[1] if thermRMSE[1] else 0:.2f} °C")
         self.labelRMSETherm3.setText(f"RMSE: {thermRMSE[2] if thermRMSE[2] else 0:.2f} °C")
 
-
     def removeAllCheckboxes(self):
         """
         Remove every checkbox in the quantile layout except the one for direct model.
@@ -289,8 +288,8 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         #Hackish way to make sure depth_id is 1, 2 or 3: the app will crash if it's not one of these (depth_id not defined)
         #This shouldn't happen though, as it would violate the radio button's behaviour
         thermoDepth = self.coordinator.thermo_depth(depth_id)
-        self.depth_view.update_options([thermoDepth,quantiles])
-        self.depth_view.on_update() #Refresh the view
+        self.depth_view.updateOptions([thermoDepth,quantiles])
+        self.depth_view.onUpdate() #Refresh the view
 
     def setPressureAndTemperatureTables(self):
         """

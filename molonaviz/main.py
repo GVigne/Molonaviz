@@ -69,7 +69,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.actionChangeDatabase.triggered.connect(self.closeDatabase)
 
         self.treeViewDataSPoints.doubleClicked.connect(self.openSPointFromDock)
-    
+
         #Some actions or menus should not be enabled: disable them
         self.actionCloseStudy.setEnabled(False)
         self.menuSPoint.setEnabled(False)
@@ -84,11 +84,11 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.study_lab_manager = StudyAndLabManager(self.con)
         self.currentStudy = None
         self.currentLab = None
-        
+
     def openDatabase(self):
         """
         If the user has never opened the database of if the config file is not valid (as a reminder, config is a text document containing the path to the database), display a dialog so the user may choose th e database directory.
-        Then, open the database in the directory. 
+        Then, open the database in the directory.
         """
         databaseDir = None
         createNewDatabase = False
@@ -98,7 +98,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
             with open(os.path.join(os.path.dirname(__file__),'config.txt')) as f:
                 databaseDir = f.readline()
         except OSError:
-            #The config file does not exist. 
+            #The config file does not exist.
             dlg = DialogOpenDatabase()
             dlg.setWindowModality(QtCore.Qt.ApplicationModal)
             res = dlg.exec()
@@ -109,7 +109,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
                 #If the user cancels or quits the dialog, quit Molonaviz.
                 #This is a bit brutal. Maybe there can be some other way to quit via Qt: the problem is that, at this point in the script, the app (QtWidgets.QApplication) has not been executed yet.
                 sys.exit()
-        
+
         #Now create or check the integrity of the folder given by databaseDir
         if createNewDatabase:
             #Create all folders and subfolders
@@ -139,7 +139,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
             with open(os.path.join(os.path.dirname(__file__),'config.txt'), 'w') as f:
                 #Write (or overwrite) the path to the database file
                 f.write(databaseDir)
-    
+
     def closeChildren(self):
         """
         Close related children: this reverts Molonaviz to its initial state. This should be called when closing the database, or a study. For now, this means
@@ -170,7 +170,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.closeChildren()
         self.con.close()
         self.con = None
-        
+
         self.actionCreateStudy.setEnabled(True)
         self.actionOpenStudy.setEnabled(True)
         self.actionCloseStudy.setEnabled(False)
@@ -182,7 +182,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
 
         if os.path.isfile(os.path.join(os.path.dirname(__file__),'config.txt')):
             os.remove(os.path.join(os.path.dirname(__file__),'config.txt'))
-    
+
         self.openDatabase()
 
     def importLab(self):
@@ -200,7 +200,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
                     self.study_lab_manager.create_new_lab(labname, thermometersDF, psensorsDF, shaftsDF)
                 except InvalidFile:
                     displayCriticalMessage("Some of the files in the laboratory do not match the API. Nothing was added to the database. Please check your files and try again.")
-    
+
     def createStudy(self):
         """
         Display a dialog so the user may create a study.The study is added to the database. Then, open this study (by calling self.openStudy)
@@ -220,7 +220,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
                 else:
                     self.study_lab_manager.create_new_study(userStudyName, userLab)
                     self.openStudy(userStudyName)
-    
+
     def chooseStudyName(self):
         """
         Display a dialog so the user may choose a study to open, or display an error message. Then, open a study (by calling self.openStudy).
@@ -235,7 +235,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
             if res == QtWidgets.QDialog.Accepted:
                 userStudyName = dlg.selectedStudy()
                 self.openStudy(userStudyName)
-    
+
     def openStudy(self, studyName : str):
         """
         Given a VALID name of a study, open it.
@@ -248,17 +248,17 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         labName = self.study_lab_manager.get_lab_names(studyName)[0] #Reminder: get_lab_names returns a list.
         self.currentLab = LabHandler(self.con, labName)
 
-        self.thermoView.subscribe_model(self.currentLab.get_thermo_model())
-        self.psensorView.subscribe_model(self.currentLab.get_psensor_model())
-        self.shaftView.subscribe_model(self.currentLab.get_shaft_model())
-        self.currentLab.refresh_detectors()
+        self.thermoView.subscribe_model(self.currentLab.getThermoModel())
+        self.psensorView.subscribe_model(self.currentLab.getPSensorModel())
+        self.shaftView.subscribe_model(self.currentLab.getShaftModel())
+        self.currentLab.refreshDetectors()
 
         #Open sampling point manager.
-        self.spointView.subscribe_model(self.currentStudy.get_spoint_model())
-        self.currentStudy.refresh_spoints()
+        self.spointView.subscribe_model(self.currentStudy.getSPointModel())
+        self.currentStudy.refreshSpoints()
 
-        self.dockSensors.setWindowTitle(f"Current lab: {labName}") 
-        
+        self.dockSensors.setWindowTitle(f"Current lab: {labName}")
+
         #Enable previously disabled actions, such as the menu used to manage points
         self.actionCreateStudy.setEnabled(False)
         self.actionOpenStudy.setEnabled(False)
@@ -267,14 +267,14 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.actionImportSPoint.setEnabled(True)
         self.actionOpenSPoint.setEnabled(True)
         self.actionRemoveSPoint.setEnabled(True)
-    
+
     def closeStudy(self):
         """
         Close the current study and revert the app to the initial state.
         """
         self.closeChildren()
 
-        self.dockSensors.setWindowTitle(f"Current lab:")     
+        self.dockSensors.setWindowTitle(f"Current lab:")
 
         #Enable and disable actions so as to go back to go back to the initial state (no study opened)
         self.actionCreateStudy.setEnabled(True)
@@ -284,7 +284,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.actionImportSPoint.setEnabled(False)
         self.actionOpenSPoint.setEnabled(False)
         self.actionRemoveSPoint.setEnabled(False)
-    
+
     def importSPoint(self):
         """
         Display a dialog so that the user may import and add to the database a point.
@@ -300,9 +300,9 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
     def openSPointFromAction(self):
         """
         This happens when the user clicks the "Open Point" action. Display a dialog so the user may choose a point to open, or display an error message. Then, open the corresponding point.
-        This function may only be called if a study is opened. 
+        This function may only be called if a study is opened.
         """
-        spointsNames = self.currentStudy.get_spoints_names()
+        spointsNames = self.currentStudy.getSPointsNames()
 
         if len(spointsNames) ==0:
             displayCriticalMessage("No point was found in this study. Please import one first.")
@@ -313,13 +313,13 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
             if res == QtWidgets.QDialog.Accepted:
                 spointName = dlg.selectedSPoint()
                 widgetviewer = self.currentStudy.openSPoint(spointName)
-                
+
                 subwindow = SubWindow(widgetviewer)
                 self.mdiArea.addSubWindow(subwindow)
                 subwindow.show()
 
                 self.switchToSubWindowView()
-    
+
     def openSPointFromDock(self):
         """
         This happens when the user double cliks a point from the dock. Open it.
@@ -360,13 +360,13 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
     def switchToCascadeView(self):
         """
         Rearrange the subwindows to display them in a cascade.
-        """        
+        """
         self.mdiArea.setViewMode(QtWidgets.QMdiArea.SubWindowView)
         self.mdiArea.cascadeSubWindows()
         self.actionSwitchToTabbedView.setEnabled(True)
         self.actionSwitchToSubWindowView.setEnabled(True)
         self.actionSwitchToCascadeView.setEnabled(False) #Disable this action to show the user it is the display mode currently being used.
-    
+
     def changeDockSPointsStatus(self):
         """
         Hide or show the dock displaying the sampling points.
@@ -375,7 +375,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
             self.dockDataSPoints.show()
         else :
             self.dockDataSPoints.hide()
-    
+
     def changeDockSensorsStatus(self):
         """
         Hide or show the dock displaying the sensors.
@@ -384,7 +384,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
             self.dockSensors.show()
         else :
             self.dockSensors.hide()
-    
+
     def changeDockAppMessagesStatus(self):
         """
         Hide or show the dock displaying the application messages.
@@ -422,7 +422,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         except Exception as e:
             pass
         super().close()
-    
+
     def openUserGuideFR(self):
         """
         Display the French user guide in a new window.

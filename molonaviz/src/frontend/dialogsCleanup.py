@@ -44,11 +44,11 @@ class DialogSelectPoints(QtWidgets.QDialog, From_DialogSelectPoints):
 
         self.widgetToolBar.addWidget(self.toolBar)
         self.widgetSelectPoints.addWidget(self.mplCanvas)
-        self.mplCanvas.plot_data(field)
-    
+        self.mplCanvas.plotData(field)
+
     def reset(self):
         self.mplCanvas.reset()
-    
+
     def getSelectedPoints(self):
         return self.mplCanvas.getSelectedPoints()
 
@@ -59,7 +59,7 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
     - self.data is a big dataframe with all the measures (= raw measures)
     - self.manuallySelected is a subset of self.data holding the points selected by the user which should be removed
     - cleanedData is a subset of self.data holding the points selected by the outliers methods which should be removed
-    
+
     Note: currently cleanedData is recomputed everytime we need it. If this becomes an issue, we should change it.
     """
     def __init__(self, coordinator : SPointCoordinator, spoint : SamplingPoint):# coordinator : SPointCoordinator, point : SamplingPoint):
@@ -79,10 +79,10 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
                     } # Conversion between what is displayed on the ui and the corresponding DF column.
         self.comboBoxRawVar.addItems(list(self.uiToDF.keys()))
 
-        self.radioButtonNone.setChecked(True) # This should already be done in the UI      
-        self.radioButtonC.setChecked(True) # This should already be done in the UI 
-        
-        self.radioButtonNone.clicked.connect(self.setNoneComputation) # This should already be done in the UI        
+        self.radioButtonNone.setChecked(True) # This should already be done in the UI
+        self.radioButtonC.setChecked(True) # This should already be done in the UI
+
+        self.radioButtonNone.clicked.connect(self.setNoneComputation) # This should already be done in the UI
         self.radioButtonIQR.clicked.connect(self.setIQRComputation)
         self.radioButtonZScore.clicked.connect(self.setZScoreComputation)
         self.radioButtonF.clicked.connect(self.refreshPlot)
@@ -120,7 +120,7 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
         self.toolBar = NavigationToolbar2QT(self.mplCanvas,self)
         self.widgetToolBar.addWidget(self.toolBar)
         self.widgetRawData.addWidget(self.mplCanvas)
-    
+
         self.refreshPlot()
 
     def buildDF(self):
@@ -129,7 +129,7 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
         """
         backend_data = self.coordinator.all_raw_measures()
         self.data = pd.DataFrame(backend_data, columns = ["Date","Temp1", "Temp2", "Temp3", "Temp4", "TempBed", "Voltage"])
-    
+
     def convertVoltagePressure(self):
         """
         Convert the Voltage column into a (differential) Pressure field, taking into account the calibration information.
@@ -137,7 +137,7 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
         """
         self.data["Pressure"] = (self.data["Voltage"] - self.data["TempBed"]*self.dUdT - self.intercept)/self.dUdH
         self.data.drop(labels="Voltage", axis = 1, inplace = True)
-    
+
     def setupStartEndDates(self):
         """
         Fill the combo boxes with the first date and the last date in the dataframe.
@@ -166,7 +166,7 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
         var = self.uiToDF[self.comboBoxRawVar.currentText()]
         self.varStatus[var] = CleanupStatus.NONE
         self.refreshPlot()
-    
+
     def setIQRComputation(self):
         """
         Set IQR cleanup rule for the current variable.
@@ -174,7 +174,7 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
         var = self.uiToDF[self.comboBoxRawVar.currentText()]
         self.varStatus[var] = CleanupStatus.IQR
         self.refreshPlot()
-    
+
     def setZScoreComputation(self):
         """
         Set Z-Score cleanup rule for the current variable.
@@ -182,7 +182,7 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
         var = self.uiToDF[self.comboBoxRawVar.currentText()]
         self.varStatus[var] = CleanupStatus.ZSCORE
         self.refreshPlot()
-    
+
     def showNewVar(self):
         """
         Refresh the plots and update the radio buttons for the current variable.
@@ -209,17 +209,17 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
     def refreshPlot(self):
         """
         Refresh the plot according to the variable the user is looking at.
-        Currently, this implies recomputing the for every variable the decomposition (IQR, Zscore or None). If this is problem, this should be changed: however, we are only looking at ~10 variables on a dataframe of ~5000 entries, so it really shouldn't be a limitation. 
+        Currently, this implies recomputing the for every variable the decomposition (IQR, Zscore or None). If this is problem, this should be changed: however, we are only looking at ~10 variables on a dataframe of ~5000 entries, so it really shouldn't be a limitation.
         """
-        cleanedData = self.computeCleanedData() 
+        cleanedData = self.computeCleanedData()
         reference_data, cleanedData = self.applyTemperatureChanges(cleanedData)
 
-        self.mplCanvas.set_reference_data(reference_data)
+        self.mplCanvas.setReferenceData(reference_data)
         self.mplCanvas.set_cleaned_data(cleanedData)
         self.mplCanvas.set_selected_data(self.manuallySelected)
         displayVar = self.uiToDF[self.comboBoxRawVar.currentText()]
-        self.mplCanvas.plot_data(displayVar)
-    
+        self.mplCanvas.plotData(displayVar)
+
     def applyDateBoundariesChanges(self, cleanedData : pd.DataFrame):
         """
         Apply date restriction on the total dataframe. The rejected points (ie those which should not be kept) should be merged into the dataframe given as argument.
@@ -229,8 +229,8 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
         - the end date is before the first date in the dataframe
         - the end date is before the start date
         """
-        pd_startDate = pd.Timestamp(day = self.spinBoxStartDay.value(), 
-                                    month = self.spinBoxStartMonth.value(), 
+        pd_startDate = pd.Timestamp(day = self.spinBoxStartDay.value(),
+                                    month = self.spinBoxStartMonth.value(),
                                     year = self.spinBoxStartYear.value(),
                                     hour = 0,
                                     minute = 0,
@@ -253,7 +253,7 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
             cleanedData.drop_duplicates(inplace = True)
             cleanedData.dropna(inplace = True) # For sanity purposes
             return cleanedData
-            
+
     def applyCleanupChanges(self, cleanedData : pd.DataFrame):
         """
         Apply the cleanup changes requested for every variable. The rejected points (ie those which should not be kept) should be merged into the dataframe given as argument.
@@ -272,7 +272,7 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
             cleanedData.drop_duplicates(inplace = True)
         cleanedData.dropna(inplace = True) # For sanity purposes
         return cleanedData
-    
+
     def applyIQR(self, varName : str):
         """
         Applies IQR method to the total dataframe on variable varName. Return a list of the points which should be removed.
@@ -291,14 +291,14 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
 
     def applyZScore(self, varName : str):
         """
-        Applies IQR method to the total dataframe on variable varName. Return a list of the points which should be removed.        
+        Applies IQR method to the total dataframe on variable varName. Return a list of the points which should be removed.
         """
         mask = (np.abs(stats.zscore(self.data[varName])) > 3)
         return self.data[mask]
-    
+
     def CtoF(self, x):
         return x*1.8 + 32
-    
+
     def CtoK(self,x):
         return x+273.15
 
@@ -340,7 +340,7 @@ class DialogCleanup(QtWidgets.QDialog, From_DialogCleanup):
         self.setupStartEndDates()
 
         self.refreshPlot()
-    
+
     def openSelectPointsWindow(self):
         """
         Open a small windwo allowing the user to select manually points for the current variable.

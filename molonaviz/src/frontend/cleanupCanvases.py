@@ -13,12 +13,12 @@ def createEmptyDf():
         Return an empty dataframe with the correct fields.
         WARNING: if the fields do not have the correct type, the merges may fail, especially for the dates! Pandas can't merge a Timestamp and a Series of type object, even if it is empty!
         """
-        df = pd.DataFrame({"Date" : pd.Series(dtype='datetime64[ns]'), 
+        df = pd.DataFrame({"Date" : pd.Series(dtype='datetime64[ns]'),
                             "Temp1" : pd.Series(dtype='float64'),
-                            "Temp2" : pd.Series(dtype='float64'), 
-                            "Temp3" : pd.Series(dtype='float64'), 
-                            "Temp4" : pd.Series(dtype='float64'), 
-                            "TempBed" : pd.Series(dtype='float64'), 
+                            "Temp2" : pd.Series(dtype='float64'),
+                            "Temp3" : pd.Series(dtype='float64'),
+                            "Temp4" : pd.Series(dtype='float64'),
+                            "TempBed" : pd.Series(dtype='float64'),
                             "Pressure" : pd.Series(dtype='float64')})
         return df
 
@@ -37,20 +37,20 @@ class CompareCanvas(FigureCanvasQTAgg):
         self.reference_data = reference_data
         self.cleaned_data = createEmptyDf()
         self.selected_data = createEmptyDf()
-    
-    def set_reference_data(self, data):
+
+    def setReferenceData(self, data):
         """
         Set the given dataframe as the reference data.
         """
         self.reference_data = data
-    
+
     def set_cleaned_data(self, data):
         self.cleaned_data = data
-    
+
     def set_selected_data(self, data):
         self.selected_data = data
 
-    def plot_data(self, field):
+    def plotData(self, field):
         """
         Plot given field (Pressure, Temp1, Temp2, Temp3, Temp4 or TempBed).
         """
@@ -81,13 +81,13 @@ class CompareCanvas(FigureCanvasQTAgg):
         # All \ ({cleaned} u {selected_points})
         modified_u_selected.drop(labels="_merge", axis = 1, inplace = True)
         all_but_modified_and_selected = self.reference_data.merge(modified_u_selected, on=["Date", "Temp1","Temp2", "Temp3", "Temp4", "TempBed", "Pressure"], how = 'left', indicator = True)
-        untouched = all_but_modified_and_selected[all_but_modified_and_selected["_merge"] == "left_only"]  
-        
+        untouched = all_but_modified_and_selected[all_but_modified_and_selected["_merge"] == "left_only"]
+
         untouched.plot.scatter(x ="Date", y = field, c = 'b', s = 1, ax = self.axes)
-        
+
         self.format_xaxis()
         self.fig.canvas.draw()
-    
+
     def format_xaxis(self):
         formatter = mdates.DateFormatter("%y/%m/%d %H:%M")
         self.axes.xaxis.set_major_formatter(formatter)
@@ -98,7 +98,7 @@ class SelectCanvas(CompareCanvas):
     An interactive matplolib allowing the user to select points. Since it inherits from CompareCanvas, it can plot 3 types of curves, and follows the almost the same rules. Although SelectCanvas holds the dataframes with all columns, it can only show one of these columns on the y axis.
 
     SelectCanvas holds the last selection made by the user in self.last_selection. Not that this is not the same as CompareCanvas.selected_data: if the user selects some points in variable A, then move on to variable B, we should both:
-        - display the points manually selected in A 
+        - display the points manually selected in A
         - display the last selection done on A
     These should be of the same color.
     """
@@ -116,7 +116,7 @@ class SelectCanvas(CompareCanvas):
         var_plotted = self.reference_data.copy(deep = True)
         mask = self.inside(event1, event2)
         self.last_selection = var_plotted[mask]
-        self.plot_data(self.field)
+        self.plotData(self.field)
 
     def inside(self, event1, event2):
         """
@@ -129,7 +129,7 @@ class SelectCanvas(CompareCanvas):
         x1 = mdates.num2date(x1)
 
         # self.x is a pandas dataframe with TIMESTAMPS and not datetime objects. Calling self.x.dt.date convert it to a dataframe with datetime.date objects and not datetime.datetime objects (which also have the hour, minutes and seconds)
-        # After some research, it seems a panda dataframe can only hold datetime.date objects and not datetime.datetime objects (with hours and so on). So we have to convert x0 et and x1 to timestamps. 
+        # After some research, it seems a panda dataframe can only hold datetime.date objects and not datetime.datetime objects (with hours and so on). So we have to convert x0 et and x1 to timestamps.
         # BUT! It's not done! self.x is a list of Timestamps without any timezone! However, x0 and x1 use the default timezone (utc).
         # When trying to compare x0 and self.x, pandas will fallback to the default implementation of the Timestamps, which is np.datetime64, which bugs as it tries to compare an timezone unaware date and a timezone specific one. And you still wonder why I hate pandas?
         x0 = x0.replace(tzinfo = None)
@@ -138,18 +138,18 @@ class SelectCanvas(CompareCanvas):
         x1 = pd.Timestamp(x1)
         mask = ((self.x > x0) & (self.x < x1) &
                 (self.y > y0) & (self.y < y1))
-        return mask 
-    
-    def plot_data(self, field):
+        return mask
+
+    def plotData(self, field):
         save_selected_points = self.selected_data.copy(deep = True)
         self.selected_data = pd.concat([self.selected_data, self.last_selection], axis = 0)
         self.selected_data.drop_duplicates(inplace = True)
         self.selected_data.dropna(inplace = True) # For sanity purposes
-        super().plot_data(field)
+        super().plotData(field)
         self.selected_data = save_selected_points
 
     def reset(self):
         self.last_selection = self.createEmptyDf()
-    
+
     def getSelectedPoints(self):
         return self.last_selection

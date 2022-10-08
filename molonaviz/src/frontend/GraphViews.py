@@ -46,12 +46,12 @@ class GraphView1D(GraphView):
         self.title = title
         self.time_dependent = time_dependent
 
-    def on_update(self):
+    def onUpdate(self):
         self.axes.clear()
-        self.reset_data()
-        self.retrieve_data()
+        self.resetData()
+        self.retrieveData()
         self.setup_x()
-        self.plot_data()
+        self.plotData()
         self.draw()
 
     def setup_x(self):
@@ -67,7 +67,7 @@ class GraphView1D(GraphView):
         else:
             pass
 
-    def plot_data(self):
+    def plotData(self):
         for index, (label, data) in enumerate(self.y.items()):
             if len(self.x) == len(data):
                 self.axes.plot(self.x, data, label=label)
@@ -78,7 +78,7 @@ class GraphView1D(GraphView):
         self.axes.set_title(self.title)
         self.axes.grid(True)
 
-    def reset_data(self):
+    def resetData(self):
         self.x = []
         self.y = {}
 
@@ -101,12 +101,12 @@ class GraphView2D(GraphView):
         self.y = []
         self.cmap = []
 
-    def on_update(self):
+    def onUpdate(self):
         self.axes.clear()
-        self.reset_data()
-        self.retrieve_data()
+        self.resetData()
+        self.retrieveData()
         self.setup_x()
-        self.plot_data()
+        self.plotData()
         self.draw()
 
     def setup_x(self):
@@ -122,7 +122,7 @@ class GraphView2D(GraphView):
         else:
             pass
 
-    def plot_data(self):
+    def plotData(self):
         if self.cmap.shape[1] ==len(self.x) and self.cmap.shape[0] == len(self.y):
             #View is not empty and should display something
             image = self.axes.imshow(self.cmap, cmap=cm.Spectral_r, aspect="auto", extent=[self.x[0], self.x[-1], float(self.y[-1]), float(self.y[0])], data="float")
@@ -132,7 +132,7 @@ class GraphView2D(GraphView):
             self.axes.set_ylabel(self.ylabel)
             self.axes.set_xlabel(self.xlabel)
 
-    def reset_data(self):
+    def resetData(self):
         self.x = []
         self.y = []
         self.cmap = []
@@ -149,22 +149,22 @@ class GraphViewHisto(GraphView):
         self.title = title
         self.xlabel = xlabel
 
-    def update_bins(self,bins):
+    def updateBins(self,bins):
         self.bins = bins
 
-    def on_update(self):
+    def onUpdate(self):
         self.axes.clear()
-        self.reset_data()
-        self.retrieve_data()
-        self.plot_data()
+        self.resetData()
+        self.retrieveData()
+        self.plotData()
         self.draw()
 
-    def plot_data(self):
+    def plotData(self):
         self.axes.hist(self.data, edgecolor='black', bins=self.bins, alpha=.3, density=True, color=self.color)
         self.axes.set_title(self.title)
         self.axes.set_xlabel(self.xlabel)
 
-    def reset_data(self):
+    def resetData(self):
         self.data = []
 
 class PressureView(GraphView1D):
@@ -174,11 +174,11 @@ class PressureView(GraphView1D):
     def __init__(self, molomodel: MoloModel | None, time_dependent=True, title="", ylabel="Voltage (V)", xlabel=""):
         super().__init__(molomodel, time_dependent, title, ylabel, xlabel)
 
-    def retrieve_data(self):
+    def retrieveData(self):
         self.x  = self.model.get_dates()
         self.y  = {"":np.float64(self.model.get_pressure())} #No label required for this one.
 
-    def show_voltage_label(self, show_voltage : bool):
+    def showVoltageLabel(self, show_voltage : bool):
         """
         Change the y-label according to show_voltage. This allows a PressureView to handle both pressure and voltage, which are two representations of the same physical quantity.
         """
@@ -194,7 +194,7 @@ class TemperatureView(GraphView1D):
     def __init__(self, molomodel: MoloModel | None, time_dependent=True, title="", ylabel="Temperature (°C)", xlabel=""):
         super().__init__(molomodel, time_dependent, title, ylabel, xlabel)
 
-    def retrieve_data(self):
+    def retrieveData(self):
         self.x  = self.model.get_dates()
         self.y  = {f"Sensor n°{i}":np.float64(temp) for i,temp in enumerate(self.model.get_temperatures())}
 
@@ -206,10 +206,10 @@ class UmbrellaView(GraphView1D):
         super().__init__(molomodel, time_dependent, title, ylabel, xlabel)
         self.nb_dates = nb_dates
 
-    def retrieve_data(self):
+    def retrieveData(self):
         self.x,self.y = self.model.get_depth_by_temp(self.nb_dates)
 
-    def plot_data(self):
+    def plotData(self):
         """
         This function needs to be overloaded for the umbrellas, as the plot function must be like plot(temps, depth) with depths being fixed.
         """
@@ -230,17 +230,17 @@ class TempDepthView(GraphView1D):
         - the first one is a depth corresponding to a thermometer
         - a list of values representing the quantiles. If this list is empty, then nothing will be displayed
     The basis state is [None, []], as no quantile can be displayed, and the view can't know at which depth is the thermometer.
-    options is NOT considered to be part of internal data, and will not be modified when calling reset_data.
+    options is NOT considered to be part of internal data, and will not be modified when calling resetData.
     """
     def __init__(self, molomodel: MoloModel | None, time_dependent=True, title="", ylabel="Temperature (°C)", xlabel="",options=[None,[]]):
         super().__init__(molomodel, time_dependent, title, ylabel, xlabel)
         self.options = options
 
-    def update_options(self,options):
+    def updateOptions(self,options):
         self.options = options
-        super().reset_data() #Refresh the plots
+        super().resetData() #Refresh the plots
 
-    def retrieve_data(self):
+    def retrieveData(self):
         if self.options[0] is not None: #A computation has been done.
             depth_thermo = self.options[0]
             self.x = self.model.get_dates()
@@ -254,7 +254,7 @@ class WaterFluxView(GraphView1D):
     def __init__(self, molomodel: MoloModel | None, time_dependent=True, title="", ylabel="Water flow  (m/s)", xlabel=""):
         super().__init__(molomodel, time_dependent, title, ylabel, xlabel)
 
-    def retrieve_data(self):
+    def retrieveData(self):
         self.x = self.model.get_dates()
         direct_model, all_flows = self.model.get_water_flow()
         if len(direct_model) != 0:
@@ -272,7 +272,7 @@ class TempMapView(GraphView2D):
     def __init__(self, molomodel: MoloModel | None, time_dependent=True, title="Temperature (C)", xlabel="", ylabel="Depth (m)"):
         super().__init__(molomodel, time_dependent, title, xlabel, ylabel)
 
-    def retrieve_data(self):
+    def retrieveData(self):
         self.cmap = self.model.get_temperatures_cmap(0)
         self.x = self.model.get_dates()
         self.y = self.model.get_depths()
@@ -284,7 +284,7 @@ class AdvectiveFlowView(GraphView2D):
     def __init__(self, molomodel: MoloModel | None, time_dependent=True, title="Advective flow (W/m²)", xlabel="", ylabel="Depth (m)"):
         super().__init__(molomodel, time_dependent, title, xlabel, ylabel)
 
-    def retrieve_data(self):
+    def retrieveData(self):
         self.cmap = self.model.get_advective_flow()
         self.x = self.model.get_dates()
         self.y = self.model.get_depths()
@@ -296,7 +296,7 @@ class ConductiveFlowView(GraphView2D):
     def __init__(self, molomodel: MoloModel | None, time_dependent=True, title="Convective flow (W/m²)", xlabel="", ylabel="Depth (m)"):
         super().__init__(molomodel, time_dependent, title, xlabel, ylabel)
 
-    def retrieve_data(self):
+    def retrieveData(self):
         self.cmap = self.model.get_conductive_flow()
         self.x = self.model.get_dates()
         self.y = self.model.get_depths()
@@ -308,7 +308,7 @@ class TotalFlowView(GraphView2D):
     def __init__(self, molomodel: MoloModel | None, time_dependent=True, title="Total energy flow (W/m²)", xlabel="", ylabel="Depth (m)"):
         super().__init__(molomodel, time_dependent, title, xlabel, ylabel)
 
-    def retrieve_data(self):
+    def retrieveData(self):
         self.cmap = self.model.get_total_flow()
         self.x = self.model.get_dates()
         self.y = self.model.get_depths()
@@ -320,7 +320,7 @@ class Log10KView(GraphViewHisto):
     def __init__(self, molomodel: MoloModel | None, bins=60, color='green', title="A posteriori histogram of the permeability", xlabel = "-log10(K)"):
         super().__init__(molomodel, bins, color, title, xlabel)
 
-    def retrieve_data(self):
+    def retrieveData(self):
         self.data = self.model.get_log10k()
 
 class PorosityView(GraphViewHisto):
@@ -330,7 +330,7 @@ class PorosityView(GraphViewHisto):
     def __init__(self, molomodel: MoloModel | None, bins=60, color='blue', title="A posteriori histogram of the porosity"):
         super().__init__(molomodel, bins, color, title)
 
-    def retrieve_data(self):
+    def retrieveData(self):
         self.data = self.model.get_porosity()
 
 class ConductivityView(GraphViewHisto):
@@ -340,7 +340,7 @@ class ConductivityView(GraphViewHisto):
     def __init__(self, molomodel: MoloModel | None, bins=60, color='orange', title="A posteriori histogram of the thermal conductivity"):
         super().__init__(molomodel, bins, color, title)
 
-    def retrieve_data(self):
+    def retrieveData(self):
         self.data = self.model.get_conductivity()
 
 class CapacityView(GraphViewHisto):
@@ -350,5 +350,5 @@ class CapacityView(GraphViewHisto):
     def __init__(self, molomodel: MoloModel | None, bins=60, color='pink', title="A posteriori histogram of the thermal capacity"):
         super().__init__(molomodel, bins, color, title)
 
-    def retrieve_data(self):
+    def retrieveData(self):
         self.data = self.model.get_capacity()

@@ -17,7 +17,7 @@ class DialogImportSPoint(QtWidgets.QDialog, From_DialogImportSPoint):
     def __init__(self, studyHandler : StudyHandler, labHandler : LabHandler):
         super(DialogImportSPoint, self).__init__()
         QtWidgets.QDialog.__init__(self)
-        
+
         self.setupUi(self)
         self.studyHandler = studyHandler
         self.labHandler = labHandler
@@ -40,9 +40,9 @@ class DialogImportSPoint(QtWidgets.QDialog, From_DialogImportSPoint):
         This is an overloaded function, called when the user presses the "OK" button.
         This function runs integrity checks on the database before allowing the dialog to be closed. Theses checks make sure the name of the point, the pressure sensor and the shaft respect database integrity: the point must not already be in the study and the sensors must exist.
         """
-        points = self.studyHandler.get_spoints_names()
-        psensors = self.labHandler.get_psensors_names()
-        shafts = self.labHandler.get_shafts_names()
+        points = self.studyHandler.getSPointsNames()
+        psensors = self.labHandler.getPSensorsNames()
+        shafts = self.labHandler.getShaftsNames()
 
         if not self.lineEditPointName.text() or not self.lineEditPSensorName.text() or not self.lineEditShaftName.text():
             displayCriticalMessage("The name of the point, the pressure sensor and the shaft cannot be empty.")
@@ -56,7 +56,7 @@ class DialogImportSPoint(QtWidgets.QDialog, From_DialogImportSPoint):
         if self.lineEditShaftName.text() not in shafts:
             displayCriticalMessage(f"There is no shaft with the name {self.lineEditShaftName.text()} in the database for this laboratory.")
             return
-        
+
         if not self.lineEditPressures.text() or not self.lineEditTemperatures.text() or not self.lineEditNotice.text() or not self.lineEditConfig.text():
             displayCriticalMessage(f"All file paths must be completed.")
             return
@@ -92,7 +92,7 @@ class DialogImportSPoint(QtWidgets.QDialog, From_DialogImportSPoint):
             files = list(os.listdir(dirPath))
             #The following list is used to check if there is at least one file for all fields.
             paths = [None,None,None,None,None] #Info, .png, notice, P_, T_
-            for file in files : 
+            for file in files :
                 if re.search('info', file) and not paths[0]:
                     filePath = os.path.join(dirPath, file)
                     success, pointName, psensorName, shaftName = self.checkInfoIntegrity(filePath)
@@ -122,8 +122,8 @@ class DialogImportSPoint(QtWidgets.QDialog, From_DialogImportSPoint):
                         paths[4] = filePath
                         self.lineEditTemperatures.setText(filePath)
             #Now handle all error messages.
-            nPath = len([elem for elem in paths if elem])  
-            if nPath<5 : 
+            nPath = len([elem for elem in paths if elem])
+            if nPath<5 :
                 displayCriticalMessage(f'Only {nPath} lines have been successfully filled. Please check your files have the correct structure and fill in the missing information manually.')
                 self.lineEditDataDir.setText('')
                 self.radioButtonManual.click()
@@ -142,11 +142,11 @@ class DialogImportSPoint(QtWidgets.QDialog, From_DialogImportSPoint):
                 self.lineEditInfo.setText(filePath)
             else:
                 displayCriticalMessage("Something went wrong and the file couldn't be imported. Check its structure and try again")
-                self.lineEditPointName.setText('') 
+                self.lineEditPointName.setText('')
                 self.lineEditPSensorName.setText('')
                 self.lineEditShaftName.setText('')
                 self.lineEditInfo.setText('')
-    
+
     def browsePressures(self):
         """
         Display a dialog so that the user may choose the file with the pressure readings: then, check if it has the correct structure.
@@ -154,8 +154,8 @@ class DialogImportSPoint(QtWidgets.QDialog, From_DialogImportSPoint):
         filePath = QtWidgets.QFileDialog.getOpenFileName(self, "Get Pressure Measures File","", "CSV files (*.csv)")[0]
         if filePath:
             if self.checkPressureFileIntegrity(filePath):
-                self.lineEditPressures.setText(filePath) 
-    
+                self.lineEditPressures.setText(filePath)
+
     def browseTemperatures(self):
         """
         Display a dialog so that the user may choose the file with the themperature readings: then, check if it has the correct structure.
@@ -163,24 +163,24 @@ class DialogImportSPoint(QtWidgets.QDialog, From_DialogImportSPoint):
         filePath = QtWidgets.QFileDialog.getOpenFileName(self, "Get Temperature Measures File","", "CSV files (*.csv)")[0]
         if filePath:
             if self.checkTemperatureFileIntegrity(filePath):
-                self.lineEditTemperatures.setText(filePath) 
-    
+                self.lineEditTemperatures.setText(filePath)
+
     def browseNotice(self):
         """
         Display a dialog so that the user may choose the notice file (a .txt file).
         """
         filePath = QtWidgets.QFileDialog.getOpenFileName(self, "Get Notice File","", "Text files (*.txt)")[0]
         if filePath:
-            self.lineEditNotice.setText(filePath) 
-    
+            self.lineEditNotice.setText(filePath)
+
     def browseConfig(self):
         """
         Display a dialog so that the user may choose the config file (a .png or .jpg file).
         """
         filePath = QtWidgets.QFileDialog.getOpenFileName(self, "Get Configuration File","", "Image files (*.jpg *png)")[0]
         if filePath:
-            self.lineEditConfig.setText(filePath) 
-    
+            self.lineEditConfig.setText(filePath)
+
     def checkInfoIntegrity(self, filePath : str):
         """
         If the Info file has the correct configuration, return True and the name of the point, pressure sensor and shaft.
@@ -194,7 +194,7 @@ class DialogImportSPoint(QtWidgets.QDialog, From_DialogImportSPoint):
             return True, pointName, psensorName,shaftName
         except:
             return False, "", "", ""
-    
+
     def checkPressureFileIntegrity(self, filePath : str):
         """
         Return True if the file with the pressure readings has the correct structure (at least 4 columns with 2 columns - voltage and temperature - being floats).
@@ -212,7 +212,7 @@ class DialogImportSPoint(QtWidgets.QDialog, From_DialogImportSPoint):
             return False
         return True
 
-    
+
     def checkTemperatureFileIntegrity(self, filePath : str):
         """
         Return True if the file with the temperature readings has the correct structure (at least 6 columns with 4 columns - corresponding to the temperatures - being floats).
@@ -229,7 +229,7 @@ class DialogImportSPoint(QtWidgets.QDialog, From_DialogImportSPoint):
             print(f"An error has occured while reading the file {os.path.basename(filePath)} : {str(e)}. This file will be ignored.")
             return False
         return True
-    
+
     def getSPointInfo(self):
         """
         Retrieve all data from the dialog: the name of the point and the sensors, as well as the paths to the files.
