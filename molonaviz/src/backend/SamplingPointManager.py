@@ -14,15 +14,15 @@ class SamplingPointModel(MoloModel):
     def __init__(self, queries):
         super().__init__(queries)
         self.data = [] #List of SamplingPoint objects
-    
+
     def update_data(self):
         while self.queries[0].next():
             newSPoint = SamplingPoint(self.queries[0].value(0), self.queries[0].value(1),self.queries[0].value(2),self.queries[0].value(3), self.queries[0].value(4))
             self.data.append(newSPoint)
-    
+
     def get_all_sampling_points(self):
         return self.data
-    
+
     def reset_data(self):
         self.data = []
 
@@ -45,7 +45,7 @@ class SamplingPointManager:
 
     def get_spoint_model(self):
         return self.spointModel
-    
+
     def get_spoints_names(self):
         """
         This function should only be called by frontend users.
@@ -57,7 +57,7 @@ class SamplingPointManager:
         while select_spoints.next():
             spoints.append(select_spoints.value(0))
         return spoints
-    
+
     def get_spoint(self, spointName):
         """
         Return a SamplingPoint object representing the sampling point with name spointName.
@@ -74,7 +74,7 @@ class SamplingPointManager:
         """
         select_spoints = self.build_select_spoints()
         self.spointModel.new_queries([select_spoints])
-    
+
     def create_new_spoint(self, pointName : str, psensorName : str, shaftName :str, noticefile : str, configfile : str, infoDF : pd.DataFrame, prawDF : pd.DataFrame, trawDF : pd.DataFrame):
         """
         This function should only be called by frontend users.
@@ -85,7 +85,7 @@ class SamplingPointManager:
             -a dataframe representing the information about the sampling point
             -two dataframes representing the raw temperatre and pressure measures. Theses dataframes must have the correct structure and must not contain empty fields (they are already processed).
         """
-        pointID = self.insert_new_point(pointName, psensorName, shaftName, noticefile, configfile, infoDF) 
+        pointID = self.insert_new_point(pointName, psensorName, shaftName, noticefile, configfile, infoDF)
 
         #Convert datetime objects (here Timestamp objects) into a string with correct date format.
         trawDF["Date"] = trawDF["Date"].dt.strftime(databaseDateFormat())
@@ -117,7 +117,7 @@ class SamplingPointManager:
 
     def insert_new_point(self, pointName : str, psensorName : str, shaftName :str, noticefile : str, configfile : str, infoDF : pd.DataFrame,):
         """
-        Create a new Sampling Point in the database with the relevant information. 
+        Create a new Sampling Point in the database with the relevant information.
         Return the ID of the created point.
         """
         #Convert date objects (or here Timestamp objets) to string with correct date format
@@ -157,7 +157,7 @@ class SamplingPointManager:
 
         insertPoint.exec()
         return insertPoint.lastInsertId()
-    
+
     def build_study_id(self, studyName : str):
         """
         Build and return a query giving the ID of the study called studyName.
@@ -194,7 +194,7 @@ class SamplingPointManager:
                         WHERE Study.ID = {self.studyID} AND SamplingPoint.Name = '{spointName}'
             """)
         return query
-    
+
     def build_psensor_id(self, psensorName : str):
         """
         Build and return a query giving the ID of the pressure sensor in this study called psensorName.
@@ -203,11 +203,11 @@ class SamplingPointManager:
         query.prepare(f"""SELECT PressureSensor.ID FROM PressureSensor
                         JOIN Labo
                         ON PressureSensor.Labo = Labo.ID
-                        JOIN Study 
+                        JOIN Study
                         ON Study.Labo = Labo.ID
                         WHERE Study.ID = '{self.studyID}' AND PressureSensor.Name = '{psensorName}'""")
         return query
-    
+
     def build_shaft_id(self, shaftName : str):
         """
         Build and return a query giving the ID of the shaft in this study called shaftName.
@@ -216,11 +216,11 @@ class SamplingPointManager:
         query.prepare(f"""SELECT Shaft.ID FROM Shaft
                         JOIN Labo
                         ON Shaft.Labo = Labo.ID
-                        JOIN Study 
+                        JOIN Study
                         ON Study.Labo = Labo.ID
                         WHERE Study.ID = '{self.studyID}' AND Shaft.Name = '{shaftName}'""")
         return query
-    
+
     def build_insert_sampling_point(self):
         """
         Build and return a query which creates a Sampling Point.
@@ -240,7 +240,7 @@ class SamplingPointManager:
                               CleanupScript)
                           VALUES (:Name, :Notice, :Setup, :LastTransfer, :Offset, :RiverBed, :Shaft, :PressureSensor, :Study, :Scheme, :CleanupScript)""")
         return query
-    
+
     def build_insert_raw_pressures(self):
         """
         Build and return a query which fills the table with raw pressure readings.
@@ -253,7 +253,7 @@ class SamplingPointManager:
                         SamplingPoint)
         VALUES (:Date, :TempBed, :Voltage, :SamplingPoint)""")
         return query
-    
+
     def build_insert_raw_temperatures(self):
         """
         Build and return a query which fills the table with raw temperature readings.

@@ -33,7 +33,7 @@ class SPointCoordinator:
         self.fluxes_model = HeatFluxesModel([])
         self.waterflux_model = WaterFluxModel([])
         self.paramsdistr_model = ParamsDistributionModel([])
-    
+
     def find_or_create_point_ID(self):
         """
         Return the Point ID corresponding to this sampling point OR if this is the first time this sampling point is opened, create the relevant entry in the Point table.
@@ -47,25 +47,25 @@ class SPointCoordinator:
             insertPoint.exec()
             return insertPoint.lastInsertId()
         return select_pointID.value(0)
-    
+
     def get_pressure_model(self):
         return self.pressuremodel
-    
+
     def get_temp_model(self):
         return self.tempmodel
-    
+
     def get_temp_map_model(self):
         return self.tempmap_model
-    
+
     def get_water_fluxes_model(self):
         return self.waterflux_model
-    
+
     def get_fluxes_model(self):
         return self.fluxes_model
-    
+
     def get_params_distr_model(self):
         return self.paramsdistr_model
-    
+
     def get_spoint_infos(self):
         """
         Return the path to the scheme, the path to notice and a model containing the informations about the sampling point.
@@ -82,7 +82,7 @@ class SPointCoordinator:
         infosModel.setQuery(select_infos)
 
         return schemePath, noticePath, infosModel
-    
+
     def get_params_model(self, layer : float):
         """
         Given a layer (identified by its depth), return the associated best parameters.
@@ -91,7 +91,7 @@ class SPointCoordinator:
         select_params.exec()
         self.paramsModel = QSqlQueryModel()
         self.paramsModel.setQuery(select_params)
-    
+
     def get_table_model(self, raw_measures : bool):
         """
         Return a model with all direct information from the database.
@@ -104,8 +104,8 @@ class SPointCoordinator:
         select_query.exec()
         self.tableModel = QSqlQueryModel()
         self.tableModel.setQuery(select_query)
-        return self.tableModel 
-    
+        return self.tableModel
+
     def all_raw_measures(self):
         """
         Return the cleaned measures in an iterable format. The result is a list of lists. The inner lists hold the following information in the following order:
@@ -130,7 +130,7 @@ class SPointCoordinator:
         while select_data.next():
             result.append(([select_data.value(i) for i in range(5)],[select_data.value(0), select_data.value(6),select_data.value(5)]))
         return result
-    
+
     def layers_depths(self):
         """
         Return a list with all the depths of the layers. It may be empty.
@@ -141,7 +141,7 @@ class SPointCoordinator:
         while select_depths_layers.next():
             layers.append(select_depths_layers.value(0))
         return layers
-    
+
     def all_RMSE(self):
         """
         Return
@@ -158,13 +158,13 @@ class SPointCoordinator:
                 globalRmse[select_globalRMSE.value(0)] = select_globalRMSE.value(1)
             else:
                 directModelRMSE = select_globalRMSE.value(1)
-        
+
         select_thermRMSE = self.build_therm_RMSE()
         select_thermRMSE.exec()
         select_thermRMSE.next()
 
         return directModelRMSE, globalRmse, [select_thermRMSE.value(i) for i in range(3)]
-    
+
     def thermo_depth(self, depth_id : int):
         """
         Given a thermometer number (1, 2, 3), return depth of associated thermometer.
@@ -191,7 +191,7 @@ class SPointCoordinator:
         select_cal_infos.exec()
         select_cal_infos.next()
         return select_cal_infos.value(0), select_cal_infos.value(1), select_cal_infos.value(2)
-    
+
     def refresh_measures_plots(self, raw_measures):
         """
         Refresh the models displaying the measures in graphs.
@@ -213,14 +213,14 @@ class SPointCoordinator:
         """
         select_params = self.build_params_distribution(layer)
         self.paramsdistr_model.new_queries([select_params])
-    
+
     def refresh_all_models(self, raw_measures_plot : bool, layer : float):
         """
         Refresh all models.
         If some models have their own function to be refreshed, then these functions should be called to prevent code duplication
         """
         self.refresh_measures_plots(raw_measures_plot)
-        
+
         #Plot the heat fluxes
         select_heatfluxes= self.build_result_queries(result_type="2DMap",option="HeatFlows") #This is a list
         select_depths = self.build_depths()
@@ -239,7 +239,7 @@ class SPointCoordinator:
 
         #Histogramms
         self.refresh_params_distr(layer)
-    
+
     def insert_cleaned_measures(self, dfCleaned : pd.DataFrame):
         """
         Insert the cleaned measures into the database.
@@ -261,7 +261,7 @@ class SPointCoordinator:
 
         query_measures = self.build_insert_cleaned_measures()
         query_measures.bindValue(":PointKey", self.pointID)
-        
+
         self.con.transaction()
         for row in dfCleaned.itertuples():
             query_dates.bindValue(":Date", row[1])
@@ -275,7 +275,7 @@ class SPointCoordinator:
             query_measures.bindValue(":Pressure", row[7])
             query_measures.exec()
         self.con.commit()
-    
+
     def delete_processed_data(self):
         """
         Delete all processed data (cleaned measures and computations). This reverts the sampling point to its original state (only raw measures)
@@ -300,7 +300,7 @@ class SPointCoordinator:
         self.con.commit()
         #Note: the Point has not been removed, but it doesn't matter. The find_or_create_point_ID function is here for this reason.
 
-    
+
     def delete_computations(self):
         """
         Delete every computations made for this point. This function builds and execute the DELETE queries. Be careful, calling it will clear the database for this point!
@@ -324,7 +324,7 @@ class SPointCoordinator:
                             TempUncertainty = NULL,
                             IncertPressure = NULL
                         WHERE ID = {self.pointID}""")
-    
+
     def computation_type(self):
         """
         Return a symbolic name (via an enumeration) representing the state of the database.
@@ -351,20 +351,20 @@ class SPointCoordinator:
                 return ComputationsState.CLEANED_MEASURES
         elif quant.value(0) ==1:
             return ComputationsState.DIRECT_MODEL
-        else: 
+        else:
             return ComputationsState.MCMC
-    
+
     def build_sampling_point_id(self, studyName : int | str, spointName : str):
         """
         Build and return a query giving the ID of the sampling point called spointName in the study with the name studyName.
         """
         query = QSqlQuery(self.con)
         query.prepare(f"""SELECT SamplingPoint.ID FROM SamplingPoint
-                        JOIN Study 
+                        JOIN Study
                         ON SamplingPoint.Study = Study.ID
                         WHERE Study.Name = '{studyName}' AND SamplingPoint.Name = '{spointName}'""")
         return query
-    
+
     def build_select_point_ID(self):
         """
         Build and return a query giving the ID of the Point corresponding to the current sampling point
@@ -377,7 +377,7 @@ class SPointCoordinator:
             WHERE SamplingPoint.ID = {self.samplingPointID}
         """)
         return query
-    
+
     def build_infos_queries(self):
         """
         Build and return two queries for the info tab:
@@ -386,38 +386,38 @@ class SPointCoordinator:
         """
         paths = QSqlQuery(self.con)
         paths.prepare(f"""
-            SELECT SamplingPoint.Scheme, SamplingPoint.Notice FROM SamplingPoint 
+            SELECT SamplingPoint.Scheme, SamplingPoint.Notice FROM SamplingPoint
             WHERE SamplingPoint.ID = {self.samplingPointID}
         """)
 
         infos = QSqlQuery(self.con)
         infos.prepare(f"""
-            SELECT SamplingPoint.Name, SamplingPoint.Setup, SamplingPoint.LastTransfer, SamplingPoint.Offset, SamplingPoint.RiverBed FROM SamplingPoint 
+            SELECT SamplingPoint.Name, SamplingPoint.Setup, SamplingPoint.LastTransfer, SamplingPoint.Offset, SamplingPoint.RiverBed FROM SamplingPoint
             WHERE SamplingPoint.ID = {self.samplingPointID}
         """)
         return paths, infos
-    
+
     def build_layers_query(self):
         """
         Build and return a query giving the depths of all the layers.
         """
         query = QSqlQuery(self.con)
         query.prepare(f"""
-            SELECT Layer.Depth FROM Layer 
+            SELECT Layer.Depth FROM Layer
             JOIN Point
             ON Layer.PointKey = Point.ID
-            WHERE Point.ID = {self.pointID} 
-            ORDER BY Layer.Depth 
+            WHERE Point.ID = {self.pointID}
+            ORDER BY Layer.Depth
         """)
         return query
-    
+
     def build_params_query(self, depth : float):
         """
         Build and return the parameters for the given depth.
         """
         query = QSqlQuery(self.con)
         query.prepare(f"""
-            SELECT BestParameters.Permeability, BestParameters.ThermConduct, BestParameters.Porosity, BestParameters.Capacity FROM BestParameters 
+            SELECT BestParameters.Permeability, BestParameters.ThermConduct, BestParameters.Porosity, BestParameters.Capacity FROM BestParameters
             JOIN Layer ON BestParameters.Layer = Layer.ID
             JOIN Point
             ON BestParameters.PointKey = Point.ID
@@ -425,7 +425,7 @@ class SPointCoordinator:
             AND Layer.Depth = {depth}
         """)
         return query
-    
+
     def build_params_distribution(self, layer : float):
         """
         Given a layer's depth, return the distribution for the 4 types of parameters.
@@ -441,14 +441,14 @@ class SPointCoordinator:
             AND Point.ID = {self.pointID}
         """)
         return query
-    
+
     def build_global_RMSE_query(self):
         """
         Build and return all the quantiles as well as the associated global RMSE.
         """
         query = QSqlQuery(self.con)
         query.prepare(f"""
-            SELECT Quantile.Quantile, RMSE.RMSETotal FROM RMSE 
+            SELECT Quantile.Quantile, RMSE.RMSETotal FROM RMSE
             JOIN Quantile
             ON RMSE.Quantile = Quantile.ID
             JOIN Point
@@ -457,14 +457,14 @@ class SPointCoordinator:
             ORDER BY Quantile.Quantile
         """)
         return query
-    
+
     def build_therm_RMSE(self):
         """
         Build and return the RMSE for the three thermometers.
         """
         query = QSqlQuery(self.con)
         query.prepare(f"""
-            SELECT RMSE1, RMSE2, RMSE3 FROM RMSE 
+            SELECT RMSE1, RMSE2, RMSE3 FROM RMSE
             JOIN Quantile
             ON RMSE.Quantile = Quantile.ID
             JOIN Point
@@ -473,7 +473,7 @@ class SPointCoordinator:
             AND Quantile.Quantile = 0
         """)
         return query
-    
+
     def build_thermo_depth(self, id : int):
         """
         Given an integer (1,2 or 3), return the associated depth of the thermometer.
@@ -484,13 +484,13 @@ class SPointCoordinator:
             query.prepare(f"""
                 SELECT Depth.Depth FROM Depth
                 JOIN RMSE
-                ON Depth.ID = RMSE.{field} 
+                ON Depth.ID = RMSE.{field}
                 JOIN Point
-                ON RMSE.PointKey = Point.ID 
+                ON RMSE.PointKey = Point.ID
                 WHERE Point.ID = {self.pointID}
-            """) 
+            """)
             return query
-    
+
     def build_raw_measures(self, full_query : bool = False, field : str = ""):
         """
         Build an return a query getting the raw measures:
@@ -568,7 +568,7 @@ class SPointCoordinator:
                 ORDER BY Date.Date
             """)
             return query
-    
+
     def build_result_queries(self,result_type ="",option=""):
         """
         Return a list of queries according to the user's wish. The list will either be of length 1 (the model was not computed before), or more than one: in this case, there are as many queries as there are quantiles: the first query corresponds to the default model (quantile 0)
@@ -590,7 +590,7 @@ class SPointCoordinator:
             return result
         else: #RAW_MEASURES or CLEANED_MEASURES
             return []
-    
+
     def define_result_queries(self,result_type ="",option="",quantile = 0):
         """
         Build and return ONE AND ONLY ONE query concerning the results.
@@ -627,7 +627,7 @@ class SPointCoordinator:
                     ON Quantile.PointKey = Point.ID
                     WHERE Point.ID = {self.pointID}
                     AND Quantile.Quantile = {quantile}
-                    ORDER BY Date.Date, Depth.Depth   
+                    ORDER BY Date.Date, Depth.Depth
                 """) #Column major: order by date
                 return query
             elif option=="HeatFlows":
@@ -646,7 +646,7 @@ class SPointCoordinator:
                     ORDER BY Date.Date, Depth.Depth
                 """)
                 return query
-        
+
     def build_depths(self):
         """
         Build and return all the depths values.
@@ -657,21 +657,21 @@ class SPointCoordinator:
             JOIN Point
             ON Depth.PointKey = Point.ID
             WHERE Point.ID = {self.pointID}
-            ORDER BY Depth.Depth  
+            ORDER BY Depth.Depth
         """)
         return query
-        
+
     def build_dates(self):
         """
         Build and return all the dates for this point.
         """
         query = QSqlQuery(self.con)
         query.prepare(f"""
-            SELECT Date.Date FROM Date 
+            SELECT Date.Date FROM Date
             JOIN Point
             ON Date.PointKey = Point.ID
             WHERE Point.ID = {self.pointID}
-            ORDER by Date.Date   
+            ORDER by Date.Date
         """)
         return query
 
@@ -685,7 +685,7 @@ class SPointCoordinator:
             JOIN Point
             ON Quantile.PointKey = Point.ID
             WHERE Point.ID = {self.pointID}
-            ORDER BY Quantile.Quantile  
+            ORDER BY Quantile.Quantile
         """)
         return query
 
@@ -696,20 +696,20 @@ class SPointCoordinator:
         shaft_depth = QSqlQuery(self.con)
         shaft_depth.prepare(f"""
             SELECT Shaft.Depth4
-            FROM Shaft 
+            FROM Shaft
             JOIN SamplingPoint
             ON Shaft.ID = SamplingPoint.Shaft
             WHERE SamplingPoint.ID = {self.samplingPointID}
             """)
         return shaft_depth
-    
+
     def build_calibration_info(self):
         """
         Build and return a query giving information to calibrate the computations: the intercept, Du/DH and Du/DT for the current point.
         """
         query = QSqlQuery(self.con)
         query.prepare(f"""
-            SELECT PressureSensor.Intercept, PressureSensor.DuDH, PressureSensor.DuDT FROM PressureSensor 
+            SELECT PressureSensor.Intercept, PressureSensor.DuDH, PressureSensor.DuDT FROM PressureSensor
             JOIN SamplingPoint
             ON PressureSensor.ID = SamplingPoint.PressureSensor
             WHERE SamplingPoint.ID = {self.samplingPointID}
@@ -724,7 +724,7 @@ class SPointCoordinator:
         query.prepare(f""" INSERT INTO Point (SamplingPoint)  VALUES (:SamplingPoint)
         """)
         return query
-    
+
     def build_insert_date(self):
         """
         Build and return a query to insert dates in the Date table.
@@ -735,7 +735,7 @@ class SPointCoordinator:
             VALUES (:Date, :PointKey)
         """)
         return query
-    
+
     def build_insert_cleaned_measures(self):
         """
         Build and return a query to insert cleaned measures in the database.
@@ -743,6 +743,6 @@ class SPointCoordinator:
         query = QSqlQuery(self.con)
         query.prepare(f"""
             INSERT INTO CleanedMeasures (Date, TempBed, Temp1, Temp2, Temp3, Temp4, Pressure, PointKey)
-            VALUES (:DateID, :TempBed, :Temp1, :Temp2, :Temp3, :Temp4, :Pressure, :PointKey)        
+            VALUES (:DateID, :TempBed, :Temp1, :Temp2, :Temp3, :Temp4, :Pressure, :PointKey)
         """)
         return query

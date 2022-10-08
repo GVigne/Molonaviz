@@ -21,7 +21,7 @@ class StudyAndLabManager:
         else:
             labID = self.insert_new_lab(labName)
             self.insert_detectors(labID, thermometersDF, psensorsDF, shaftsDF)
-    
+
     def create_new_study(self, studyName : str, labName : str):
         """
         This function should only be called by frontend users
@@ -48,7 +48,7 @@ class StudyAndLabManager:
         if similar_studies.next():
             return True
         return False
-        
+
     def get_lab_names(self, studyName = None):
         """
         This function should only be called by frontend users.
@@ -60,7 +60,7 @@ class StudyAndLabManager:
         while labs_query.next():
             labs.append(labs_query.value(0))
         return labs
-    
+
     def get_study_names(self):
         """
         This function should only be called by frontend users.
@@ -72,7 +72,7 @@ class StudyAndLabManager:
         while studies_query.next():
             studies.append(studies_query.value(0))
         return studies
-    
+
     def check_integrity(self, labName : str):
         """
         Check that this Lab is not in conflict with the database.
@@ -86,14 +86,14 @@ class StudyAndLabManager:
 
     def insert_new_lab(self, labName : str):
         """
-        Insert into the database a laboratory with name labName. We assume the insertion is valid and not in conflict with the database. 
+        Insert into the database a laboratory with name labName. We assume the insertion is valid and not in conflict with the database.
         Return the ID of the newly inserted laboratory.
         """
         insert_lab = self.build_insert_lab(labName)
         insert_lab.exec()
         print(f"The lab {labName} has been added to the database.")
         return insert_lab.lastInsertId()
-    
+
     def insert_detectors(self, labID : int|str, thermometersDF : list[pd.DataFrame], psensorsDF : list[pd.DataFrame], shaftsDF : list[pd.DataFrame]):
         """
         Add all given detectors in the database for given lab. For now, these detectors correspond to:
@@ -105,7 +105,7 @@ class StudyAndLabManager:
         #Add the thermometers
         insertQuery = self.build_insert_thermometer()
         for df in thermometersDF:
-            consName = df.iloc[0].at[1] 
+            consName = df.iloc[0].at[1]
             ref = df.iloc[1].at[1]
             name = df.iloc[2].at[1]
             sigma = float(df.iloc[3].at[1].replace(',','.'))
@@ -149,7 +149,7 @@ class StudyAndLabManager:
         for df in shaftsDF:
             name = df.iloc[0].at[1]
             datalogger = df.iloc[1].at[1]
-            tSensorName = df.iloc[2].at[1] 
+            tSensorName = df.iloc[2].at[1]
             depths = literal_eval(df.iloc[3].at[1]) #This is now a list
             select_thermo = self.build_thermo_id(labID, tSensorName)
             select_thermo.exec()
@@ -164,7 +164,7 @@ class StudyAndLabManager:
             insertShaft.bindValue(":Depth4",depths[3])
             insertShaft.bindValue(":ThermoModel",thermo_model)
             insertShaft.bindValue(":Labo",labID)
-            insertShaft.exec()  
+            insertShaft.exec()
         print("The shafts have been added to the database.")#TODO: Maybe a little check before asserting this?
 
     def build_similar_lab(self, labName : str):
@@ -174,7 +174,7 @@ class StudyAndLabManager:
         query = QSqlQuery(self.con)
         query.prepare(f"SELECT Labo.Name FROM Labo WHERE Labo.Name ='{labName}'")
         return query
-    
+
     def build_thermo_id(self, labID : int|str, thermoname : str):
         """
         Build and return a query giving the name of a given thermometer.
@@ -182,7 +182,7 @@ class StudyAndLabManager:
         selectQuery = QSqlQuery(self.con)
         selectQuery.prepare(f"SELECT Thermometer.ID FROM Thermometer WHERE Thermometer.Name = '{thermoname}' AND Thermometer.Labo = '{labID}'")
         return selectQuery
-    
+
     def build_lab_id(self, labName : str):
         """
         Build and return a query giving the ID of the laboratory called labName.
@@ -190,7 +190,7 @@ class StudyAndLabManager:
         query = QSqlQuery(self.con)
         query.prepare(f"SELECT Labo.ID FROM Labo WHERE Labo.Name ='{labName}'")
         return query
-    
+
     def build_select_labs(self, studyName = None):
         """
         Build and return a query giving all available labs in the database.
@@ -199,12 +199,12 @@ class StudyAndLabManager:
         if studyName is None:
             query.prepare("SELECT Labo.Name FROM Labo")
         else:
-             query.prepare(f"""SELECT Labo.Name FROM Labo 
+             query.prepare(f"""SELECT Labo.Name FROM Labo
                             JOIN Study
                             ON Labo.ID = Study.Labo
                             WHERE Study.name = '{studyName}' """)
         return query
-    
+
     def build_select_studies(self):
         """
         Build and return a query giving all available studies in the database.
@@ -228,7 +228,7 @@ class StudyAndLabManager:
         query = QSqlQuery(self.con)
         query.prepare(f"INSERT INTO Labo (Name) VALUES ('{labName}')")
         return query
-    
+
     def build_insert_thermometer(self):
         """
         Build and return a query which creates a thermometer.
@@ -244,7 +244,7 @@ class StudyAndLabManager:
         )
         VALUES (:Name, :ManuName, :ManuRef, :Error, :Labo)""")
         return insertQuery
-    
+
     def build_insert_psensor(self):
         """
         Build and return a query which creates a pressure sensor.
@@ -264,7 +264,7 @@ class StudyAndLabManager:
         )
         VALUES (:Name, :Datalogger, :Calibration, :Intercept, :DuDh, :DuDt, :Error, :ThermoModel, :Labo)""")
         return insertQuery
-    
+
     def build_insert_shaft(self):
         """
         Build and return a query which creates a shaft.
@@ -283,7 +283,7 @@ class StudyAndLabManager:
             )
             VALUES (:Name, :Datalogger, :Depth1, :Depth2, :Depth3, :Depth4, :ThermoModel, :Labo)""")
         return insertQuery
-    
+
     def build_insert_study(self):
         """
         Build and return a query creating a study in the database.

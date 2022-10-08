@@ -17,17 +17,17 @@ class LabEquipementManager:
         selectLabID = self.build_select_lab_id(labName)
         selectLabID.exec()
         selectLabID.next()
-        self.labID = selectLabID.value(0)    
-    
+        self.labID = selectLabID.value(0)
+
     def get_thermo_model(self):
         return self.thermoModel
-    
+
     def get_psensor_model(self):
         return self.psensorModel
-    
+
     def get_shaft_model(self):
         return self.shaftModel
-    
+
     def get_psensors_names(self):
         """
         This function should only be called by frontend users.
@@ -39,7 +39,7 @@ class LabEquipementManager:
         while select_psensors.next():
             psensors.append(select_psensors.value(0))
         return psensors
-    
+
     def get_shafts_names(self):
         """
         This function should only be called by frontend users.
@@ -51,7 +51,7 @@ class LabEquipementManager:
         while select_shafts.next():
             shafts.append(select_shafts.value(0))
         return shafts
-    
+
     def refresh_detectors(self):
         """
         This function should only be called by frontend users.
@@ -65,7 +65,7 @@ class LabEquipementManager:
 
         select_shafts = self.build_select_shafts()
         self.shaftModel.new_queries([select_shafts])
-    
+
     def build_select_lab_id(self, laboName : str):
         """
         Build and return a query giving the ID of the laboratory with name laboName.
@@ -81,11 +81,11 @@ class LabEquipementManager:
         Build and return a query which selects all thermometers corresponding to this lab.
         """
         selectQuery = QSqlQuery(self.con)
-        selectQuery.prepare(f"""SELECT Thermometer.Name, Thermometer.ManuName, Thermometer.ManuRef, Thermometer.Error  
+        selectQuery.prepare(f"""SELECT Thermometer.Name, Thermometer.ManuName, Thermometer.ManuRef, Thermometer.Error
         FROM Thermometer
         WHERE Thermometer.Labo = {self.labID}""")
         return selectQuery
-    
+
     def build_select_psensors(self):
         """
         Build and return a query which selects all pressure sensors corresponding to this lab.
@@ -96,7 +96,7 @@ class LabEquipementManager:
         FROM PressureSensor
         WHERE PressureSensor.Labo = {self.labID}""")
         return selectQuery
-    
+
     def build_select_shafts(self):
         """
         Build and return a query which selects all shafts corresponding to this lab.

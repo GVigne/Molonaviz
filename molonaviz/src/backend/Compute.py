@@ -1,6 +1,6 @@
 from PyQt5 import QtCore
 from PyQt5.QtSql import QSqlQuery
-from pyheatmy import * 
+from pyheatmy import *
 from numpy import shape
 
 from src.utils.utils import databaseDateToDatetime, datetimeToDatabaseDate
@@ -11,16 +11,16 @@ class ColumnMCMCRunner(QtCore.QObject):
     A QT runner which is meant to launch the MCMC in its own thread.
     """
     finished = QtCore.pyqtSignal()
-    
+
     def __init__(self, col, nb_iter: int, all_priors: dict, nb_cells: str, quantiles: list):
         super(ColumnMCMCRunner, self).__init__()
-        
+
         self.col = col
         self.nb_iter = nb_iter
         self.all_priors = all_priors
         self.nb_cells = nb_cells
         self.quantiles = quantiles
-        
+
     def run(self):
         print("Launching MCMC...")
         self.col.compute_mcmc(self.nb_iter, self.all_priors, self.nb_cells, self.quantiles)
@@ -31,13 +31,13 @@ class ColumnDirectModelRunner(QtCore.QObject):
     A QT runner which is meant to launch the Direct Model in its own thread.
     """
     finished = QtCore.pyqtSignal()
-    
+
     def __init__(self, col, params : list[list], nb_cells : int):
         super(ColumnDirectModelRunner, self).__init__()
         self.col = col
         self.params = params
         self.nb_cells = nb_cells
-        
+
     def run(self):
         print("Launching Direct Model...")
         layers = layersListCreator(self.params)
@@ -46,7 +46,7 @@ class ColumnDirectModelRunner(QtCore.QObject):
 
 class Compute(QtCore.QObject):
     """
-    How to use this class : 
+    How to use this class :
     - Initialise the compute engine by giving it the  database connection and ID of the current Point.
     - When computations are needed, create an associated Column objected. This requires cleaned measures to be in the database for this point. This can be made by calling compute.set_column()
     - Launch the computation :
@@ -93,7 +93,7 @@ class Compute(QtCore.QObject):
             "sigma_meas_T" : column_infos.value(7),
             "inter_mode" : "linear"
             }
-        
+
         self.col = Column.from_dict(col_dict)
 
     def compute_direct_model(self, params : list[list],  nb_cells: int):
@@ -103,7 +103,7 @@ class Compute(QtCore.QObject):
         if self.thread.isRunning():
             print("Please wait while for the previous computation to end")
             return
-    
+
         self.save_layers_and_params(params)
         self.update_nb_cells(nb_cells)
 
@@ -113,7 +113,7 @@ class Compute(QtCore.QObject):
         self.direct_runner.moveToThread(self.thread)
         self.thread.started.connect(self.direct_runner.run)
         self.thread.start()
-    
+
     def end_direct_model(self):
         """
         This is called when the DirectModel is over. Save the relevant information in the database
@@ -159,7 +159,7 @@ class Compute(QtCore.QObject):
             insertparams.bindValue(":Layer", insertlayer.lastInsertId())
             insertparams.exec()
         self.con.commit()
-    
+
     def save_direct_model_results(self, save_dates = True):
         """
         Query the database and save the direct model results.
@@ -167,7 +167,7 @@ class Compute(QtCore.QObject):
         #Quantile 0
         insertquantiles = QSqlQuery(self.con)
         insertquantiles.prepare(f"INSERT INTO Quantile (Quantile, PointKey) VALUES (0,{self.pointID})")
-        
+
         insertquantiles.exec()
         quantileID = insertquantiles.lastInsertId()
 
@@ -195,7 +195,7 @@ class Compute(QtCore.QObject):
         advecFlows = self.col.get_advec_flows_solve()
         conduFlows = self.col.get_conduc_flows_solve()
         times = self.col.get_times_solve()
-        
+
         insertTemps = QSqlQuery(self.con)
         insertTemps.prepare("""INSERT INTO TemperatureAndHeatFlows (Date, Depth, Temperature, AdvectiveFlow, ConductiveFlow, TotalFlow, PointKey, Quantile)
             VALUES (:Date, :Depth, :Temperature, :AdvectiveFlow, :ConductiveFlow, :TotalFlow, :PointKey, :Quantile)""")
@@ -222,7 +222,7 @@ class Compute(QtCore.QObject):
                 insertTemps.bindValue(":TotalFlow", float(advecFlows[i,j] + conduFlows[i,j]))
                 insertTemps.exec()
         self.con.commit()
-        
+
         #Water flows
         waterFlows = self.col.get_flows_solve(depths[0]) #Water flows at the top of the column.
         insertFlows = QSqlQuery(self.con)
@@ -248,7 +248,7 @@ class Compute(QtCore.QObject):
                  VALUES (:Depth1, :Depth2, :Depth3, :RMSE1, :RMSE2, :RMSE3, :RMSETotal, :PointKey, :Quantile)""")
         insertRMSE.bindValue(":PointKey", self.pointID)
         insertRMSE.bindValue(":Quantile", quantileID)
-        
+
         self.con.transaction()
         for i in range(1,4):
             fetchDepth.bindValue(":Depth", float(depthsensors[i-1]))
@@ -267,7 +267,7 @@ class Compute(QtCore.QObject):
         if self.thread.isRunning():
             print("Please wait while for the previous computation to end")
             return
-    
+
         self.update_nb_cells(nb_cells)
 
         self.set_column() #Updates self.col
@@ -276,7 +276,7 @@ class Compute(QtCore.QObject):
         self.mcmc_runner.moveToThread(self.thread)
         self.thread.started.connect(self.mcmc_runner.run)
         self.thread.start()
-    
+
     def end_MCMC(self):
         """
         This is called when the MCMC is over. Save the relevant information in the database.
@@ -294,9 +294,9 @@ class Compute(QtCore.QObject):
         """
         #Quantiles for the MCMC
         quantiles = self.col.get_quantiles()
-        depths = self.col.get_depths_mcmc() # Should be get_depths_solve? 
+        depths = self.col.get_depths_mcmc() # Should be get_depths_solve?
         times = self.col.get_times_mcmc()
-        
+
         sensorsID = self.col.get_id_sensors()
         depthsensors = [depths[i-1] for i in sensorsID] #Python indexing starts a 0 but cells are indexed starting at 1
 
@@ -378,7 +378,7 @@ class Compute(QtCore.QObject):
             #RMSE
             computedRMSE = self.col.get_RMSE_quantile(quantile)
             insertRMSE.bindValue(":Quantile", quantileID)
-            
+
             self.con.transaction()
             for i in range(1,4):
                 fetchDepth.bindValue(":Depth", float(depthsensors[i-1]))
@@ -389,7 +389,7 @@ class Compute(QtCore.QObject):
             insertRMSE.bindValue(":RMSETotal", float(computedRMSE[3]))
             insertRMSE.exec()
             self.con.commit()
-        
+
         #Layers
         layers = self.col.get_best_layers()
         all_params = self.col.get_all_params()
@@ -427,7 +427,7 @@ class Compute(QtCore.QObject):
             insertparams.bindValue(":Capacity", rhos_cs)
             insertparams.bindValue(":Layer", layerID)
             insertparams.exec()
-            
+
             all_params_layer = all_params[current_params_index]
             for params in all_params_layer:
                 #Convert everything to float as the parameters are of type np.float

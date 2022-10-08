@@ -165,7 +165,7 @@ class SolvedTemperatureModel(MoloModel):
     def get_dates(self):
         return databaseDateToDatetime(np.array(self.dates))
 
-    def get_depth_by_temp(self,nb_dates):
+    def get_depth_by_temp(self, nb_dates):
         """
         Return a list and a dictionnary:
         -the list corresponds to the depths array
