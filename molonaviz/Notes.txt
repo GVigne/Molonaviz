@@ -2,19 +2,13 @@ When creating a QSQlQuery object, we always give a connection. For now, the app 
 
 When creating a QSQlQuery object with a string (ie doing q =QSQlQuery("Select...")),  then the query is instantly executed. We wish to make a difference between the query in itself (the string) and the query object. Therefore, all the functions beginning with build_ return a QSQlQuery which has not been yet executed. It is up to the user to execute them at the appropriate moment. In other words, the build_ functions focus only on creating SQL-correct messages (especially important for difficult query such as in widgetpoint.py) and returning them as a QSQlQuery object, but they are not in charge of executing them, binding values...
 
-When using placeholders (and using bindValue), the convention is that placeholders have the same name as the field in the database.
-
-The config.txt file is created when the user wishes the patht to the database be remembered. It consists in just a line with the absolute path to the database, and is placed next to main.py
+The config.txt file is created when the user wishes the path to the database be remembered. It consists in just a line with the absolute path to the database, and is placed next to main.py
 
 DER_IHM.sql contains all the queries (in SQL language) required to recreate the database. It has been generated with the export function of Sqlite Studio.
 
 Studies and laboratories must have unique names for now (ie there is a UNIQUE constraint in the database).
 
 MoloTreeViewModel and MoloQtList are meant to work with object having at least the unique field or attribute "name". In Molonaviz, the objects used are "Containers" which only purpose is to store different fields, much like a SQL table.
-
-In the code, Point refers to SamplingPoint. This is because the Point table is a dummy table, used only for computations: it doesn't have any physical meaning. A SamplingPoint (in the code, a Point) corresponds to a physical implantation of different sensors giving readings.
-
-Better laboratory import and point import -> generate CSV in another window
 
 /!\ /!\ /!\ Requires python 3.10 for type hints /!\ /!\ /!\
 /!\ /!\ /!\ Not compatible with Python older than 3. exec was a reserveed keyword, so all QT code requiring to execute something (app.exec, dialog.exec, Query.exec...) used an underscore. The functions exec and exec were the same. In Python >3 exec is no longer reserved, and in PyQT6, exec disappears entirely. So, use exec and not exec /!\ /!\ /!\
@@ -33,10 +27,7 @@ CONCLUSION: Always use datetime objects in the program. In database, always stor
 
 Known bugs:
 -Compute sometimes fail after computations, with error saying directmodel must first be launched before getting data.
--When importing a lab, some messages may appear such as "The thermometers have been added to the database", despite it not being the case -> This is just very poor error handling
 -The C++ file which writes sensor data to csv take dates in the format YYYY:MM:DD:HH:MM:SS (and sampling time in format HH:MM:SS) but writes on the CSV file dates in format YYYY/MM/DD HH:MM:SS
--The pressure matplotib view is now inconsistant: if raw_data then it corresponds to a voltage, and if not raw_data it corresponds to a pressure (m)
--Open a point. A subwindow is put in the MDI area using addSubWindow: it doesn't have a scroll bar and fits on the screen. Now change to cascade (or tile view) and back again to subwindow view (the default view). This time, there is a scrollbar, so it's a big ugly: its probably because when using addSubWindow, a resize happens somewhere in some manner. I tested with setFocus but that didn't work.
 -When changing database, since the con is closed and config.txt removed BEFORE opening the "Select database dialog", if the user quits this dialog, then the action is not canceled as it should be.
 
 
