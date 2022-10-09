@@ -91,6 +91,7 @@ class SPointCoordinator:
         select_params.exec()
         self.paramsModel = QSqlQueryModel()
         self.paramsModel.setQuery(select_params)
+        return self.paramsModel
 
     def get_table_model(self, raw_measures : bool):
         """

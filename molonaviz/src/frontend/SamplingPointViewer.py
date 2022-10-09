@@ -212,6 +212,7 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         for layer in layers:
             self.comboBoxSelectLayer.addItem(str(layer))
         if len(layers) > 0:
+            # By default, show the parameters associated with the first layer.
             self.changeDisplayedParams(layers[0])
 
     def changeDisplayedParams(self, layer : float):
