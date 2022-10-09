@@ -100,6 +100,7 @@ class GraphView2D(GraphView):
         self.x = []
         self.y = []
         self.cmap = []
+        self.colorbar = None
 
     def onUpdate(self):
         self.axes.clear()
@@ -126,7 +127,7 @@ class GraphView2D(GraphView):
         if self.cmap.shape[1] ==len(self.x) and self.cmap.shape[0] == len(self.y):
             #View is not empty and should display something
             image = self.axes.imshow(self.cmap, cmap=cm.Spectral_r, aspect="auto", extent=[self.x[0], self.x[-1], float(self.y[-1]), float(self.y[0])], data="float")
-            self.fig.colorbar(image) # Add a colorbar
+            self.colorbar = self.fig.colorbar(image) # Add a colorbar
             self.axes.xaxis_date()
             self.axes.set_title(self.title)
             self.axes.set_ylabel(self.ylabel)
@@ -136,6 +137,9 @@ class GraphView2D(GraphView):
         self.x = []
         self.y = []
         self.cmap = []
+        if self.colorbar:
+            # If a colorbar exists, remove it
+            self.colorbar.remove()
 
 class GraphViewHisto(GraphView):
     """
