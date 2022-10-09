@@ -27,6 +27,8 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
         self.samplingPoint = samplingPoint
         self.coordinator = spointCoordinator
         self.computeEngine = Compute(self.coordinator)
+        self.computeEngine.DirectModelFinished.connect(self.updateAllViews)
+        self.computeEngine.MCMCFinished.connect(self.updateAllViews)
 
         self.setupUi(self)
 
@@ -397,12 +399,10 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
             self.coordinator.delete_computations()
             if dlg.computationIsMCMC():
                 #MCMC
-                self.computeEngine.MCMCFinished.connect(self.updateAllViews)
                 nb_iter, all_priors, nb_cells, quantiles = dlg.getInputMCMC()
                 self.computeEngine.compute_MCMC(nb_iter, all_priors, nb_cells, quantiles)
             else:
                 #Direct Model
-                self.computeEngine.DirectModelFinished.connect(self.updateAllViews)
                 params, nb_cells = dlg.getInputDirectModel()
                 self.computeEngine.compute_direct_model(params, nb_cells)
                 self.handleComputationsButtons()
