@@ -405,7 +405,8 @@ class SamplingPointViewer(QtWidgets.QWidget, From_SamplingPointViewer):
                 #Direct Model
                 params, nb_cells = dlg.getInputDirectModel()
                 self.computeEngine.compute_direct_model(params, nb_cells)
-                self.handleComputationsButtons()
+
+            self.handleComputationsButtons()
 
     def adjustTempRightSplitter(self, pos : int, index : int):
         """
