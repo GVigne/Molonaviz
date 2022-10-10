@@ -2,6 +2,7 @@ from PyQt5 import QtWidgets, QtGui, QtCore, uic
 from PyQt5.QtSql import QSqlDatabase
 from queue import Queue
 import sys, os.path
+from pathlib import Path
 import pandas as pd
 
 from src.frontend.dialogAboutUs import DialogAboutUs
@@ -135,10 +136,42 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         self.con.setDatabaseName(databaseFile)
         self.con.open()
 
+        self.showDatabaseName()
+
         if remember:
             with open(os.path.join(os.path.dirname(__file__),'config.txt'), 'w') as f:
                 #Write (or overwrite) the path to the database file
                 f.write(databaseDir)
+
+    def showDatabaseName(self):
+        """
+        Display in the corresponding dock widget the name of the database. Try to do something not too ugly.
+        """
+        # Let's use a Path object, it's so much easier than os's paths.
+        fullpath = Path(self.con.databaseName())
+        # As a reminder, the database is always called "Molonari.sqlite". This is not what we want: we want the
+        # directory above Molonari.sqlite.
+        self.dockDatabaseName.setWindowTitle("Database directory: " + fullpath.parent.name)
+        authorized_length = 30
+        text = fullpath.root
+        x = len(text)
+        for directory in fullpath.parts[1:]:
+            # Small hack for Linux user as the root directory is already the / character. Not very important.
+            separator = ""
+            try:
+                if text[-1] != "/":
+                    separator = "/"
+            except Exception:
+                pass
+
+            if len(directory) + x < authorized_length:
+                text = text + separator + directory
+                x += len(directory)
+            else:
+                # Doesn't fit on the line: put it on a newline instead
+                text = text + separator + "\n" + directory
+                x = len(directory)
+        self.fullDatabaseNameLabel.setText(text)
 
     def closeChildren(self):
         """
