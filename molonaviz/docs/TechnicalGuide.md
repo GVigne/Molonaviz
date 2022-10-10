@@ -249,8 +249,27 @@ There are many features which could be implemented to make molonaviz even better
 - Enhance the documentation: user guide, technical guide, API... Eventually, we could use an automatic documentation tool like sphinx to extract the docstrings.
 - Deploy Molonaviz on pip. This way instead of having to clone a repository and manually launch *python main.py*, one could install molonaviz via pip (*pip install molonaviz*) then simply type *molonaviz* in a terminal.
 
+### Known code duplicates
+Sometimes, code duplicate happens. Here is what has been duplicated:
+- *Backend*: ```save_MCMC_results``` and ```save_direct_model_results``` have a lot in common. Technically, this isn't really a code duplicate, as we could imagine database infrastructure where the direct model results and MCMC results are separate and have nothing in common. This is not the case today.
+- *Frontend*: in ```samplingPointViewer```, several functions are very similar: their name look like  ```adjust...Splitter```. This is because we sometimes want to have a grid with 4 elements, but with one big vertical slider and one big horizontal slider. The way we do this is by having a big vertical slider and having two small horizontal sliders synced together: when one moves, the other mimics its movement, giving the impression that there is only one big slider. We use twice this "Grid Splitter Widget": the proper way to do this would be to create our custom Qt Widget, and use it in Qt Designer.
 
 ### Known issues
+- **Compatibility with the Sensors group**: in theory, it is Molonaviz's job to create the .csv files needed for the Sensors group. These file essentially contains just the beginning and end date for the measures. Theses dates should be in the format YYYY:MM:DD:HH:MM:SS (take a look at [this Arduino file](#https://github.com/wisskarrou/Arduino-capteurs-molonari/blob/main/teletransmission_rive.ino). However, this same file writes on the CSV file dates in format YYYY/MM/DD HH:MM:SS. This is most likely a bug on their part.
+- Click "Change database". Then, cancel the dialog. This will quit Molonaviz and remove the config.txt file (meaning the next time the user will want to open Molonaviz, he will have to give once more the path to the database). This is because main.py's ```closeDatabase``` function remove the config.txt file and close the connection BEFORE firing up the dialog for the user tot choose a new database. This shows a bad design: creating a database should be in its own function, and the fact that the dialog was closed or opened shouldn't be part or this function. We should be doing something like:
+```
+function dialog_create_dabase():
+    dlg = Dialog()
+    res = dlg.exec()
+    if res:
+        if has_to_close_database:
+            close_database()
+        if os.exists(config.txt)
+            os.remove(config.txt)
+
+        create_new_database_and_config()
+```
+
 - Currently, the actions to switch between tabbed, cascade and subwindows views are quite broken:
     - Cascade view is completely broken and it will stretch the graphs immensely (not usable at all)
     - At first glance, subwindow view seems good. However, switching to another view (any one), then switching back to subwindow view will cause each view to have a small scrollbar. This scrollbar is not needed, is very ugly and can be confusing as some graphs will seem to be cropped, or the matplotlib toolbars will not appear.

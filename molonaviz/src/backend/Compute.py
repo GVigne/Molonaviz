@@ -390,7 +390,10 @@ class Compute(QtCore.QObject):
             insertRMSE.exec()
             self.con.commit()
 
-        #Layers
+        # Layers
+        # Warning: the code for inserting the layers is a duplicate from save_layers_and_params.
+        # We use a copy of save_layers_and_params's code just because we are lazy and don't want to
+        # create all the layers THEN query one by one to get their ID THEN insert the parameters distribution. Here, we do it all at once.
         layers = self.col.get_best_layers()
         all_params = self.col.get_all_params()
         current_params_index = 0

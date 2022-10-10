@@ -21,32 +21,60 @@ For dates:
 CONCLUSION: Always use datetime objects in the program. In database, always store strings in format YYYY/MM/DD HH:MM:SS
 
 
-Known bugs:
--Compute sometimes fail after computations, with error saying directmodel must first be launched before getting data.
--The C++ file which writes sensor data to csv take dates in the format YYYY:MM:DD:HH:MM:SS (and sampling time in format HH:MM:SS) but writes on the CSV file dates in format YYYY/MM/DD HH:MM:SS
--When changing database, since the con is closed and config.txt removed BEFORE opening the "Select database dialog", if the user quits this dialog, then the action is not canceled as it should be.
-
 Warning: Discrepancy
 -The values in the Layer table correspond to the bottom of the layer. The values in Depth correspond to the middle of the cells.
-- There is a performance discrepancy when putting results in the dabatase. Here is what is happening:
-    -the computations return arrays where each column correspond to a date and each line a Depth
-    -Overall, there are more dates than there are dates: there can be thousands of dates but probably no more than a hundred depths. Therefore, if we have to query the dates or the depths thousands of time, we prefer to query the depths: less entries = faster tree research
-    -Python is row major, so iterating over a column costs more than iterating over a row as memory isn't contiguous
- So the issue is that either Python will slow us dows because of the row major convention, or SQL will slow us down by doing queries over a table with many entries.
 
-Warning: Duplicate
--In Compute, saveLayers and saveLayersAndParams are duplicates
--saveMCMCResults and saveDirectResults are almost copies, except for the method called (get_temps_solve or get_temps_MCMC)
--In samplingPointViewer, the functions to make coordinate the splitters (have them move together) -> do a custom widget
 
 TODO:
--Problem with threads? when launching multiple computations one after the other -> the app freezes.
--What should I do with the default script, currently called sample_text.txt? Where to put it? Default value when creating a point -> when creating a Database, it should be in the Script folder
--Date management when importing raw data
--QSqlDatabasePrivate::addDatabase: duplicate connection name 'qt_sql_default_connection', old connection removed. This happens because of utils.utils createDatabaseDirectory function, which creates a QT QDatabase object: we then open the connection, and QT doesn't like having two default connections with same name. Needs investigating.
 - 2 types of thermo depths: the real one, and the depth of the cell containing the thermometers. They are distinct!
-- Fix bug where base params are not displayed properly.
 
-Camel case for frontend.
 Heatmap/ quantile: only the direct model is computed, nothing else! So nothing else is stored
 
+
+
+import pandas as pd
+from pyheatmy import *
+from numpy import isnan
+from datetime import datetime
+
+temp = pd.read_csv("point035_T_measures.csv")
+press = pd.read_csv("point035_P_measures.csv")
+truetemp = []
+truepress = []
+for elem in temp.values.tolist():
+    if not (isnan(elem[1]) or isnan(elem[2]) or isnan(elem[3]) or isnan(elem[4])):
+        first_elem = datetime.strptime(elem[0], "%m/%d/%y %H:%M:%S %p")
+        bis = [first_elem] + [elem[1:]]
+        truetemp.append(bis)
+
+for elem in press.values.tolist():
+    if not (isnan(elem[1]) or isnan(elem[2])):
+        first_elem = datetime.strptime(elem[0], "%m/%d/%y %H:%M:%S %p")
+        bis = [first_elem] + [elem[1:]]
+        truepress.append(bis)
+
+truetemp = truetemp[1:1000]
+truepress = truepress[1:1000]
+
+col_dict = {
+	        "river_bed" : 1,
+            "depth_sensors" : [0.20,0.4,0.6,1],
+	        "offset" : 0,
+            "dH_measures" : truepress,
+	        "T_measures" : truetemp,
+            "sigma_meas_P" : 0,
+            "sigma_meas_T" : 0,
+            }
+a = Column.from_dict(col_dict)
+b = Column.from_dict(col_dict)
+
+laye = layersListCreator([["Couche1",1,3,4,5,6]])
+a.compute_solve_transi(laye, 10)
+
+priors = {
+        "moinslog10K": ((1, 2), 0.01),
+        "n": ((0.1, 0.2), 0.01),
+        "lambda_s": ((1, 10), 0.01),
+        "rhos_cs": ((1, 10), 0.01) }
+
+b.compute_mcmc(10, [["Layer 1", 1, priors]], 10, [0.05,0.5,0.95])
