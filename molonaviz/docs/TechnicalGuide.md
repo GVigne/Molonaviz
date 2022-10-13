@@ -17,6 +17,8 @@ This application is loosely based on the work done during the 2022 edition of th
 
 If you want to get the general ideas about the backend and frontend for this app, you should refer [to this part of the documentation](#the-backend-frontend-distinction). If you prefer to dive directly into API consideration, [see the dedicated paragraphs in the documentation](#api).
 
+## Python requirements and pip
+Molonaviz is not compatible with Python version under 3.10 (and therefore also isn't compatible with Python 2). One of the main reason is that we use type hints with a special syntax using pipes (```|```) introduced in Python 3.10. We also will be working with the latest version of PyQt5, and are currently incompatible with PyQt6.
 
 ## The backend-frontend distinction
 ### Roles and responsabilities
@@ -28,7 +30,7 @@ The backend has three big responsabilities:
 - it must be able to store and manage information about a virtual laboratory, a virtual study, and the associated detectors' technical specificities.
 - it must be able to store the raw measures from detectors, the given cleaned measures and different types of computations. These computations are essentially time series.
 
-Currently, the storage method used is a SQL database. The ERD is given in the *docs* folder.
+Currently, the storage method used is a SQL database. The ERD is given in the ```docs``` folder, in *.png* format and *.vpd* (which allows to easily modify it using Visual Paradigm). Finally, a set of SQL instructions is avilable in the ```docs/ERD_structure.sql``` file, allowing to easily rebuild from scratch a database. This file has been generated using the export function of Sqlite Studio.
 
 #### Database structure
 The database is mostly divided into two parts: one for managing virtual labs and studies, and one for computations. A laboratory is essentially a set of detectors: currently there are only two types of detectors, pressure sensors and shafts (used to measure temperature). It should be relatively easy to add new detectors simply by creating the associated table with a foreign key onto the laboratory table.
@@ -50,11 +52,18 @@ Overall, the database structure is not a good choice as it is very slow and impr
 
 A more convenient way to store this data would be to use dedicated structures, such as the excellent HDF5 (which has a great Python API): the computation part of the database would be much easier to use, and with some work, the laboratory could also be stored.
 
+#### Best practices
+When creating an instance of a ```QSQlQuery``` object, we should always give as an argument the connection to the database. If we don't it will still work as Python will take the default connection: this is not something we want to do, as maybe one day we will have more than one connection opened at a time. Passing the connection as an argument allows frontend user to create multiple instances of backend objects linked to different databases (or the same, but with a different connection), which is much more flexible.
+
+Currently, the backend also separates the execution of queries and the way they are written. We never use ```query = QSQlQuery("SELECT....")```, instead using first ```QSQlQuery.prepare``` then ```QSQlQuery.exec```. All functions starting with ```build_...``` share the same goal: to return an instance of a QSQlQuery which hasn't been executed yet. In other words, the ```build_...``` functions focus only on creating SQL-correct messages (especially important for difficult query such as in the ```SPointCoordinator``` class) and wrapping them as a QSQlQuery object, but they are not in charge of executing them, binding values...
+
 ### Frontend
 The frontend handles communication with the end user using a User Interface (UI). For now, the UI is made using PyQt5. The frontend must be able to
 - collect information from the end user and pass it to the backend in a correct format (see API)
 - display the computations in graphs by using models
 - verify and process the times series. Accordind to the user's choices, the frontend should be able to genereate a time serie corresponding to processed (often denoted as "cleaned") measures, for example by removing anormal points or applying standard treatments (IQR, Z-score) to the raw measures.
+
+*Note:* currently, the frontend is also responsible for storing the path to the database folder so the user doesn't have to give it whenever he launches Molonaviz. This is currently done in the ```config.txt``` file, stored next to ```main.py```
 
 #### Frontend organisation
 When the user launches Molonaviz, the first thing he has access to is the main window. This is the window responsible for dispatching specific actions to other parts of the code. The main window allows the user to:
@@ -65,18 +74,59 @@ Many actions are automatically done by the models (see API). These models do not
 
 The SamplingPointViewer is the window which displays all results from a specific sampling point from a study. It is also heavily built on models so that as many things as possible are done automatically. It features a cleanup window to allow end-user to process the raw data from the sensors. The goal of this cleanup window is not to allow any type of processing. Instead, it features a few simple processing (currently Z-score and IQR), allows the user to manually remove nonsensical points, but also select a specific time period. If the end-user whishes to make complex processing, he should instead export the raw measures, process them on his own using whatever method he whishes, then import the cleaned measures into Molonaviz. This is a touchy operation, as the user could make mistakes such as change the name of the columns or put NaNs in the dataframes.
 
-## API
-### A few conventions
+## **API**
+### **Conventions**
+#### **Naming functions**
+For now, the backend functions use snake case (this_is_snake_case), whereas frontend functions use camel case (thisIsCamelCase). This creates a clear difference between backend and frontend functions, and should help structure the code a little bit.
 
-By default, the backend functions use snake case (snake_case), whereas as frontend functions use camel case (camelCase). Dates are in format ... (Quantile = 0 -> direct model => shouldnt need this!)
-Dataframes: cleaned by frontend or may fail.
-May fail = either return a strange value or raise unexpected and uncatched error.
+Unfortunately, I did a rather poor job at naming variables, and there is no clear-cut convention right now.
+
+#### **Dates**
+When communicating between backend and frontend, dates should always be in a high-level object, such as ```datetime``` objects. If this is not possible due to pandas (it often behaves very badly with datetime objects), ```pandas.Timestamps``` could also be used. Never use strings and an implicit rule (the dates are strings in the following format...).
+
+#### **Backend failing**
+In some cases, if backend functions are not called with the correct arguments, the code may fail. This means it could raise an uncatched error, or return a nonsensical value. This is especially true when handing a dataframe to the backend. Once again, it is the frontend's responsability to make sure dataframes are as error-free as possible (removing empty lines, removing NaNs, arguments of the correct type...). We use pandas's dataframes as they are useful for front-end operations, but for the backend, they will probably be interpreted as lists of lists, so the frontend should make sure this can be done.
+
+#### **Dataframe: detectors**
+An example of a working laboratory is shown in the ```example/Laboratory``` folder.
+Thermometers:
+- should hold only 2 columns, with a total of 4 rows.
+- the first column will always be ignored by the backend.
+- the second column holds (in this order):
+    - the manufacturer's name.
+    - the name of the user manual for this thermometer.
+    - the thermometer's name.
+    - the measuring error in °C.
+Pressure sensors:
+- should hold only 2 columns, with a total of 8 rows.
+- the first column will always be ignored by the backend.
+- the second column holds (in this order):
+    - the pressure sensor's name.
+    - the associated datalogger.
+    - the date it was calibrated
+    - the intercept (used to convert a voltage to a differential pressure).
+    - the differential pressure coefficient (used to convert a voltage to a differential pressure).
+    - the temperature coefficient (used to convert a voltage to a differential pressure).
+    - the measuring error.
+    - the name of the associated thermometer.
+Shafts:
+- should hold only 2 columns, with a total of 4 rows.
+- the first column will always be ignored by the backend.
+- the second column holds (in this order):
+    - the shaft's name.
+    - the associated datalogger.
+    - the name of the associated thermometer.
+    - the depth at which the thermometers are located. **Warning**: this should be a list-like string holding 4 elements (the depths, in m). A valid example for sensors located at 0.2 m, 0.4 m, 0.6 m and 0.8 m is ```[0.2, 0.4, 0.6, 0.8]```.
+
 Dataframe sensor convention.
 sampling point dataframes convention
-refresh_spoints = should be used after subscribing to a model or when the user wants to see somthing else (cf rawcheckbox)
+cleaned measures convnetions
 
-### High-level communication methods
-#### Models and Views
+#### **Functions refreshing the backend**
+In the API, a few functions can be used to force the backend to refresh. These functions should have the name ```refresh_...```. They should be used by the frontend when a new model has just subscribed to a view and when it needs to get the relevant informations, or when the end-user manually decides he would like to see something else (for example, checking or unchecking the checkbox "Raw Data").
+
+### **High-level communication methods**
+#### **Models and Views**
 In order to reduce the amount of code, increase clarity, and prevent nasty bugs, a model/view system has been implemented.
 
 A model is a backend object which can store data. A view is a frontend object which displays data nicely. Views can subscribe to a model: whenever the model has its inner data changed, it notifies all subscribed views that something happened: this is done by emitting a custom pyqt signal called *dataChanged*. It is up to the views to see how they should change their behaviour when receiving the *dataChanged* signal: a model is blind and doesn't need to know who has subscribed to it. Therefore, a model can have any number of registered views; however, a view may only be subscribed to one model.
