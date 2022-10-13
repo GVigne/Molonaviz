@@ -7,7 +7,7 @@ setup(name='molonaviz',
     package_dir = {'' : 'src'},
     packages=find_namespace_packages('src'),
     zip_safe=False,
-    install_requires = ['pyqt5', 'pandas', 'numpy', 'matplotlib'],
+    install_requires = ['pyqt5', 'pandas', 'numpy', 'matplotlib', 'tqdm', 'scipy', 'numba'],
     entry_points = {'console_scripts':
                     ['molonaviz = molonaviz.main:main']},
 
