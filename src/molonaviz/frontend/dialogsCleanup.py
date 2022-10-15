@@ -1,5 +1,3 @@
-from ntpath import join
-import os
 import pandas as pd
 
 from PyQt5 import QtWidgets, uic
@@ -7,10 +5,7 @@ from scipy import stats
 
 # from src.backend.SPointCoordinator import SPointCoordinator
 # from src.Containers import SamplingPoint
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
-from matplotlib.figure import Figure
-from matplotlib.ticker import MaxNLocator
-import matplotlib.dates as mdates
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
 import numpy as np
 
 from .cleanupCanvases import CompareCanvas, SelectCanvas, createEmptyDf

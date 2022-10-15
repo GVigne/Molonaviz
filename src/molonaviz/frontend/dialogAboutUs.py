@@ -1,6 +1,5 @@
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtGui import QPixmap
-import os.path
 from ..utils.get_files import get_ui_asset, get_imgs
 
 From_DialogAboutUs = uic.loadUiType(get_ui_asset("dialogAboutUs.ui"))[0]

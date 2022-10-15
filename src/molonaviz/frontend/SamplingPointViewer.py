@@ -1,4 +1,3 @@
-import os
 import csv
 from PyQt5 import QtWidgets, QtCore, uic, QtGui
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar

@@ -459,7 +459,7 @@ class MainWindow(QtWidgets.QMainWindow,From_MainWindow):
         """
         Display the French user guide in a new window.
         """
-        userguidepath=os.path.join(os.path.dirname(__file__),"docs","UserguideFR.pdf")
+        userguidepath = get_docs("UserguideFR.pdf")
         QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(userguidepath))
 
 def main():

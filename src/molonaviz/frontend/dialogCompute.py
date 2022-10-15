@@ -1,4 +1,3 @@
-import os
 from PyQt5 import QtWidgets, uic
 from math import log10
 from PyQt5.QtWidgets import QTableWidgetItem

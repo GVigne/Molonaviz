@@ -140,8 +140,6 @@ def checkDetectorsIntegrity(thermos : list[pd.DataFrame], psensors : list[pd.Dat
             rejected.append(shaft)
     return rejected
 
-
-
 def convertDates(df : pd.DataFrame, timesIndex = 0):
     """
     Convert dates from a list of strings by testing several different input formats

@@ -1,4 +1,3 @@
-import os
 from PyQt5 import QtWidgets, uic
 from ..utils.get_files import get_ui_asset
 
