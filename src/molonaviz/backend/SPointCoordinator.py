@@ -250,7 +250,7 @@ class SPointCoordinator:
             -row[3] : Temperature 2 with name Temp2
             -row[4] : Temperature 3 with name Temp3
             -row[5] : Temperature 4 with name Temp4
-            -row[6] : Bet temperature with name TempBed
+            -row[6] : Bed temperature with name TempBed
             -row[7] : Pressure with name Pressure
         Furthermore, they must be database friendly (ie no NaN, no empty field... Just full columns basically).
         """

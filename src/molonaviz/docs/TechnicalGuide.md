@@ -5,7 +5,6 @@
 - [The backend-frontend distinction](#the-backend-frontend-distinction)
 - [API](#api)
 
-
 ## Overview
 This is Molonaviz's technical guide. If you are an end user, this is probably not the documentation you are looking for, and you should instead refer to the user guide.
 
@@ -18,7 +17,20 @@ This application is loosely based on the work done during the 2022 edition of th
 If you want to get the general ideas about the backend and frontend for this app, you should refer [to this part of the documentation](#the-backend-frontend-distinction). If you prefer to dive directly into API consideration, [see the dedicated paragraphs in the documentation](#api).
 
 ## Python requirements and pip
-Molonaviz is not compatible with Python version under 3.10 (and therefore also isn't compatible with Python 2). One of the main reason is that we use type hints with a special syntax using pipes (```|```) introduced in Python 3.10. We also will be working with the latest version of PyQt5, and are currently incompatible with PyQt6.
+Molonaviz is not compatible with Python version under 3.10 (and therefore also isn't compatible with Python 2). One of the main reason is that we use type hints with a special syntax using pipes (```|```) introduced in Python 3.10. Molonaviz also uses the latest version of PyQt5, and is currently incompatible with PyQt6.
+
+Molonaviz has been structured as a python package. For an end-user point of view, this means you can direcly launch the app by writing ```molonaviz``` in the terminal (this can be done anywhere on the system), which is always nicer then having to navigate to a specific folder and having to use ```python main.py```. From a developper interface, this means a few things:
+- additional files with the name ```__init__.py``` have to be added to every folder in the molonaviz project, so that pip can detect they are part of the package. These ```__init__.py``` files could be configured for additional features, but right now they simply are blank.
+- internal python imports in the package can be done by using a directory-like syntax, ie ```.file``` is a file in the current folder, ```..file``` is a file in the directory above, and  ```..directory.file``` can be summed up ```../directory/file```. For more examples, see the ```SPointCoordinator.py``` file for example.
+- internal file imports (images, pdf, ui files...) have to be imported using ```pkg_resources```. Currently, this is done in ```utils/get_files.py```. This allows us not to use ```os``` and paths, and makes sure that these files can always be imported, no matter where Molonaviz is installed (and on which system).
+- the ```setup.py``` file should be configured as the package grows to hold more and more informations. Currently, it is very light, and it could greatly be improved.
+
+For additional information about packaging in Python, check out the following links:
+- https://www.freecodecamp.org/news/build-your-first-python-package/
+- https://packaging.python.org/en/latest/tutorials/packaging-projects/
+- https://python-packaging-tutorial.readthedocs.io/en/latest/setup_py.html
+
+*About imports:* Molonaviz only requires ```pyqt5```, ```pandas```, ```numpy``` and ```matplotlib```. However, ```pyheatmy``` requires ```tqdm```, ```scipy```, ```numba``` to work, but theses are **not** included in the pyheatmy module (ie you can install pyheatmy despite now having these three packages). This is probably not the way we want to go: the pyheatmy module should have its own dependencies. Molonaviz should not have to install these modules, and should instead have to install pyheatmy, which in turns install its dependecies. However, in order for Molonaviz to work right now, these modules have to be included, which is why they are listed in the required installs.
 
 ## The backend-frontend distinction
 ### Roles and responsabilities
@@ -40,9 +52,15 @@ The database is mostly divided into two parts: one for managing virtual labs and
 A sampling point represents a physical place where physical detectors have been placed. Currently, this means that sampling points are places where one (and only one) pressure sensor and one (and only one) shaft have been placed in a river. These detectors must come from the same laboratory. A study is a combination of sampling points and one laboratory.
 
 For each sampling point, there exists a point, which is a virtual object used to encompass all computations. A sampling point represents the physical implementation and gives raw measures from the river; a point represents all processed data coming from theses measures. Adding a new type of computation comes to adding new tables with a foreign key on the Point table, although one must respect a few conventions:
-- The Quantile table is used to know if a MCMC or a direct model has been launched. See [Conventions](#conventions).
+- The Quantile table is used to know if a MCMC or a direct model has been launched. The convention is that the direct model is stored as the quantile ```0```.
 - To reduce the amount of data stored, the depths and dates have their own table. This way, for each time series, instead of storing two arrays (array of dates and array of data), only one needs to be stored. This can be done because all computations share the same time scale.
 - The Layer table follows the same idea. Since it is used both for the parameters distribution (histograms) and for the best parameters (4 values which correspond to the model with minimum of energyS), it has been set in its own table.
+
+*Note*: Internally, dates are stored in the format "YYYY/MM/DD HH:MM:SS" (ex: "2017/05/12 18:54:23"). This is reminded in the ```databaseDateFormat``` function in ```utils/general.py```.
+
+*Note*: the ```TemperatureAndHeatFlows``` table had a foreign key on the ```Quantile``` table. This is because the user might want to see the computed temperature at a given depth, a given date and for a given quantile. However, for now, there is no need to have the advective, conductive and total flow for every quantile. **This leads to a redundancy in the ```TemperatureAndHeatFlows``` table, as the flows stored for the quantiles different from ```0``` (the direct model) are a duplicate of the flows for the quantile ```0``` (the direct model)**. This means we also store irrelevant data in the database: an improvement would be to leave the fields empty for the quantiles different from ```0```, but that could generate SQL issues.
+
+*Note*: There are two types of thermometers depths. Initially, the end-user will give the depth for the thermometers he has set up in the river. When doing computations, a discretisation happens, so that each thermometers fits in a cell: this creates an offset between the real depths and ones used for computations. The discretized depths should be added to the ```Point``` table, whereas the real depths should be added to the ```SamplingPoint``` table.
 
 The database structure could be greatly criticised, as it is not a great format to store scientific data. Storing such data leads to a database rapidly growing in size, as well as an increasing time complexity. This is further enhanced by PyQt5's way to do queries, as QSqlQuery objects are not iterable. This means that whenever we need to access data, we must:
 - query the database via a `QSqlQuery` object
@@ -84,6 +102,11 @@ Unfortunately, I did a rather poor job at naming variables, and there is no clea
 #### **Dates**
 When communicating between backend and frontend, dates should always be in a high-level object, such as ```datetime``` objects. If this is not possible due to pandas (it often behaves very badly with datetime objects), ```pandas.Timestamps``` could also be used. Never use strings and an implicit rule (the dates are strings in the following format...).
 
+Be careful when using ```Timestamps```, as they are really a downgraded version of ```datetime``` objects. For example, here are a few issues we can run into when using ```Timestamps```:
+- ```Timestamps``` only go from the year 1677 to the year 2262, so the spin boxes in the ```.ui``` files should be adapted
+- ```Timestamps``` can include - or not - a timezone. ```Timestamps``` with timezones and ```Timestamps``` without don't really interact nicely.
+-
+
 #### **Backend failing**
 In some cases, if backend functions are not called with the correct arguments, the code may fail. This means it could raise an uncatched error, or return a nonsensical value. This is especially true when handing a dataframe to the backend. Once again, it is the frontend's responsability to make sure dataframes are as error-free as possible (removing empty lines, removing NaNs, arguments of the correct type...). We use pandas's dataframes as they are useful for front-end operations, but for the backend, they will probably be interpreted as lists of lists, so the frontend should make sure this can be done.
 
@@ -117,10 +140,53 @@ Shafts:
     - the associated datalogger.
     - the name of the associated thermometer.
     - the depth at which the thermometers are located. **Warning**: this should be a list-like string holding 4 elements (the depths, in m). A valid example for sensors located at 0.2 m, 0.4 m, 0.6 m and 0.8 m is ```[0.2, 0.4, 0.6, 0.8]```.
+#### **Dataframe: sampling point**
+An example of a working sampling point is shown in the ```example/Point035``` folder.
+Instructions (notice):
+- this file should be a text file (.txt)
+- this file can display any sort of text.
+Diagram :
+- this file should be an image (currently a .png or .jpg file)
+Information:
+- this file should hold only 2 columns, with a total of 7 rows
+- the first column will always be ignore by the backend
+- the second column holds (in this order):
+    - the sampling point's name
+    - the name of the associated pressure sensor.
+    - the name of the shaft thermometer.
+    - the date and time it was setup in the river.
+    - the date and time it was removed from the river (end of measures).
+    - the depth of the river bed.
+    - a possible offset if the shaft was put in too deep in meters. For example, if the shaft has been put in 10 centimeters more deep than what was expected, then offset should be ```0.1```.
+Pressure measures:
+- should hold only 3 columns, and as many rows as there are measures.
+- the first row will be ignored by the backend
+- the rows hold (in this order):
+    - a date, **following the convention defined with the Sensors group**.
+    - a voltage in V.
+    - a temperature in °C.
+Temperature measures:
+- should hold only 5 columns, and as many rows as there are measures.
+- the first row will be ignored by the backend
+- the rows hold (in this order):
+    - a date, **following the convention defined with the Sensors group**.
+    - the temperature at the first depth in °C.
+    - the temperature at the second depth in °C.
+    - the temperature at the third depth in °C.
+    - the temperature at the river bed depth in °C.
 
-Dataframe sensor convention.
-sampling point dataframes convention
-cleaned measures convnetions
+#### **Dataframe: cleaned measures**
+This is a internal convention defining the way the measures, processed by the user, should be handled to the backend.
+The cleaned measures must be in dataframe, holding 8 columns and as many rows as there are measures. The first column will be ignored.
+
+The rows hold (in this order):
+- row[1] -> date (in datetime/Timestamp format). The corresponding column must be named ```Date```.
+- row[2] -> temperature at the first depth. The corresponding column must be named ```Temp1```.
+- row[3] -> temperature at the second depth. The corresponding column must be named ```Temp2```.
+- row[4] -> temperature at the third depth. The corresponding column must be named ```Temp3```.
+- row[5] -> temperature at the fourth depth. The corresponding column must be named ```Temp4```.
+- row[6] -> temperature at the river bed. The corresponding column must be named ```TempBed```.
+- row[7] -> pressure. The corresponding column must be named ```Pressure```.
 
 #### **Functions refreshing the backend**
 In the API, a few functions can be used to force the backend to refresh. These functions should have the name ```refresh_...```. They should be used by the frontend when a new model has just subscribed to a view and when it needs to get the relevant informations, or when the end-user manually decides he would like to see something else (for example, checking or unchecking the checkbox "Raw Data").
@@ -314,8 +380,8 @@ function dialog_create_dabase():
     if res:
         if has_to_close_database:
             close_database()
-        if os.exists(config.txt)
-            os.remove(config.txt)
+        if Path.exists(config.txt)
+            Path.remove(config.txt)
 
         create_new_database_and_config()
 ```
