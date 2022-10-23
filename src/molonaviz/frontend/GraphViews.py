@@ -14,7 +14,7 @@ from ..interactions.MoloModel import MoloModel
 from ..interactions.MoloView import MoloView
 from ..utils.general import dateToMdates
 
-class GraphView(FigureCanvasQTAgg, MoloView):
+class GraphView(MoloView, FigureCanvasQTAgg):
     """
     Abstract class to implement a graph view, inheriting both from the MoloView and the matplotlib canvas.
     """
